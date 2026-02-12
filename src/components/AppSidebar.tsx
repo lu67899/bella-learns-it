@@ -4,6 +4,7 @@ import {
   BrainCircuit,
   CalendarDays,
   StickyNote,
+  Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -24,6 +25,7 @@ const items = [
   { title: "Flashcards", url: "/flashcards", icon: BrainCircuit },
   { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
+  { title: "Admin", url: "/admin", icon: Shield },
 ];
 
 export function AppSidebar() {

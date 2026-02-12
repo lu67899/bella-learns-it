@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      anotacoes: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          materia: string | null
+          tags: string[] | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          materia?: string | null
+          tags?: string[] | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          materia?: string | null
+          tags?: string[] | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cronograma: {
+        Row: {
+          concluida: boolean
+          created_at: string
+          dia_semana: number
+          horario: string
+          id: string
+          materia: string
+          titulo: string
+        }
+        Insert: {
+          concluida?: boolean
+          created_at?: string
+          dia_semana: number
+          horario: string
+          id?: string
+          materia: string
+          titulo: string
+        }
+        Update: {
+          concluida?: boolean
+          created_at?: string
+          dia_semana?: number
+          horario?: string
+          id?: string
+          materia?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          created_at: string
+          id: string
+          materia: string
+          pergunta: string
+          resposta: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          materia: string
+          pergunta: string
+          resposta: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          materia?: string
+          pergunta?: string
+          resposta?: string
+        }
+        Relationships: []
+      }
+      quiz_questions: {
+        Row: {
+          correta: number
+          created_at: string
+          id: string
+          materia: string
+          opcoes: string[]
+          pergunta: string
+        }
+        Insert: {
+          correta: number
+          created_at?: string
+          id?: string
+          materia: string
+          opcoes: string[]
+          pergunta: string
+        }
+        Update: {
+          correta?: number
+          created_at?: string
+          id?: string
+          materia?: string
+          opcoes?: string[]
+          pergunta?: string
+        }
+        Relationships: []
+      }
+      resumos: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          materia: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          materia: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          materia?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -184,6 +184,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean
+          link: string | null
+          mensagem: string | null
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link?: string | null
+          mensagem?: string | null
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link?: string | null
+          mensagem?: string | null
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correta: number
@@ -237,6 +267,32 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      topico_progresso: {
+        Row: {
+          concluido_em: string
+          id: string
+          topico_id: string
+        }
+        Insert: {
+          concluido_em?: string
+          id?: string
+          topico_id: string
+        }
+        Update: {
+          concluido_em?: string
+          id?: string
+          topico_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topico_progresso_topico_id_fkey"
+            columns: ["topico_id"]
+            isOneToOne: true
+            referencedRelation: "modulo_topicos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

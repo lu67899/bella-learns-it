@@ -23,6 +23,7 @@ export type Database = {
           tags: string[] | null
           titulo: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           conteudo: string
@@ -32,6 +33,7 @@ export type Database = {
           tags?: string[] | null
           titulo: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           conteudo?: string
@@ -41,6 +43,7 @@ export type Database = {
           tags?: string[] | null
           titulo?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -53,6 +56,7 @@ export type Database = {
           id: string
           materia: string
           titulo: string
+          user_id: string
         }
         Insert: {
           concluida?: boolean
@@ -62,6 +66,7 @@ export type Database = {
           id?: string
           materia: string
           titulo: string
+          user_id: string
         }
         Update: {
           concluida?: boolean
@@ -71,6 +76,7 @@ export type Database = {
           id?: string
           materia?: string
           titulo?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -83,6 +89,7 @@ export type Database = {
           pergunta: string
           respondida: boolean
           resposta_usuario: number | null
+          user_id: string
         }
         Insert: {
           correta: number
@@ -92,6 +99,7 @@ export type Database = {
           pergunta: string
           respondida?: boolean
           resposta_usuario?: number | null
+          user_id: string
         }
         Update: {
           correta?: number
@@ -101,6 +109,7 @@ export type Database = {
           pergunta?: string
           respondida?: boolean
           resposta_usuario?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -351,22 +360,25 @@ export type Database = {
           concluido_em: string
           id: string
           topico_id: string
+          user_id: string
         }
         Insert: {
           concluido_em?: string
           id?: string
           topico_id: string
+          user_id: string
         }
         Update: {
           concluido_em?: string
           id?: string
           topico_id?: string
+          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "topico_progresso_topico_id_fkey"
             columns: ["topico_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "modulo_topicos"
             referencedColumns: ["id"]
           },

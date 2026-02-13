@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Modulo {
   id: string;
@@ -24,6 +25,7 @@ interface Topico {
 
 const ModuloPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [modulo, setModulo] = useState<Modulo | null>(null);
   const [topicos, setTopicos] = useState<Topico[]>([]);
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null);
@@ -60,7 +62,7 @@ const ModuloPage = () => {
         return next;
       });
     } else {
-      await supabase.from("topico_progresso").insert({ topico_id: topicoId });
+      await supabase.from("topico_progresso").insert({ topico_id: topicoId, user_id: user!.id });
       setCompletedIds((prev) => new Set(prev).add(topicoId));
     }
   };

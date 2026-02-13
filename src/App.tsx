@@ -9,6 +9,7 @@ import Flashcards from "./pages/Flashcards";
 import Cronograma from "./pages/Cronograma";
 import Anotacoes from "./pages/Anotacoes";
 import Admin from "./pages/Admin";
+import ModuloPage from "./pages/Modulo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/cronograma" element={<Cronograma />} />
           <Route path="/anotacoes" element={<Anotacoes />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/modulo/:id" element={<ModuloPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

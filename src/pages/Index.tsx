@@ -271,19 +271,29 @@ const Index = () => {
 
         {/* Frase Motivacional */}
         {frases.length > 0 && (
-          <motion.div variants={item} className="text-center py-2">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={fraseIdx}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.5 }}
-                className="text-xs text-muted-foreground/60 italic"
-              >
-                "{frases[fraseIdx]}"
-              </motion.p>
-            </AnimatePresence>
+          <motion.div variants={item}>
+            <div className="relative rounded-lg bg-primary/5 border border-primary/10 px-5 py-4 overflow-hidden">
+              <span className="absolute top-2 left-3 text-primary/20 text-2xl font-serif leading-none">"</span>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={fraseIdx}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="text-sm text-center text-foreground/70 italic pl-4"
+                >
+                  {frases[fraseIdx]}
+                </motion.p>
+              </AnimatePresence>
+              {frases.length > 1 && (
+                <div className="flex justify-center gap-1 mt-3">
+                  {frases.map((_, i) => (
+                    <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i === fraseIdx ? "w-4 bg-primary/50" : "w-1 bg-muted"}`} />
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </motion.div>

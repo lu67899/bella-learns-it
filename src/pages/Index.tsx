@@ -64,13 +64,14 @@ const Index = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [modRes, topRes, mRes, progRes, notifRes, desafiosRes, frasesRes] = await Promise.all([
+      const [modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes] = await Promise.all([
         supabase.from("modulos").select("*").order("ordem"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
         supabase.from("mensagens").select("*").order("created_at", { ascending: true }),
         supabase.from("topico_progresso").select("topico_id"),
         supabase.from("notificacoes").select("*").order("created_at", { ascending: false }).limit(20),
-        supabase.from("desafios_semanais").select("id, respondida"),
+        supabase.from("desafios_semanais").select("id"),
+        supabase.from("desafio_respostas").select("desafio_id"),
         supabase.from("frases_motivacionais").select("texto").eq("ativa", true),
       ]);
 
@@ -98,8 +99,8 @@ const Index = () => {
       }
       if (notifRes.data) setNotificacoes(notifRes.data);
       if (desafiosRes.data) {
-        const d = desafiosRes.data as { id: string; respondida: boolean }[];
-        setDesafiosCount({ total: d.length, respondidos: d.filter((x) => x.respondida).length });
+        const respondidos = (respostasRes.data || []).length;
+        setDesafiosCount({ total: desafiosRes.data.length, respondidos });
       }
       if (frasesRes.data) setFrases(frasesRes.data.map((f: any) => f.texto));
     };

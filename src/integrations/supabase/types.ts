@@ -80,6 +80,38 @@ export type Database = {
         }
         Relationships: []
       }
+      desafio_respostas: {
+        Row: {
+          created_at: string
+          desafio_id: string
+          id: string
+          resposta_usuario: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          desafio_id: string
+          id?: string
+          resposta_usuario: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          desafio_id?: string
+          id?: string
+          resposta_usuario?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desafio_respostas_desafio_id_fkey"
+            columns: ["desafio_id"]
+            isOneToOne: false
+            referencedRelation: "desafios_semanais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       desafios_semanais: {
         Row: {
           correta: number
@@ -87,9 +119,6 @@ export type Database = {
           id: string
           opcoes: string[]
           pergunta: string
-          respondida: boolean
-          resposta_usuario: number | null
-          user_id: string
         }
         Insert: {
           correta: number
@@ -97,9 +126,6 @@ export type Database = {
           id?: string
           opcoes: string[]
           pergunta: string
-          respondida?: boolean
-          resposta_usuario?: number | null
-          user_id: string
         }
         Update: {
           correta?: number
@@ -107,9 +133,6 @@ export type Database = {
           id?: string
           opcoes?: string[]
           pergunta?: string
-          respondida?: boolean
-          resposta_usuario?: number | null
-          user_id?: string
         }
         Relationships: []
       }

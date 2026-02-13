@@ -122,6 +122,68 @@ export type Database = {
         }
         Relationships: []
       }
+      modulo_topicos: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          modulo_id: string
+          ordem: number
+          titulo: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          modulo_id: string
+          ordem?: number
+          titulo: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          modulo_id?: string
+          ordem?: number
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modulo_topicos_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modulos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correta: number

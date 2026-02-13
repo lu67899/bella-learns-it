@@ -21,13 +21,14 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-interface ModuloDB {
+interface CursoDB {
   id: string;
   nome: string;
   descricao: string | null;
   ordem: number;
-  topicos_count?: number;
-  completed_count?: number;
+  modulos_count?: number;
+  total_topicos?: number;
+  completed_topicos?: number;
 }
 
 interface Mensagem {
@@ -49,7 +50,7 @@ interface Notificacao {
 const Index = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const [modulos, setModulos] = useState<ModuloDB[]>([]);
+  const [cursos, setCursos] = useState<CursoDB[]>([]);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
   const [chatAberto, setChatAberto] = useState(false);
@@ -64,8 +65,9 @@ const Index = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes] = await Promise.all([
-        supabase.from("modulos").select("*").order("ordem"),
+      const [cursoRes, modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes] = await Promise.all([
+        supabase.from("cursos").select("*").order("ordem"),
+        supabase.from("modulos").select("id, curso_id"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
         supabase.from("mensagens").select("*").order("created_at", { ascending: true }),
         supabase.from("topico_progresso").select("topico_id"),
@@ -75,6 +77,7 @@ const Index = () => {
         supabase.from("frases_motivacionais").select("texto").eq("ativa", true),
       ]);
 
+      // Build module->topicos map
       const topicosByModule = new Map<string, string[]>();
       (topRes.data || []).forEach((t: any) => {
         const arr = topicosByModule.get(t.modulo_id) || [];
@@ -84,11 +87,28 @@ const Index = () => {
 
       const completedSet = new Set((progRes.data || []).map((p: any) => p.topico_id));
 
-      const mods = (modRes.data || []).map((m: any) => {
-        const topicIds = topicosByModule.get(m.id) || [];
-        return { ...m, topicos_count: topicIds.length, completed_count: topicIds.filter((id) => completedSet.has(id)).length };
+      // Build curso->modules map
+      const modulesByCurso = new Map<string, string[]>();
+      (modRes.data || []).forEach((m: any) => {
+        if (m.curso_id) {
+          const arr = modulesByCurso.get(m.curso_id) || [];
+          arr.push(m.id);
+          modulesByCurso.set(m.curso_id, arr);
+        }
       });
-      setModulos(mods);
+
+      const cursosData = (cursoRes.data || []).map((c: any) => {
+        const modIds = modulesByCurso.get(c.id) || [];
+        let totalTopicos = 0;
+        let completedTopicos = 0;
+        modIds.forEach((modId) => {
+          const topicIds = topicosByModule.get(modId) || [];
+          totalTopicos += topicIds.length;
+          completedTopicos += topicIds.filter((tid) => completedSet.has(tid)).length;
+        });
+        return { ...c, modulos_count: modIds.length, total_topicos: totalTopicos, completed_topicos: completedTopicos };
+      });
+      setCursos(cursosData);
 
       const totalTopics = Array.from(topicosByModule.values()).flat().length;
       setOverallProgress(totalTopics > 0 ? (completedSet.size / totalTopics) * 100 : 0);
@@ -241,26 +261,29 @@ const Index = () => {
           </div>
         </motion.div>
 
-        {/* Módulos */}
+        {/* Cursos */}
         <motion.div variants={item} className="space-y-3">
-          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Módulos</p>
-          {modulos.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Nenhum módulo cadastrado.</p>
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Cursos</p>
+          {cursos.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
           ) : (
             <div className="space-y-2">
-              {modulos.map((mod, i) => {
-                const pct = (mod.topicos_count || 0) > 0 ? ((mod.completed_count || 0) / (mod.topicos_count || 1)) * 100 : 0;
+              {cursos.map((curso) => {
+                const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
                 return (
-                  <Link key={mod.id} to={`/modulo/${mod.id}`}>
+                  <Link key={curso.id} to={`/curso/${curso.id}`}>
                     <div className="group flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/30 transition-all cursor-pointer">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-mono font-semibold text-muted-foreground group-hover:text-primary transition-colors">
-                        {pct === 100 ? <CheckCircle2 className="h-4 w-4 text-primary" /> : i + 1}
+                        {pct === 100 ? <CheckCircle2 className="h-4 w-4 text-primary" /> : "📚"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-mono text-sm truncate">{mod.nome}</p>
+                        <p className="font-mono text-sm truncate">{curso.nome}</p>
+                        {curso.descricao && <p className="text-xs text-muted-foreground truncate">{curso.descricao}</p>}
                         <div className="flex items-center gap-2 mt-1">
                           <Progress value={pct} className="h-1 flex-1" />
-                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{Math.round(pct)}%</span>
+                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+                            {curso.modulos_count || 0} módulos · {Math.round(pct)}%
+                          </span>
                         </div>
                       </div>
                       <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />

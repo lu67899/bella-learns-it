@@ -50,6 +50,50 @@
     --neon-pink: 320 70% 60%;
     --neon-green: 150 70% 50%;
   }
+
+  [data-theme="pink"] {
+    --background: 340 30% 96%;
+    --foreground: 340 20% 15%;
+
+    --card: 340 25% 92%;
+    --card-foreground: 340 20% 15%;
+
+    --popover: 340 25% 92%;
+    --popover-foreground: 340 20% 15%;
+
+    --primary: 340 65% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 20% 88%;
+    --secondary-foreground: 340 20% 20%;
+
+    --muted: 340 15% 90%;
+    --muted-foreground: 340 10% 45%;
+
+    --accent: 320 50% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 15% 85%;
+    --input: 340 15% 85%;
+    --ring: 340 65% 55%;
+
+    --sidebar-background: 340 28% 94%;
+    --sidebar-foreground: 340 10% 40%;
+    --sidebar-primary: 340 65% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 340 20% 90%;
+    --sidebar-accent-foreground: 340 20% 15%;
+    --sidebar-border: 340 15% 87%;
+    --sidebar-ring: 340 65% 55%;
+
+    --neon-purple: 340 65% 55%;
+    --neon-cyan: 320 50% 48%;
+    --neon-pink: 350 70% 60%;
+    --neon-green: 340 40% 65%;
+  }
 }
 
 @layer base {

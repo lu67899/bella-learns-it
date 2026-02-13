@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Tarefa {
   id: string;
@@ -30,6 +31,7 @@ const Cronograma = () => {
   const [editing, setEditing] = useState<Tarefa | null>(null);
   const [form, setForm] = useState({ titulo: "", materia: "", dia_semana: "0", horario: "" });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchTarefas = async () => {
     const { data, error } = await supabase.from("cronograma").select("*").order("dia_semana").order("horario");
@@ -60,7 +62,7 @@ const Cronograma = () => {
     if (editing) {
       await supabase.from("cronograma").update(payload).eq("id", editing.id);
     } else {
-      await supabase.from("cronograma").insert(payload);
+      await supabase.from("cronograma").insert({ ...payload, user_id: user!.id });
     }
     toast({ title: editing ? "Tarefa atualizada!" : "Tarefa adicionada!" });
     setDialogOpen(false);

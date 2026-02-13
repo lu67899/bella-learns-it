@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DesafioSemanal {
   id: string;
@@ -21,6 +22,7 @@ interface DesafioSemanal {
 
 const Desafios = () => {
   const [desafios, setDesafios] = useState<DesafioSemanal[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const load = async () => {

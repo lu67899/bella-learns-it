@@ -12,6 +12,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Anotacao {
   id: string;
@@ -94,6 +95,7 @@ const Anotacoes = () => {
   const [viewing, setViewing] = useState<Anotacao | null>(null);
   const [form, setForm] = useState({ titulo: "", conteudo: "", materia: "", tags: "" });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const load = async () => {
     const { data, error } = await supabase.from("anotacoes").select("*").order("created_at", { ascending: false });
@@ -118,7 +120,7 @@ const Anotacoes = () => {
     if (editing) {
       await supabase.from("anotacoes").update(payload).eq("id", editing.id);
     } else {
-      await supabase.from("anotacoes").insert(payload);
+      await supabase.from("anotacoes").insert({ ...payload, user_id: user!.id });
     }
     toast({ title: editing ? "Anotação atualizada!" : "Anotação criada!" });
     setDialogOpen(false);

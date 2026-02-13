@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,11 +85,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="modulos">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="modulos" className="gap-1 text-xs"><GraduationCap className="h-3 w-3" /> Módulos</TabsTrigger>
             <TabsTrigger value="resumos" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> Resumos</TabsTrigger>
             <TabsTrigger value="flashcards" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Flashcards</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Quiz</TabsTrigger>
+            <TabsTrigger value="desafios" className="gap-1 text-xs"><Trophy className="h-3 w-3" /> Desafios</TabsTrigger>
             <TabsTrigger value="mensagens" className="gap-1 text-xs"><MessageCircle className="h-3 w-3" /> Chat</TabsTrigger>
           </TabsList>
 
@@ -97,6 +98,7 @@ const Admin = () => {
           <TabsContent value="resumos"><ResumosTab /></TabsContent>
           <TabsContent value="flashcards"><FlashcardsTab /></TabsContent>
           <TabsContent value="quiz"><QuizTab /></TabsContent>
+          <TabsContent value="desafios"><DesafiosTab /></TabsContent>
           <TabsContent value="mensagens"><MensagensTab /></TabsContent>
         </Tabs>
       </div>
@@ -342,8 +344,115 @@ function QuizTab() {
 }
 
 
+// ─── DESAFIOS SEMANAIS TAB ──────────────────────────────
+interface DesafioSemanal { id: string; pergunta: string; opcoes: string[]; correta: number; respondida: boolean; resposta_usuario: number | null; created_at: string; }
 
-// ─── MENSAGENS TAB ───────────────────────────────────────
+function DesafiosTab() {
+  const [items, setItems] = useState<DesafioSemanal[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<DesafioSemanal | null>(null);
+  const [form, setForm] = useState({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" });
+
+  const load = async () => {
+    const { data } = await supabase.from("desafios_semanais").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data as DesafioSemanal[]);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.pergunta || !form.opcao1 || !form.opcao2 || !form.opcao3 || !form.opcao4) return;
+    const payload = {
+      pergunta: form.pergunta,
+      opcoes: [form.opcao1, form.opcao2, form.opcao3, form.opcao4],
+      correta: parseInt(form.correta),
+    };
+    if (editing) {
+      await supabase.from("desafios_semanais").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("desafios_semanais").insert(payload);
+      await supabase.from("notificacoes").insert({
+        titulo: "Novo desafio semanal! 🏆",
+        mensagem: `Um novo desafio foi adicionado. Teste seus conhecimentos!`,
+        tipo: "novo_conteudo",
+        link: "/",
+      });
+    }
+    toast.success("Desafio salvo!"); setDialogOpen(false); setEditing(null);
+    setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("desafios_semanais").delete().eq("id", id);
+    toast.success("Removido!"); load();
+  };
+
+  const edit = (item: DesafioSemanal) => {
+    setEditing(item);
+    setForm({
+      pergunta: item.pergunta,
+      opcao1: item.opcoes[0] || "", opcao2: item.opcoes[1] || "",
+      opcao3: item.opcoes[2] || "", opcao4: item.opcoes[3] || "",
+      correta: String(item.correta),
+    });
+    setDialogOpen(true);
+  };
+
+  const resetDesafio = async (id: string) => {
+    await supabase.from("desafios_semanais").update({ respondida: false, resposta_usuario: null }).eq("id", id);
+    toast.success("Desafio resetado!"); load();
+  };
+
+  return (
+    <CrudSection title="Desafios da Semana" count={items.length} onAdd={() => { setEditing(null); setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader><TableRow><TableHead>Pergunta</TableHead><TableHead>Status</TableHead><TableHead className="w-32">Ações</TableHead></TableRow></TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm">{item.pergunta}</TableCell>
+              <TableCell>
+                <Badge variant={item.respondida ? "default" : "outline"} className={item.respondida ? "bg-primary/20 text-primary border-primary/30" : ""}>
+                  {item.respondida ? (item.resposta_usuario === item.correta ? "✅ Acertou" : "❌ Errou") : "Pendente"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  {item.respondida && (
+                    <Button variant="ghost" size="icon" onClick={() => resetDesafio(item.id)} title="Resetar">
+                      <ArrowUp className="h-3 w-3" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Desafio</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Pergunta" value={form.pergunta} onChange={(e) => setForm({ ...form, pergunta: e.target.value })} />
+            {[1, 2, 3, 4].map((n) => (
+              <Input key={n} placeholder={`Opção ${n}`} value={(form as any)[`opcao${n}`]} onChange={(e) => setForm({ ...form, [`opcao${n}`]: e.target.value })} />
+            ))}
+            <Select value={form.correta} onValueChange={(v) => setForm({ ...form, correta: v })}>
+              <SelectTrigger><SelectValue placeholder="Resposta correta" /></SelectTrigger>
+              <SelectContent>
+                {[0, 1, 2, 3].map((i) => <SelectItem key={i} value={String(i)}>Opção {i + 1}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
+  );
+}
+
+
 function MensagensTab() {
   const [items, setItems] = useState<{ id: string; remetente: string; conteudo: string; lida: boolean; created_at: string }[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");

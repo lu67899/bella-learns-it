@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      desafios_semanais: {
+        Row: {
+          correta: number
+          created_at: string
+          id: string
+          opcoes: string[]
+          pergunta: string
+          respondida: boolean
+          resposta_usuario: number | null
+        }
+        Insert: {
+          correta: number
+          created_at?: string
+          id?: string
+          opcoes: string[]
+          pergunta: string
+          respondida?: boolean
+          resposta_usuario?: number | null
+        }
+        Update: {
+          correta?: number
+          created_at?: string
+          id?: string
+          opcoes?: string[]
+          pergunta?: string
+          respondida?: boolean
+          resposta_usuario?: number | null
+        }
+        Relationships: []
+      }
       flashcards: {
         Row: {
           created_at: string

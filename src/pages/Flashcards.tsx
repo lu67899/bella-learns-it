@@ -142,9 +142,24 @@ const Flashcards = () => {
                 <p className="text-xs text-muted-foreground/60">Adicione flashcards pelo painel admin</p>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-6">
-                <p className="text-sm text-muted-foreground font-mono">{cardIndex + 1} / {filtrados.length}</p>
-                <div className="w-full max-w-md cursor-pointer perspective-1000" onClick={() => setFlipped(!flipped)}>
+              <div className="flex flex-col items-center gap-8">
+                {/* Progress dots */}
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  {filtrados.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-2 rounded-full transition-all ${
+                        i === cardIndex ? "w-6 bg-primary" : "w-2 bg-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Card */}
+                <div
+                  className="w-full max-w-md cursor-pointer select-none"
+                  onClick={() => setFlipped(!flipped)}
+                >
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`${filtrados[cardIndex]?.id}-${flipped}`}
@@ -153,18 +168,67 @@ const Flashcards = () => {
                       exit={{ rotateY: -90, opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Card className={`min-h-[220px] flex items-center justify-center border-glow ${flipped ? "glow-cyan" : "glow-purple"}`}>
-                        <CardContent className="p-8 text-center">
-                          <Badge variant="outline" className="mb-4 text-[10px]">{flipped ? "Resposta" : "Pergunta"}</Badge>
-                          <p className="text-lg font-medium">{flipped ? filtrados[cardIndex]?.resposta : filtrados[cardIndex]?.pergunta}</p>
-                        </CardContent>
-                      </Card>
+                      <div
+                        className={`relative min-h-[260px] flex flex-col items-center justify-center rounded-xl p-8 transition-all ${
+                          flipped
+                            ? "bg-accent/10 border border-accent/30"
+                            : "bg-primary/10 border border-primary/30"
+                        }`}
+                      >
+                        {/* Label no canto */}
+                        <span className={`absolute top-4 left-4 text-[10px] font-mono uppercase tracking-widest ${
+                          flipped ? "text-accent" : "text-primary"
+                        }`}>
+                          {flipped ? "Resposta" : "Pergunta"}
+                        </span>
+
+                        {/* Matéria */}
+                        <span className="absolute top-4 right-4 text-[10px] font-mono text-muted-foreground">
+                          {filtrados[cardIndex]?.materia}
+                        </span>
+
+                        {/* Conteúdo */}
+                        <p className="text-lg font-medium text-center leading-relaxed">
+                          {flipped ? filtrados[cardIndex]?.resposta : filtrados[cardIndex]?.pergunta}
+                        </p>
+
+                        {/* Dica de interação */}
+                        {!flipped && (
+                          <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1 }}
+                            className="absolute bottom-4 text-[10px] text-muted-foreground/50 font-mono flex items-center gap-1"
+                          >
+                            <RotateCcw className="h-3 w-3" /> toque para ver a resposta
+                          </motion.p>
+                        )}
+                      </div>
                     </motion.div>
                   </AnimatePresence>
                 </div>
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setFlipped(!flipped)} className="gap-2"><RotateCcw className="h-4 w-4" /> Virar</Button>
-                  <Button onClick={nextCard} className="gap-2">Próximo <ChevronRight className="h-4 w-4" /></Button>
+
+                {/* Navegação */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={cardIndex === 0}
+                    onClick={() => { setFlipped(false); setCardIndex(prev => prev - 1); }}
+                    className="rounded-full"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <span className="text-sm font-mono text-muted-foreground">{cardIndex + 1} de {filtrados.length}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={cardIndex === filtrados.length - 1}
+                    onClick={nextCard}
+                    className="rounded-full"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
             )}

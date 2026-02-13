@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, CalendarDays, StickyNote, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,13 +85,11 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="modulos">
-          <TabsList className="grid grid-cols-7 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="modulos" className="gap-1 text-xs"><GraduationCap className="h-3 w-3" /> Módulos</TabsTrigger>
             <TabsTrigger value="resumos" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> Resumos</TabsTrigger>
             <TabsTrigger value="flashcards" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Flashcards</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Quiz</TabsTrigger>
-            <TabsTrigger value="cronograma" className="gap-1 text-xs"><CalendarDays className="h-3 w-3" /> Cronograma</TabsTrigger>
-            <TabsTrigger value="anotacoes" className="gap-1 text-xs"><StickyNote className="h-3 w-3" /> Anotações</TabsTrigger>
             <TabsTrigger value="mensagens" className="gap-1 text-xs"><MessageCircle className="h-3 w-3" /> Chat</TabsTrigger>
           </TabsList>
 
@@ -99,8 +97,6 @@ const Admin = () => {
           <TabsContent value="resumos"><ResumosTab /></TabsContent>
           <TabsContent value="flashcards"><FlashcardsTab /></TabsContent>
           <TabsContent value="quiz"><QuizTab /></TabsContent>
-          <TabsContent value="cronograma"><CronogramaTab /></TabsContent>
-          <TabsContent value="anotacoes"><AnotacoesTab /></TabsContent>
           <TabsContent value="mensagens"><MensagensTab /></TabsContent>
         </Tabs>
       </div>
@@ -338,148 +334,7 @@ function QuizTab() {
   );
 }
 
-// ─── CRONOGRAMA TAB ──────────────────────────────────────
-function CronogramaTab() {
-  const [items, setItems] = useState<CronogramaItem[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<CronogramaItem | null>(null);
-  const [form, setForm] = useState({ titulo: "", materia: "", dia_semana: "1", horario: "" });
 
-  const load = async () => {
-    const { data } = await supabase.from("cronograma").select("*").order("dia_semana").order("horario");
-    if (data) setItems(data);
-  };
-  useEffect(() => { load(); }, []);
-
-  const save = async () => {
-    if (!form.titulo || !form.materia || !form.horario) return;
-    const payload = { ...form, dia_semana: parseInt(form.dia_semana) };
-    if (editing) {
-      await supabase.from("cronograma").update(payload).eq("id", editing.id);
-    } else {
-      await supabase.from("cronograma").insert(payload);
-    }
-    toast.success("Salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", materia: "", dia_semana: "1", horario: "" }); load();
-  };
-
-  const remove = async (id: string) => {
-    await supabase.from("cronograma").delete().eq("id", id);
-    toast.success("Removido!"); load();
-  };
-
-  const edit = (item: CronogramaItem) => {
-    setEditing(item); setForm({ titulo: item.titulo, materia: item.materia, dia_semana: String(item.dia_semana), horario: item.horario }); setDialogOpen(true);
-  };
-
-  return (
-    <CrudSection title="Cronograma" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", materia: "", dia_semana: "1", horario: "" }); setDialogOpen(true); }}>
-      <Table>
-        <TableHeader><TableRow><TableHead>Dia</TableHead><TableHead>Horário</TableHead><TableHead>Tarefa</TableHead><TableHead>Matéria</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="text-sm">{diasSemana[item.dia_semana]}</TableCell>
-              <TableCell className="font-mono text-sm">{item.horario}</TableCell>
-              <TableCell className="font-mono text-sm">{item.titulo}</TableCell>
-              <TableCell><Badge variant="outline" className="text-primary border-primary/30">{item.materia}</Badge></TableCell>
-              <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Tarefa</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <Input placeholder="Título da tarefa" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-            <Select value={form.materia} onValueChange={(v) => setForm({ ...form, materia: v })}>
-              <SelectTrigger><SelectValue placeholder="Matéria" /></SelectTrigger>
-              <SelectContent>{materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={form.dia_semana} onValueChange={(v) => setForm({ ...form, dia_semana: v })}>
-              <SelectTrigger><SelectValue placeholder="Dia da semana" /></SelectTrigger>
-              <SelectContent>{diasSemana.map((d, i) => <SelectItem key={i} value={String(i)}>{d}</SelectItem>)}</SelectContent>
-            </Select>
-            <Input placeholder="Horário (ex: 08:00)" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} />
-            <Button onClick={save} className="w-full">Salvar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </CrudSection>
-  );
-}
-
-// ─── ANOTAÇÕES TAB ───────────────────────────────────────
-function AnotacoesTab() {
-  const [items, setItems] = useState<Anotacao[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Anotacao | null>(null);
-  const [form, setForm] = useState({ titulo: "", conteudo: "", materia: "", tags: "" });
-
-  const load = async () => {
-    const { data } = await supabase.from("anotacoes").select("*").order("created_at", { ascending: false });
-    if (data) setItems(data);
-  };
-  useEffect(() => { load(); }, []);
-
-  const save = async () => {
-    if (!form.titulo || !form.conteudo) return;
-    const payload = {
-      titulo: form.titulo,
-      conteudo: form.conteudo,
-      materia: form.materia || null,
-      tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : null,
-    };
-    if (editing) {
-      await supabase.from("anotacoes").update(payload).eq("id", editing.id);
-    } else {
-      await supabase.from("anotacoes").insert(payload);
-    }
-    toast.success("Anotação salva!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", conteudo: "", materia: "", tags: "" }); load();
-  };
-
-  const remove = async (id: string) => {
-    await supabase.from("anotacoes").delete().eq("id", id);
-    toast.success("Removida!"); load();
-  };
-
-  const edit = (item: Anotacao) => {
-    setEditing(item); setForm({ titulo: item.titulo, conteudo: item.conteudo, materia: item.materia || "", tags: item.tags?.join(", ") || "" }); setDialogOpen(true);
-  };
-
-  return (
-    <CrudSection title="Anotações" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", conteudo: "", materia: "", tags: "" }); setDialogOpen(true); }}>
-      <Table>
-        <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Matéria</TableHead><TableHead>Tags</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-mono text-sm">{item.titulo}</TableCell>
-              <TableCell>{item.materia ? <Badge variant="outline" className="text-primary border-primary/30">{item.materia}</Badge> : "—"}</TableCell>
-              <TableCell><div className="flex gap-1 flex-wrap">{item.tags?.map((t) => <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>)}</div></TableCell>
-              <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Anotação</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-            <Select value={form.materia} onValueChange={(v) => setForm({ ...form, materia: v })}>
-              <SelectTrigger><SelectValue placeholder="Matéria (opcional)" /></SelectTrigger>
-              <SelectContent>{materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-            <Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} />
-            <Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
-            <Button onClick={save} className="w-full">Salvar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </CrudSection>
-  );
-}
 
 // ─── MENSAGENS TAB ───────────────────────────────────────
 function MensagensTab() {

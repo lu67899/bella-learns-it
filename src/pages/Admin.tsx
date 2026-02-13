@@ -85,16 +85,18 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="materias">
-          <TabsList className="grid grid-cols-8 w-full">
-            <TabsTrigger value="materias" className="gap-1 text-xs"><Tag className="h-3 w-3" /> Matérias</TabsTrigger>
-            <TabsTrigger value="modulos" className="gap-1 text-xs"><GraduationCap className="h-3 w-3" /> Módulos</TabsTrigger>
-            <TabsTrigger value="resumos" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> Resumos</TabsTrigger>
-            <TabsTrigger value="flashcards" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Flashcards</TabsTrigger>
-            <TabsTrigger value="quiz" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Quiz</TabsTrigger>
-            <TabsTrigger value="desafios" className="gap-1 text-xs"><Trophy className="h-3 w-3" /> Desafios</TabsTrigger>
-            <TabsTrigger value="frases" className="gap-1 text-xs"><Sparkles className="h-3 w-3" /> Frases</TabsTrigger>
-            <TabsTrigger value="mensagens" className="gap-1 text-xs"><MessageCircle className="h-3 w-3" /> Chat</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="inline-flex h-auto min-w-max gap-1 p-1.5 flex-wrap md:flex-nowrap">
+              <TabsTrigger value="materias" className="gap-2 px-4 py-2.5 text-sm"><Tag className="h-4 w-4" /> Matérias</TabsTrigger>
+              <TabsTrigger value="modulos" className="gap-2 px-4 py-2.5 text-sm"><GraduationCap className="h-4 w-4" /> Módulos</TabsTrigger>
+              <TabsTrigger value="resumos" className="gap-2 px-4 py-2.5 text-sm"><BookOpen className="h-4 w-4" /> Resumos</TabsTrigger>
+              <TabsTrigger value="flashcards" className="gap-2 px-4 py-2.5 text-sm"><BrainCircuit className="h-4 w-4" /> Flashcards</TabsTrigger>
+              <TabsTrigger value="quiz" className="gap-2 px-4 py-2.5 text-sm"><BrainCircuit className="h-4 w-4" /> Quiz</TabsTrigger>
+              <TabsTrigger value="desafios" className="gap-2 px-4 py-2.5 text-sm"><Trophy className="h-4 w-4" /> Desafios</TabsTrigger>
+              <TabsTrigger value="frases" className="gap-2 px-4 py-2.5 text-sm"><Sparkles className="h-4 w-4" /> Frases</TabsTrigger>
+              <TabsTrigger value="mensagens" className="gap-2 px-4 py-2.5 text-sm"><MessageCircle className="h-4 w-4" /> Chat</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="materias"><MateriasTab /></TabsContent>
           <TabsContent value="modulos"><ModulosTab /></TabsContent>

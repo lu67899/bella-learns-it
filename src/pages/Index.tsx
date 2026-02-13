@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -58,6 +58,7 @@ const Index = () => {
   const [overallProgress, setOverallProgress] = useState(0);
   const [desafiosCount, setDesafiosCount] = useState({ total: 0, respondidos: 0 });
   const [frases, setFrases] = useState<string[]>([]);
+  const [fraseIdx, setFraseIdx] = useState(0);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -106,6 +107,12 @@ const Index = () => {
   useEffect(() => {
     if (scrollRef.current && chatAberto) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [mensagens, chatAberto]);
+
+  useEffect(() => {
+    if (frases.length <= 1) return;
+    const interval = setInterval(() => setFraseIdx((p) => (p + 1) % frases.length), 6000);
+    return () => clearInterval(interval);
+  }, [frases]);
 
   const abrirChat = async () => {
     setChatAberto(true);
@@ -262,20 +269,21 @@ const Index = () => {
           )}
         </motion.div>
 
-        {/* Frases Motivacionais - Marquee */}
+        {/* Frase Motivacional */}
         {frases.length > 0 && (
-          <motion.div variants={item} className="overflow-hidden py-3 border-t border-b border-border/50">
-            <motion.div
-              className="flex gap-8 whitespace-nowrap"
-              animate={{ x: ["0%", "-50%"] }}
-              transition={{ duration: frases.length * 8, repeat: Infinity, ease: "linear" }}
-            >
-              {[...frases, ...frases].map((frase, i) => (
-                <span key={i} className="text-xs font-mono text-muted-foreground/70 flex items-center gap-2">
-                  <span className="text-primary/50">✦</span> {frase}
-                </span>
-              ))}
-            </motion.div>
+          <motion.div variants={item} className="text-center py-2">
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={fraseIdx}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.5 }}
+                className="text-xs text-muted-foreground/60 italic"
+              >
+                "{frases[fraseIdx]}"
+              </motion.p>
+            </AnimatePresence>
           </motion.div>
         )}
       </motion.div>

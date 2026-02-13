@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Layout } from "@/components/Layout";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { supabase } from "@/integrations/supabase/client";
 
 const quickLinks = [
   { title: "Resumos", desc: "Revisar matérias", icon: BookOpen, url: "/resumos", color: "text-neon-purple" },
@@ -24,16 +25,25 @@ const item = {
 };
 
 const Index = () => {
-  const [quizScores] = useLocalStorage<Record<string, number[]>>("bella-quiz-scores", {});
-  const [cronograma] = useLocalStorage<any[]>("bella-cronograma", []);
+  const [stats, setStats] = useState({ resumos: 0, flashcards: 0, tarefas: 0, tarefasConcluidas: 0 });
 
-  const totalQuizzes = Object.values(quizScores).flat().length;
-  const avgScore = totalQuizzes > 0
-    ? Math.round(Object.values(quizScores).flat().reduce((a, b) => a + b, 0) / totalQuizzes)
-    : 0;
-
-  const tarefasConcluidas = cronograma.filter((t: any) => t.concluida).length;
-  const totalTarefas = cronograma.length;
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [rRes, fRes, cRes] = await Promise.all([
+        supabase.from("resumos").select("id", { count: "exact", head: true }),
+        supabase.from("flashcards").select("id", { count: "exact", head: true }),
+        supabase.from("cronograma").select("id, concluida"),
+      ]);
+      const tarefas = cRes.data || [];
+      setStats({
+        resumos: rRes.count || 0,
+        flashcards: fRes.count || 0,
+        tarefas: tarefas.length,
+        tarefasConcluidas: tarefas.filter((t: any) => t.concluida).length,
+      });
+    };
+    fetchStats();
+  }, []);
 
   const hora = new Date().getHours();
   const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
@@ -41,7 +51,6 @@ const Index = () => {
   return (
     <Layout>
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
         <motion.div variants={item} className="space-y-1">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary animate-pulse-glow" />
@@ -53,27 +62,26 @@ const Index = () => {
           <p className="text-muted-foreground">Pronta para mais um dia de estudos?</p>
         </motion.div>
 
-        {/* Stats */}
         <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="bg-card border-border border-glow">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">
-                <BrainCircuit className="h-5 w-5 text-primary" />
+                <BookOpen className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono">{totalQuizzes}</p>
-                <p className="text-xs text-muted-foreground">Quizzes feitos</p>
+                <p className="text-2xl font-bold font-mono">{stats.resumos}</p>
+                <p className="text-xs text-muted-foreground">Resumos</p>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-card border-border border-glow">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/15">
-                <TrendingUp className="h-5 w-5 text-accent" />
+                <BrainCircuit className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono">{avgScore}%</p>
-                <p className="text-xs text-muted-foreground">Média de acertos</p>
+                <p className="text-2xl font-bold font-mono">{stats.flashcards}</p>
+                <p className="text-xs text-muted-foreground">Flashcards</p>
               </div>
             </CardContent>
           </Card>
@@ -81,14 +89,13 @@ const Index = () => {
             <CardContent className="p-4 space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Tarefas da semana</span>
-                <span className="font-mono text-primary">{tarefasConcluidas}/{totalTarefas}</span>
+                <span className="font-mono text-primary">{stats.tarefasConcluidas}/{stats.tarefas}</span>
               </div>
-              <Progress value={totalTarefas > 0 ? (tarefasConcluidas / totalTarefas) * 100 : 0} className="h-2" />
+              <Progress value={stats.tarefas > 0 ? (stats.tarefasConcluidas / stats.tarefas) * 100 : 0} className="h-2" />
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Quick Links */}
         <motion.div variants={item}>
           <h2 className="text-lg font-mono font-semibold mb-4">Acesso Rápido</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

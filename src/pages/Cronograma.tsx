@@ -1,22 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, Plus, Check, Trash2 } from "lucide-react";
+import { CalendarDays, Check, Loader2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { materias } from "@/data/resumos";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Tarefa {
   id: string;
   materia: string;
   titulo: string;
-  dia: string;
+  dia_semana: number;
   horario: string;
   concluida: boolean;
 }
@@ -24,60 +20,54 @@ interface Tarefa {
 const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
 const Cronograma = () => {
-  const [tarefas, setTarefas] = useLocalStorage<Tarefa[]>("bella-cronograma", []);
-  const [dialogAberto, setDialogAberto] = useState(false);
-  const [form, setForm] = useState({ materia: "", titulo: "", dia: "", horario: "" });
+  const [tarefas, setTarefas] = useState<Tarefa[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const salvar = () => {
-    if (!form.materia || !form.titulo || !form.dia) return;
-    setTarefas((prev) => [...prev, { id: `t-${Date.now()}`, ...form, concluida: false }]);
-    setForm({ materia: "", titulo: "", dia: "", horario: "" });
-    setDialogAberto(false);
+  const fetchTarefas = async () => {
+    const { data, error } = await supabase.from("cronograma").select("*").order("created_at");
+    if (error) {
+      toast({ title: "Erro ao carregar cronograma", variant: "destructive" });
+    } else {
+      setTarefas(data || []);
+    }
+    setLoading(false);
   };
 
-  const toggleConcluida = (id: string) => {
-    setTarefas((prev) => prev.map((t) => (t.id === id ? { ...t, concluida: !t.concluida } : t)));
-  };
+  useEffect(() => { fetchTarefas(); }, []);
 
-  const excluir = (id: string) => {
-    setTarefas((prev) => prev.filter((t) => t.id !== id));
+  const toggleConcluida = async (id: string) => {
+    const tarefa = tarefas.find((t) => t.id === id);
+    if (!tarefa) return;
+    const { error } = await supabase.from("cronograma").update({ concluida: !tarefa.concluida }).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao atualizar", variant: "destructive" });
+    } else {
+      setTarefas((prev) => prev.map((t) => (t.id === id ? { ...t, concluida: !t.concluida } : t)));
+    }
   };
 
   const total = tarefas.length;
   const concluidas = tarefas.filter((t) => t.concluida).length;
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
-              <CalendarDays className="h-6 w-6 text-neon-pink" /> Cronograma
-            </h1>
-            <p className="text-sm text-muted-foreground">Planeje sua semana de estudos</p>
-          </div>
-          <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
-            <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Nova Tarefa</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle className="font-mono">Nova Tarefa</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <Select value={form.dia} onValueChange={(v) => setForm({ ...form, dia: v })}>
-                  <SelectTrigger><SelectValue placeholder="Dia da semana" /></SelectTrigger>
-                  <SelectContent>{diasSemana.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={form.materia} onValueChange={(v) => setForm({ ...form, materia: v })}>
-                  <SelectTrigger><SelectValue placeholder="Matéria" /></SelectTrigger>
-                  <SelectContent>{materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-                </Select>
-                <Input placeholder="O que estudar?" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-                <Input placeholder="Horário (ex: 14:00 - 16:00)" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} />
-                <Button onClick={salvar} className="w-full">Salvar</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+        <div>
+          <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
+            <CalendarDays className="h-6 w-6 text-neon-pink" /> Cronograma
+          </h1>
+          <p className="text-sm text-muted-foreground">Seu planejamento semanal de estudos</p>
         </div>
 
-        {/* Progress */}
         {total > 0 && (
           <Card className="bg-card border-glow">
             <CardContent className="p-4 space-y-2">
@@ -90,10 +80,9 @@ const Cronograma = () => {
           </Card>
         )}
 
-        {/* Grid por dia */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {diasSemana.map((dia) => {
-            const tarefasDia = tarefas.filter((t) => t.dia === dia);
+          {diasSemana.map((dia, idx) => {
+            const tarefasDia = tarefas.filter((t) => t.dia_semana === idx);
             return (
               <motion.div key={dia} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className="bg-card border-border h-full">
@@ -117,9 +106,6 @@ const Cronograma = () => {
                             <p className="text-[10px] text-muted-foreground">{t.materia}</p>
                             {t.horario && <p className="text-[10px] text-primary font-mono">{t.horario}</p>}
                           </div>
-                          <button onClick={() => excluir(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
                         </div>
                       ))
                     )}

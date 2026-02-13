@@ -57,16 +57,18 @@ const Index = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [overallProgress, setOverallProgress] = useState(0);
   const [desafiosCount, setDesafiosCount] = useState({ total: 0, respondidos: 0 });
+  const [frases, setFrases] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [modRes, topRes, mRes, progRes, notifRes, desafiosRes] = await Promise.all([
+      const [modRes, topRes, mRes, progRes, notifRes, desafiosRes, frasesRes] = await Promise.all([
         supabase.from("modulos").select("*").order("ordem"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
         supabase.from("mensagens").select("*").order("created_at", { ascending: true }),
         supabase.from("topico_progresso").select("topico_id"),
         supabase.from("notificacoes").select("*").order("created_at", { ascending: false }).limit(20),
         supabase.from("desafios_semanais").select("id, respondida"),
+        supabase.from("frases_motivacionais").select("texto").eq("ativa", true),
       ]);
 
       const topicosByModule = new Map<string, string[]>();
@@ -96,6 +98,7 @@ const Index = () => {
         const d = desafiosRes.data as { id: string; respondida: boolean }[];
         setDesafiosCount({ total: d.length, respondidos: d.filter((x) => x.respondida).length });
       }
+      if (frasesRes.data) setFrases(frasesRes.data.map((f: any) => f.texto));
     };
     fetchAll();
   }, []);
@@ -258,6 +261,23 @@ const Index = () => {
             </div>
           )}
         </motion.div>
+
+        {/* Frases Motivacionais - Marquee */}
+        {frases.length > 0 && (
+          <motion.div variants={item} className="overflow-hidden py-3 border-t border-b border-border/50">
+            <motion.div
+              className="flex gap-8 whitespace-nowrap"
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ duration: frases.length * 8, repeat: Infinity, ease: "linear" }}
+            >
+              {[...frases, ...frases].map((frase, i) => (
+                <span key={i} className="text-xs font-mono text-muted-foreground/70 flex items-center gap-2">
+                  <span className="text-primary/50">✦</span> {frase}
+                </span>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Chat */}

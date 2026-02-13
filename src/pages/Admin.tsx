@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,12 +85,13 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="modulos">
-          <TabsList className="grid grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="modulos" className="gap-1 text-xs"><GraduationCap className="h-3 w-3" /> Módulos</TabsTrigger>
             <TabsTrigger value="resumos" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> Resumos</TabsTrigger>
             <TabsTrigger value="flashcards" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Flashcards</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Quiz</TabsTrigger>
             <TabsTrigger value="desafios" className="gap-1 text-xs"><Trophy className="h-3 w-3" /> Desafios</TabsTrigger>
+            <TabsTrigger value="frases" className="gap-1 text-xs"><Sparkles className="h-3 w-3" /> Frases</TabsTrigger>
             <TabsTrigger value="mensagens" className="gap-1 text-xs"><MessageCircle className="h-3 w-3" /> Chat</TabsTrigger>
           </TabsList>
 
@@ -99,6 +100,7 @@ const Admin = () => {
           <TabsContent value="flashcards"><FlashcardsTab /></TabsContent>
           <TabsContent value="quiz"><QuizTab /></TabsContent>
           <TabsContent value="desafios"><DesafiosTab /></TabsContent>
+          <TabsContent value="frases"><FrasesTab /></TabsContent>
           <TabsContent value="mensagens"><MensagensTab /></TabsContent>
         </Tabs>
       </div>
@@ -705,6 +707,77 @@ function ModulosTab() {
         </DialogContent>
       </Dialog>
     </Card>
+  );
+}
+
+// ─── FRASES MOTIVACIONAIS TAB ────────────────────────────
+interface FraseMotivacional { id: string; texto: string; ativa: boolean; created_at: string; }
+
+function FrasesTab() {
+  const [items, setItems] = useState<FraseMotivacional[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<FraseMotivacional | null>(null);
+  const [form, setForm] = useState({ texto: "" });
+
+  const load = async () => {
+    const { data } = await supabase.from("frases_motivacionais").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data as FraseMotivacional[]);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.texto) return;
+    if (editing) {
+      await supabase.from("frases_motivacionais").update({ texto: form.texto }).eq("id", editing.id);
+    } else {
+      await supabase.from("frases_motivacionais").insert({ texto: form.texto });
+    }
+    toast.success("Frase salva!"); setDialogOpen(false); setEditing(null); setForm({ texto: "" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("frases_motivacionais").delete().eq("id", id);
+    toast.success("Removida!"); load();
+  };
+
+  const toggleAtiva = async (item: FraseMotivacional) => {
+    await supabase.from("frases_motivacionais").update({ ativa: !item.ativa }).eq("id", item.id);
+    load();
+  };
+
+  return (
+    <CrudSection title="Frases Motivacionais" count={items.length} onAdd={() => { setEditing(null); setForm({ texto: "" }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader><TableRow><TableHead>Frase</TableHead><TableHead className="w-20">Ativa</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id} className={!item.ativa ? "opacity-50" : ""}>
+              <TableCell className="text-sm">{item.texto}</TableCell>
+              <TableCell>
+                <Button variant="ghost" size="sm" onClick={() => toggleAtiva(item)} className="text-xs">
+                  {item.ativa ? "✅" : "❌"}
+                </Button>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ texto: item.texto }); setDialogOpen(true); }}><Edit2 className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Frase</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Textarea placeholder="Digite a frase motivacional..." rows={3} value={form.texto} onChange={(e) => setForm({ texto: e.target.value })} />
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
   );
 }
 

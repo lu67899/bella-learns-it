@@ -22,7 +22,7 @@ const Resumos = () => {
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
   const [materiaFiltro, setMateriaFiltro] = useState<string>("todas");
-  const [resumoAberto, setResumoAberto] = useState<Resumo | null>(null);
+  const [expandido, setExpandido] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchResumos = async () => {
@@ -74,37 +74,51 @@ const Resumos = () => {
 
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
-        ) : resumoAberto ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Button variant="ghost" onClick={() => setResumoAberto(null)} className="mb-4 gap-2"><X className="h-4 w-4" /> Voltar</Button>
-            <Card className="bg-card border-glow">
-              <CardHeader>
-                <Badge variant="outline" className="mb-2 text-primary border-primary/30 w-fit">{resumoAberto.materia}</Badge>
-                <CardTitle className="font-mono text-xl">{resumoAberto.titulo}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                  {resumoAberto.conteudo}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
         ) : filtrados.length === 0 ? (
           <div className="text-center py-16 space-y-2">
             <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30" />
             <p className="text-muted-foreground">Nenhum resumo encontrado</p>
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtrados.map((r) => (
-              <Card key={r.id} className="bg-card border-border hover:border-primary/30 transition-all cursor-pointer group" onClick={() => setResumoAberto(r)}>
-                <CardContent className="p-5">
-                  <Badge variant="outline" className="mb-2 text-xs text-primary border-primary/30">{r.materia}</Badge>
-                  <h3 className="font-mono font-semibold mb-2 group-hover:text-primary transition-colors">{r.titulo}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{r.conteudo.slice(0, 120)}...</p>
-                </CardContent>
-              </Card>
-            ))}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+            {filtrados.map((r) => {
+              const isOpen = expandido === r.id;
+              return (
+                <Card
+                  key={r.id}
+                  className={`bg-card border-border transition-all cursor-pointer ${isOpen ? 'border-primary/40' : 'hover:border-primary/20'}`}
+                  onClick={() => setExpandido(isOpen ? null : r.id)}
+                >
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <Badge variant="outline" className="mb-2 text-xs text-primary border-primary/30">{r.materia}</Badge>
+                        <h3 className="font-mono font-semibold group-hover:text-primary transition-colors">{r.titulo}</h3>
+                        {!isOpen && (
+                          <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{r.conteudo.slice(0, 100)}...</p>
+                        )}
+                      </div>
+                      <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                        <X className={`h-4 w-4 text-muted-foreground shrink-0 mt-1 transition-transform ${isOpen ? '' : 'rotate-45'}`} />
+                      </motion.div>
+                    </div>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="mt-4 pt-4 border-t border-border"
+                      >
+                        <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+                          {r.conteudo}
+                        </div>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </motion.div>
         )}
       </div>

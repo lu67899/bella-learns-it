@@ -273,6 +273,13 @@ function QuizTab() {
       await supabase.from("quiz_questions").update(payload).eq("id", editing.id);
     } else {
       await supabase.from("quiz_questions").insert(payload);
+      // Criar notificação para Bella sobre novo quiz
+      await supabase.from("notificacoes").insert({
+        titulo: "Novo Quiz disponível! 🎯",
+        mensagem: `Nova questão de ${form.materia} foi adicionada. Teste seus conhecimentos!`,
+        tipo: "novo_conteudo",
+        link: "/flashcards",
+      });
     }
     toast.success("Questão salva!"); setDialogOpen(false); setEditing(null);
     setForm({ materia: "", pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" }); load();

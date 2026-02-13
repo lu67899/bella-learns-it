@@ -132,16 +132,16 @@ const Flashcards = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="max-w-sm mx-auto space-y-5">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
-              <BrainCircuit className="h-6 w-6 text-accent" /> Flashcards & Quiz
+            <h1 className="text-lg font-mono font-bold flex items-center gap-2">
+              <BrainCircuit className="h-5 w-5 text-accent" /> Flashcards & Quiz
             </h1>
-            <p className="text-sm text-muted-foreground">Teste seus conhecimentos</p>
+            <p className="text-xs text-muted-foreground">Teste seus conhecimentos</p>
           </div>
-          <Select value={materiaFiltro} onValueChange={(v) => { setMateriaFiltro(v); setCardIndex(0); setFlipped(false); }}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <Select value={materiaFiltro} onValueChange={(v) => { setMateriaFiltro(v); setCardIndex(0); setFlipped(false); setRespostaDigitada(""); setFcRespondido(false); setFcAcertou(null); }}>
+            <SelectTrigger className="w-32 h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas</SelectItem>
               {materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -150,96 +150,71 @@ const Flashcards = () => {
         </div>
 
         <Tabs defaultValue="flashcards">
-          <TabsList className="bg-secondary">
-            <TabsTrigger value="flashcards" className="font-mono text-xs">Flashcards</TabsTrigger>
-            <TabsTrigger value="quiz" className="font-mono text-xs">Quiz</TabsTrigger>
+          <TabsList className="bg-secondary h-8">
+            <TabsTrigger value="flashcards" className="font-mono text-[11px] h-6">Flashcards</TabsTrigger>
+            <TabsTrigger value="quiz" className="font-mono text-[11px] h-6">Quiz</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="flashcards" className="mt-6">
+          <TabsContent value="flashcards" className="mt-4">
             {filtrados.length === 0 ? (
-              <div className="text-center py-16 space-y-2">
-                <BrainCircuit className="h-12 w-12 mx-auto text-muted-foreground/30" />
-                <p className="text-muted-foreground">Nenhum flashcard cadastrado</p>
-                <p className="text-xs text-muted-foreground/60">Adicione flashcards pelo painel admin</p>
+              <div className="text-center py-12 space-y-2">
+                <BrainCircuit className="h-10 w-10 mx-auto text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">Nenhum flashcard cadastrado</p>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-6">
+              <div className="flex flex-col items-center gap-4">
                 {/* Progress dots */}
-                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                <div className="flex items-center gap-1 flex-wrap justify-center">
                   {filtrados.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-2 rounded-full transition-all ${
-                        i === cardIndex ? "w-6 bg-primary" : "w-2 bg-muted"
-                      }`}
-                    />
+                    <div key={i} className={`h-1.5 rounded-full transition-all ${i === cardIndex ? "w-5 bg-primary" : "w-1.5 bg-muted"}`} />
                   ))}
                 </div>
 
-                {/* Pergunta */}
-                <div className="w-full max-w-md">
-                  <div className="relative min-h-[160px] flex flex-col items-center justify-center rounded-xl p-8 bg-primary/10 border border-primary/30">
-                    <span className="absolute top-4 left-4 text-[10px] font-mono uppercase tracking-widest text-primary">
-                      Pergunta
-                    </span>
-                    <span className="absolute top-4 right-4 text-[10px] font-mono text-muted-foreground">
-                      {filtrados[cardIndex]?.materia}
-                    </span>
-                    <p className="text-lg font-medium text-center leading-relaxed">
-                      {filtrados[cardIndex]?.pergunta}
-                    </p>
+                {/* Pergunta compacta */}
+                <div className="w-full rounded-lg p-5 bg-primary/8 border border-primary/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-primary">Pergunta</span>
+                    <span className="text-[9px] font-mono text-muted-foreground">{filtrados[cardIndex]?.materia}</span>
                   </div>
+                  <p className="text-base font-medium text-center leading-relaxed">{filtrados[cardIndex]?.pergunta}</p>
+                  <span className="block text-center text-[10px] text-muted-foreground/40 mt-3 font-mono">{cardIndex + 1}/{filtrados.length}</span>
                 </div>
 
-                {/* Campo de resposta */}
-                <div className="w-full max-w-md space-y-3">
-                  <form onSubmit={(e) => { e.preventDefault(); verificarResposta(); }} className="flex gap-2">
-                    <Input
-                      ref={inputRef}
-                      placeholder="Digite sua resposta..."
-                      value={respostaDigitada}
-                      onChange={(e) => setRespostaDigitada(e.target.value)}
-                      disabled={fcRespondido}
-                      className={`flex-1 ${
-                        fcRespondido && fcAcertou ? "border-accent/50" :
-                        fcRespondido && !fcAcertou ? "border-destructive/50" : ""
-                      }`}
-                    />
-                    {!fcRespondido ? (
-                      <Button type="submit" size="icon" disabled={!respostaDigitada.trim()}>
-                        <Send className="h-4 w-4" />
+                {/* Input */}
+                <form onSubmit={(e) => { e.preventDefault(); verificarResposta(); }} className="flex gap-2 w-full">
+                  <Input
+                    ref={inputRef}
+                    placeholder="Sua resposta..."
+                    value={respostaDigitada}
+                    onChange={(e) => setRespostaDigitada(e.target.value)}
+                    disabled={fcRespondido}
+                    className={`flex-1 h-9 text-sm ${fcRespondido && fcAcertou ? "border-accent/50" : fcRespondido && !fcAcertou ? "border-destructive/50" : ""}`}
+                  />
+                  {!fcRespondido && (
+                    <Button type="submit" size="icon" className="h-9 w-9" disabled={!respostaDigitada.trim()}>
+                      <Send className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </form>
+
+                {/* Feedback */}
+                <AnimatePresence>
+                  {fcRespondido && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-3">
+                      <div className={`flex items-center gap-2 text-xs font-medium ${fcAcertou ? "text-accent" : "text-destructive"}`}>
+                        {fcAcertou ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                        {fcAcertou ? "Acertou! 🎉" : "Não foi dessa vez"}
+                      </div>
+                      <div className="rounded-lg p-3 bg-accent/8 border border-accent/20">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-accent block mb-1">Resposta correta</span>
+                        <p className="text-sm leading-relaxed">{filtrados[cardIndex]?.resposta}</p>
+                      </div>
+                      <Button onClick={nextCard} size="sm" className="w-full gap-2 h-8 text-xs">
+                        Próximo <ChevronRight className="h-3.5 w-3.5" />
                       </Button>
-                    ) : null}
-                  </form>
-
-                  {/* Feedback */}
-                  <AnimatePresence>
-                    {fcRespondido && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-3"
-                      >
-                        <div className={`flex items-center gap-2 text-sm font-medium ${fcAcertou ? "text-accent" : "text-destructive"}`}>
-                          {fcAcertou ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                          {fcAcertou ? "Acertou! 🎉" : "Não foi dessa vez"}
-                        </div>
-                        <div className="rounded-xl p-5 bg-accent/10 border border-accent/30">
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-accent block mb-2">
-                            Resposta correta
-                          </span>
-                          <p className="text-sm leading-relaxed">{filtrados[cardIndex]?.resposta}</p>
-                        </div>
-                        <Button onClick={nextCard} className="w-full gap-2">
-                          Próximo <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Contador */}
-                <span className="text-xs font-mono text-muted-foreground">{cardIndex + 1} de {filtrados.length}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </TabsContent>

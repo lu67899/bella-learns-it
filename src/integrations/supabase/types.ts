@@ -128,6 +128,27 @@ export type Database = {
         }
         Relationships: []
       }
+      frases_motivacionais: {
+        Row: {
+          ativa: boolean
+          created_at: string
+          id: string
+          texto: string
+        }
+        Insert: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          texto: string
+        }
+        Update: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          texto?: string
+        }
+        Relationships: []
+      }
       mensagens: {
         Row: {
           conteudo: string

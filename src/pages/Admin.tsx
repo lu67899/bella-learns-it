@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, CalendarDays, StickyNote, Plus, Edit2, Trash2, LogOut, Lock } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, CalendarDays, StickyNote, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,12 +85,13 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="resumos">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="resumos" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> Resumos</TabsTrigger>
             <TabsTrigger value="flashcards" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Flashcards</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Quiz</TabsTrigger>
             <TabsTrigger value="cronograma" className="gap-1 text-xs"><CalendarDays className="h-3 w-3" /> Cronograma</TabsTrigger>
             <TabsTrigger value="anotacoes" className="gap-1 text-xs"><StickyNote className="h-3 w-3" /> Anotações</TabsTrigger>
+            <TabsTrigger value="mensagens" className="gap-1 text-xs"><MessageCircle className="h-3 w-3" /> Chat</TabsTrigger>
           </TabsList>
 
           <TabsContent value="resumos"><ResumosTab /></TabsContent>
@@ -98,6 +99,7 @@ const Admin = () => {
           <TabsContent value="quiz"><QuizTab /></TabsContent>
           <TabsContent value="cronograma"><CronogramaTab /></TabsContent>
           <TabsContent value="anotacoes"><AnotacoesTab /></TabsContent>
+          <TabsContent value="mensagens"><MensagensTab /></TabsContent>
         </Tabs>
       </div>
     </Layout>
@@ -474,6 +476,80 @@ function AnotacoesTab() {
         </DialogContent>
       </Dialog>
     </CrudSection>
+  );
+}
+
+// ─── MENSAGENS TAB ───────────────────────────────────────
+function MensagensTab() {
+  const [items, setItems] = useState<{ id: string; remetente: string; conteudo: string; lida: boolean; created_at: string }[]>([]);
+  const [novaMensagem, setNovaMensagem] = useState("");
+
+  const load = async () => {
+    const { data } = await supabase.from("mensagens").select("*").order("created_at", { ascending: true });
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const enviar = async () => {
+    if (!novaMensagem.trim()) return;
+    await supabase.from("mensagens").insert({ remetente: "admin", conteudo: novaMensagem.trim() });
+    setNovaMensagem("");
+    toast.success("Mensagem enviada!");
+    load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("mensagens").delete().eq("id", id);
+    toast.success("Removida!");
+    load();
+  };
+
+  return (
+    <Card className="bg-card border-border mt-4">
+      <CardHeader>
+        <CardTitle className="font-mono text-lg flex items-center gap-2">
+          <MessageCircle className="h-5 w-5 text-accent" /> Chat com Bella
+          <Badge variant="secondary">{items.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {items.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhuma mensagem ainda.</p>
+          )}
+          {items.map((msg) => (
+            <div key={msg.id} className={`flex items-start gap-2 ${msg.remetente === "admin" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+                msg.remetente === "admin" ? "bg-primary/20 text-foreground rounded-br-md" : "bg-secondary text-foreground rounded-bl-md"
+              }`}>
+                <p className="text-[10px] font-mono text-muted-foreground mb-1">{msg.remetente === "admin" ? "Você" : "Bella"}</p>
+                <p>{msg.conteudo}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {new Date(msg.created_at).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                </p>
+              </div>
+              {msg.remetente === "admin" && (
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => remove(msg.id)}>
+                  <Trash2 className="h-3 w-3 text-destructive" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 border-t border-border pt-4">
+          <Input
+            placeholder="Enviar mensagem para Bella..."
+            value={novaMensagem}
+            onChange={(e) => setNovaMensagem(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && enviar()}
+            className="flex-1"
+          />
+          <Button onClick={enviar} disabled={!novaMensagem.trim()} className="gap-1">
+            <Send className="h-4 w-4" /> Enviar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

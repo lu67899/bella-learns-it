@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { materias } from "@/data/resumos";
+import { useMaterias } from "@/hooks/useMaterias";
 
 const ADMIN_PASSWORD = "bella2024";
 
@@ -84,8 +84,9 @@ const Admin = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="modulos">
-          <TabsList className="grid grid-cols-7 w-full">
+        <Tabs defaultValue="materias">
+          <TabsList className="grid grid-cols-8 w-full">
+            <TabsTrigger value="materias" className="gap-1 text-xs"><Tag className="h-3 w-3" /> Matérias</TabsTrigger>
             <TabsTrigger value="modulos" className="gap-1 text-xs"><GraduationCap className="h-3 w-3" /> Módulos</TabsTrigger>
             <TabsTrigger value="resumos" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> Resumos</TabsTrigger>
             <TabsTrigger value="flashcards" className="gap-1 text-xs"><BrainCircuit className="h-3 w-3" /> Flashcards</TabsTrigger>
@@ -95,6 +96,7 @@ const Admin = () => {
             <TabsTrigger value="mensagens" className="gap-1 text-xs"><MessageCircle className="h-3 w-3" /> Chat</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="materias"><MateriasTab /></TabsContent>
           <TabsContent value="modulos"><ModulosTab /></TabsContent>
           <TabsContent value="resumos"><ResumosTab /></TabsContent>
           <TabsContent value="flashcards"><FlashcardsTab /></TabsContent>
@@ -108,12 +110,67 @@ const Admin = () => {
   );
 };
 
+// ─── MATÉRIAS TAB ────────────────────────────────────────
+function MateriasTab() {
+  const { materias, reload } = useMaterias();
+  const [novaMateria, setNovaMateria] = useState("");
+
+  const add = async () => {
+    if (!novaMateria.trim()) return;
+    const { error } = await supabase.from("materias").insert({ nome: novaMateria.trim() });
+    if (error) {
+      toast.error(error.message.includes("duplicate") ? "Matéria já existe!" : "Erro ao adicionar");
+    } else {
+      toast.success("Matéria adicionada!");
+      setNovaMateria("");
+      reload();
+    }
+  };
+
+  const remove = async (nome: string) => {
+    await supabase.from("materias").delete().eq("nome", nome);
+    toast.success("Matéria removida!");
+    reload();
+  };
+
+  return (
+    <CrudSection title="Matérias" count={materias.length} onAdd={() => {}}>
+      <div className="flex gap-2 mb-4">
+        <Input
+          placeholder="Nome da matéria (ex: Direito Civil)"
+          value={novaMateria}
+          onChange={(e) => setNovaMateria(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+          className="flex-1"
+        />
+        <Button onClick={add} className="gap-1.5">
+          <Plus className="h-4 w-4" /> Adicionar
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {materias.map((m) => (
+          <Badge key={m} variant="secondary" className="text-sm py-1.5 px-3 gap-2">
+            {m}
+            <button onClick={() => remove(m)} className="text-destructive hover:text-destructive/80 transition-colors">
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </Badge>
+        ))}
+      </div>
+      {materias.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-4">Nenhuma matéria cadastrada. Adicione acima!</p>
+      )}
+    </CrudSection>
+  );
+}
+
 // ─── RESUMOS TAB ─────────────────────────────────────────
 function ResumosTab() {
   const [items, setItems] = useState<Resumo[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Resumo | null>(null);
   const [form, setForm] = useState({ materia: "", titulo: "", conteudo: "" });
+  const { materias } = useMaterias();
 
   const load = async () => {
     const { data } = await supabase.from("resumos").select("*").order("created_at", { ascending: false });
@@ -194,6 +251,7 @@ function FlashcardsTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Flashcard | null>(null);
   const [form, setForm] = useState({ materia: "", pergunta: "", resposta: "" });
+  const { materias } = useMaterias();
 
   const load = async () => {
     const { data } = await supabase.from("flashcards").select("*").order("created_at", { ascending: false });
@@ -258,6 +316,7 @@ function QuizTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<QuizQuestion | null>(null);
   const [form, setForm] = useState({ materia: "", pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" });
+  const { materias } = useMaterias();
 
   const load = async () => {
     const { data } = await supabase.from("quiz_questions").select("*").order("created_at", { ascending: false });

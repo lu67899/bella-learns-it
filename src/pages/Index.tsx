@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const container = {
   hidden: { opacity: 0 },
@@ -47,6 +48,7 @@ interface Notificacao {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [modulos, setModulos] = useState<ModuloDB[]>([]);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
@@ -148,7 +150,7 @@ const Index = () => {
           <div>
             <p className="text-xs text-muted-foreground font-mono tracking-wider uppercase">{saudacao}</p>
             <h1 className="text-2xl font-bold font-mono mt-1">
-              Olá, <span className="text-gradient">Bella</span>
+              Olá, <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
             </h1>
           </div>
           <div className="relative">

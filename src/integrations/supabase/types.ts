@@ -98,6 +98,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mensagens: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          lida: boolean
+          remetente: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          lida?: boolean
+          remetente?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          lida?: boolean
+          remetente?: string
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correta: number

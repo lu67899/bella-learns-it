@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft, CircleDot } from "lucide-react";
+import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft, CircleDot, Send } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,6 +34,10 @@ const Flashcards = () => {
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [materiaFiltro, setMateriaFiltro] = useState<string>("todas");
+  const [respostaDigitada, setRespostaDigitada] = useState("");
+  const [fcRespondido, setFcRespondido] = useState(false);
+  const [fcAcertou, setFcAcertou] = useState<boolean | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Quiz state
@@ -65,7 +70,23 @@ const Flashcards = () => {
 
   const nextCard = () => {
     setFlipped(false);
+    setRespostaDigitada("");
+    setFcRespondido(false);
+    setFcAcertou(null);
     setCardIndex((prev) => (prev + 1) % filtrados.length);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const verificarResposta = () => {
+    if (!respostaDigitada.trim()) return;
+    const correta = filtrados[cardIndex]?.resposta?.toLowerCase().trim() || "";
+    const digitada = respostaDigitada.toLowerCase().trim();
+    // Check if the answer contains the key words (flexible matching)
+    const acertou = correta.includes(digitada) || digitada.includes(correta) || 
+      correta.split(" ").filter(w => w.length > 3).some(word => digitada.includes(word));
+    setFcAcertou(acertou);
+    setFcRespondido(true);
+    setFlipped(true);
   };
 
   const iniciarQuiz = () => {
@@ -142,7 +163,7 @@ const Flashcards = () => {
                 <p className="text-xs text-muted-foreground/60">Adicione flashcards pelo painel admin</p>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-8">
+              <div className="flex flex-col items-center gap-6">
                 {/* Progress dots */}
                 <div className="flex items-center gap-1.5 flex-wrap justify-center">
                   {filtrados.map((_, i) => (
@@ -155,81 +176,70 @@ const Flashcards = () => {
                   ))}
                 </div>
 
-                {/* Card */}
-                <div
-                  className="w-full max-w-md cursor-pointer select-none"
-                  onClick={() => setFlipped(!flipped)}
-                >
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`${filtrados[cardIndex]?.id}-${flipped}`}
-                      initial={{ rotateY: 90, opacity: 0 }}
-                      animate={{ rotateY: 0, opacity: 1 }}
-                      exit={{ rotateY: -90, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div
-                        className={`relative min-h-[260px] flex flex-col items-center justify-center rounded-xl p-8 transition-all ${
-                          flipped
-                            ? "bg-accent/10 border border-accent/30"
-                            : "bg-primary/10 border border-primary/30"
-                        }`}
+                {/* Pergunta */}
+                <div className="w-full max-w-md">
+                  <div className="relative min-h-[160px] flex flex-col items-center justify-center rounded-xl p-8 bg-primary/10 border border-primary/30">
+                    <span className="absolute top-4 left-4 text-[10px] font-mono uppercase tracking-widest text-primary">
+                      Pergunta
+                    </span>
+                    <span className="absolute top-4 right-4 text-[10px] font-mono text-muted-foreground">
+                      {filtrados[cardIndex]?.materia}
+                    </span>
+                    <p className="text-lg font-medium text-center leading-relaxed">
+                      {filtrados[cardIndex]?.pergunta}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Campo de resposta */}
+                <div className="w-full max-w-md space-y-3">
+                  <form onSubmit={(e) => { e.preventDefault(); verificarResposta(); }} className="flex gap-2">
+                    <Input
+                      ref={inputRef}
+                      placeholder="Digite sua resposta..."
+                      value={respostaDigitada}
+                      onChange={(e) => setRespostaDigitada(e.target.value)}
+                      disabled={fcRespondido}
+                      className={`flex-1 ${
+                        fcRespondido && fcAcertou ? "border-accent/50" :
+                        fcRespondido && !fcAcertou ? "border-destructive/50" : ""
+                      }`}
+                    />
+                    {!fcRespondido ? (
+                      <Button type="submit" size="icon" disabled={!respostaDigitada.trim()}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                  </form>
+
+                  {/* Feedback */}
+                  <AnimatePresence>
+                    {fcRespondido && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
                       >
-                        {/* Label no canto */}
-                        <span className={`absolute top-4 left-4 text-[10px] font-mono uppercase tracking-widest ${
-                          flipped ? "text-accent" : "text-primary"
-                        }`}>
-                          {flipped ? "Resposta" : "Pergunta"}
-                        </span>
-
-                        {/* Matéria */}
-                        <span className="absolute top-4 right-4 text-[10px] font-mono text-muted-foreground">
-                          {filtrados[cardIndex]?.materia}
-                        </span>
-
-                        {/* Conteúdo */}
-                        <p className="text-lg font-medium text-center leading-relaxed">
-                          {flipped ? filtrados[cardIndex]?.resposta : filtrados[cardIndex]?.pergunta}
-                        </p>
-
-                        {/* Dica de interação */}
-                        {!flipped && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1 }}
-                            className="absolute bottom-4 text-[10px] text-muted-foreground/50 font-mono flex items-center gap-1"
-                          >
-                            <RotateCcw className="h-3 w-3" /> toque para ver a resposta
-                          </motion.p>
-                        )}
-                      </div>
-                    </motion.div>
+                        <div className={`flex items-center gap-2 text-sm font-medium ${fcAcertou ? "text-accent" : "text-destructive"}`}>
+                          {fcAcertou ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                          {fcAcertou ? "Acertou! 🎉" : "Não foi dessa vez"}
+                        </div>
+                        <div className="rounded-xl p-5 bg-accent/10 border border-accent/30">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-accent block mb-2">
+                            Resposta correta
+                          </span>
+                          <p className="text-sm leading-relaxed">{filtrados[cardIndex]?.resposta}</p>
+                        </div>
+                        <Button onClick={nextCard} className="w-full gap-2">
+                          Próximo <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    )}
                   </AnimatePresence>
                 </div>
 
-                {/* Navegação */}
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={cardIndex === 0}
-                    onClick={() => { setFlipped(false); setCardIndex(prev => prev - 1); }}
-                    className="rounded-full"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                  <span className="text-sm font-mono text-muted-foreground">{cardIndex + 1} de {filtrados.length}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={cardIndex === filtrados.length - 1}
-                    onClick={nextCard}
-                    className="rounded-full"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
-                </div>
+                {/* Contador */}
+                <span className="text-xs font-mono text-muted-foreground">{cardIndex + 1} de {filtrados.length}</span>
               </div>
             )}
           </TabsContent>

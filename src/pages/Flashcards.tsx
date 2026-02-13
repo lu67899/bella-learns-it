@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2 } from "lucide-react";
+import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft, CircleDot } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ const Flashcards = () => {
   const [quizRespostas, setQuizRespostas] = useState<(number | null)[]>([]);
   const [quizMostrarResultado, setQuizMostrarResultado] = useState(false);
   const [quizSelecionada, setQuizSelecionada] = useState<number | null>(null);
+  const [quizRespondida, setQuizRespondida] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,27 +74,32 @@ const Flashcards = () => {
     setQuizRespostas([]);
     setQuizMostrarResultado(false);
     setQuizSelecionada(null);
+    setQuizRespondida(false);
   };
 
   const responderQuiz = (idx: number) => {
+    if (quizRespondida) return;
     setQuizSelecionada(idx);
-    const novasRespostas = [...quizRespostas, idx];
-    setQuizRespostas(novasRespostas);
+    setQuizRespondida(true);
+    setQuizRespostas((prev) => [...prev, idx]);
+  };
 
-    setTimeout(() => {
-      if (quizIndex + 1 < quizFiltradas.length) {
-        setQuizIndex((prev) => prev + 1);
-        setQuizSelecionada(null);
-      } else {
-        setQuizMostrarResultado(true);
-      }
-    }, 1000);
+  const proximaQuestao = () => {
+    if (quizIndex + 1 < quizFiltradas.length) {
+      setQuizIndex((prev) => prev + 1);
+      setQuizSelecionada(null);
+      setQuizRespondida(false);
+    } else {
+      setQuizMostrarResultado(true);
+    }
   };
 
   const quizAcertos = useMemo(() => {
     if (!quizMostrarResultado) return 0;
-    return quizRespostas.filter((r, i) => r === quizFiltradas[i].correta).length;
+    return quizRespostas.filter((r, i) => r === quizFiltradas[i]?.correta).length;
   }, [quizMostrarResultado, quizRespostas, quizFiltradas]);
+
+  const quizPercentual = quizFiltradas.length > 0 ? Math.round((quizAcertos / quizFiltradas.length) * 100) : 0;
 
   if (loading) {
     return (
@@ -171,50 +178,172 @@ const Flashcards = () => {
                 <p className="text-xs text-muted-foreground/60">Adicione questões pelo painel admin</p>
               </div>
             ) : !quizAtivo ? (
-              <div className="text-center py-12 space-y-4">
-                <Trophy className="h-12 w-12 mx-auto text-primary animate-pulse-glow" />
-                <h3 className="font-mono font-semibold text-lg">Pronta para o Quiz?</h3>
-                <p className="text-sm text-muted-foreground">{quizFiltradas.length} perguntas disponíveis</p>
-                <Button onClick={iniciarQuiz}>Começar Quiz</Button>
+              <div className="text-center py-12 space-y-6">
+                <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-2xl bg-primary/15 glow-purple">
+                  <Trophy className="h-10 w-10 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-mono font-semibold text-xl">Pronta para o Quiz?</h3>
+                  <p className="text-sm text-muted-foreground">{quizFiltradas.length} perguntas disponíveis</p>
+                </div>
+                <Button onClick={iniciarQuiz} size="lg" className="gap-2">
+                  <BrainCircuit className="h-5 w-5" /> Começar Quiz
+                </Button>
               </div>
             ) : quizMostrarResultado ? (
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-12 space-y-4">
-                <Trophy className="h-16 w-16 mx-auto text-primary" />
-                <h3 className="font-mono font-bold text-2xl">{quizAcertos}/{quizFiltradas.length} acertos!</h3>
-                <p className="text-muted-foreground">{Math.round((quizAcertos / quizFiltradas.length) * 100)}% de aproveitamento</p>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8">
+                <div className="text-center space-y-4">
+                  <div className={`flex h-20 w-20 mx-auto items-center justify-center rounded-2xl ${quizPercentual >= 70 ? "bg-neon-green/15" : quizPercentual >= 40 ? "bg-accent/15" : "bg-destructive/15"}`}>
+                    <Trophy className={`h-10 w-10 ${quizPercentual >= 70 ? "text-neon-green" : quizPercentual >= 40 ? "text-accent" : "text-destructive"}`} />
+                  </div>
+                  <h3 className="font-mono font-bold text-3xl">{quizAcertos}/{quizFiltradas.length}</h3>
+                  <p className="text-muted-foreground text-lg">{quizPercentual}% de aproveitamento</p>
+                  <Progress value={quizPercentual} className="h-3 max-w-xs mx-auto" />
+                  <p className="text-sm text-muted-foreground">
+                    {quizPercentual >= 70 ? "🎉 Excelente! Continue assim!" : quizPercentual >= 40 ? "💪 Bom trabalho! Pode melhorar!" : "📚 Revise o conteúdo e tente novamente!"}
+                  </p>
+                </div>
+
+                {/* Review answers */}
+                <div className="space-y-3 max-w-lg mx-auto">
+                  <h4 className="font-mono font-semibold text-sm text-muted-foreground">Revisão das respostas</h4>
+                  {quizFiltradas.map((q, i) => {
+                    const acertou = quizRespostas[i] === q.correta;
+                    return (
+                      <Card key={q.id} className={`border ${acertou ? "border-neon-green/30" : "border-destructive/30"}`}>
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex items-start gap-2">
+                            <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${acertou ? "bg-neon-green/20 text-neon-green" : "bg-destructive/20 text-destructive"}`}>
+                              {acertou ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                            </div>
+                            <p className="text-sm font-medium">{q.pergunta}</p>
+                          </div>
+                          {!acertou && (
+                            <p className="text-xs text-muted-foreground ml-8">
+                              Sua resposta: <span className="text-destructive">{q.opcoes[quizRespostas[i] ?? 0]}</span>
+                              {" · "}Correta: <span className="text-neon-green">{q.opcoes[q.correta]}</span>
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
                 <div className="flex gap-3 justify-center">
-                  <Button variant="outline" onClick={() => setQuizAtivo(false)}>Voltar</Button>
-                  <Button onClick={iniciarQuiz}>Tentar novamente</Button>
+                  <Button variant="outline" onClick={() => setQuizAtivo(false)} className="gap-2">
+                    <ArrowLeft className="h-4 w-4" /> Voltar
+                  </Button>
+                  <Button onClick={iniciarQuiz} className="gap-2">
+                    <RotateCcw className="h-4 w-4" /> Tentar novamente
+                  </Button>
                 </div>
               </motion.div>
             ) : (
               <div className="max-w-lg mx-auto space-y-6">
-                <p className="text-sm text-muted-foreground font-mono">{quizIndex + 1} / {quizFiltradas.length}</p>
-                <Card className="border-glow">
-                  <CardContent className="p-6 space-y-6">
-                    <p className="font-medium text-lg">{quizFiltradas[quizIndex]?.pergunta}</p>
-                    <div className="space-y-3">
-                      {quizFiltradas[quizIndex]?.opcoes.map((op, i) => {
-                        const respondida = quizSelecionada !== null;
-                        const correta = quizFiltradas[quizIndex].correta === i;
-                        const selecionada = quizSelecionada === i;
-                        return (
-                          <Button
-                            key={i}
-                            variant="outline"
-                            className={`w-full justify-start text-left h-auto py-3 ${respondida && correta ? "border-neon-green text-neon-green" : ""} ${respondida && selecionada && !correta ? "border-destructive text-destructive" : ""}`}
-                            disabled={respondida}
-                            onClick={() => responderQuiz(i)}
+                {/* Progress bar */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span className="font-mono">Questão {quizIndex + 1} de {quizFiltradas.length}</span>
+                    <span className="font-mono">{Math.round(((quizIndex) / quizFiltradas.length) * 100)}%</span>
+                  </div>
+                  <Progress value={(quizIndex / quizFiltradas.length) * 100} className="h-2" />
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={quizIndex}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <Card className="border-glow">
+                      <CardContent className="p-6 space-y-6">
+                        <div className="space-y-2">
+                          <Badge variant="outline" className="text-[10px] font-mono">{quizFiltradas[quizIndex]?.materia}</Badge>
+                          <p className="font-medium text-lg leading-relaxed">{quizFiltradas[quizIndex]?.pergunta}</p>
+                        </div>
+                        <div className="space-y-3">
+                          {quizFiltradas[quizIndex]?.opcoes.map((op, i) => {
+                            const correta = quizFiltradas[quizIndex].correta === i;
+                            const selecionada = quizSelecionada === i;
+                            let className = "w-full justify-start text-left h-auto py-3 px-4 gap-3 transition-all";
+
+                            if (quizRespondida) {
+                              if (correta) {
+                                className += " border-neon-green/60 bg-neon-green/10 text-neon-green";
+                              } else if (selecionada && !correta) {
+                                className += " border-destructive/60 bg-destructive/10 text-destructive";
+                              } else {
+                                className += " opacity-50";
+                              }
+                            } else {
+                              className += " hover:border-primary/40 hover:bg-primary/5";
+                            }
+
+                            return (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                              >
+                                <Button
+                                  variant="outline"
+                                  className={className}
+                                  disabled={quizRespondida && !correta && !selecionada}
+                                  onClick={() => responderQuiz(i)}
+                                >
+                                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-current text-xs font-mono">
+                                    {quizRespondida && correta ? <Check className="h-3 w-3" /> : quizRespondida && selecionada && !correta ? <X className="h-3 w-3" /> : String.fromCharCode(65 + i)}
+                                  </span>
+                                  <span className="text-sm">{op}</span>
+                                </Button>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+
+                        {quizRespondida && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="pt-2"
                           >
-                            {respondida && correta && <Check className="h-4 w-4 mr-2 shrink-0" />}
-                            {respondida && selecionada && !correta && <X className="h-4 w-4 mr-2 shrink-0" />}
-                            {op}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                            <Button onClick={proximaQuestao} className="w-full gap-2">
+                              {quizIndex + 1 < quizFiltradas.length ? (
+                                <>Próxima questão <ChevronRight className="h-4 w-4" /></>
+                              ) : (
+                                <>Ver resultado <Trophy className="h-4 w-4" /></>
+                              )}
+                            </Button>
+                          </motion.div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Question dots */}
+                <div className="flex justify-center gap-1.5 flex-wrap">
+                  {quizFiltradas.map((_, i) => {
+                    const respondida = i < quizRespostas.length;
+                    const acertou = respondida && quizRespostas[i] === quizFiltradas[i]?.correta;
+                    const atual = i === quizIndex;
+                    return (
+                      <div
+                        key={i}
+                        className={`h-2.5 w-2.5 rounded-full transition-all ${
+                          atual ? "bg-primary scale-125" :
+                          respondida && acertou ? "bg-neon-green" :
+                          respondida ? "bg-destructive" :
+                          "bg-muted"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             )}
           </TabsContent>

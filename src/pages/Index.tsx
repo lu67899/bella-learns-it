@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, GraduationCap, MessageCircle, Send } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, GraduationCap, MessageCircle, Send, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,6 +45,8 @@ const Index = () => {
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
+  const [chatAberto, setChatAberto] = useState(false);
+  const [naoLidas, setNaoLidas] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,7 +68,6 @@ const Index = () => {
         tarefasConcluidas: tarefas.filter((t: any) => t.concluida).length,
       });
 
-      // Build módulos from unique matérias
       const materiaMap = new Map<string, { resumos: number; flashcards: number }>();
       (rAll.data || []).forEach((r: any) => {
         const m = materiaMap.get(r.materia) || { resumos: 0, flashcards: 0 };
@@ -81,16 +81,26 @@ const Index = () => {
       });
       setModulos(Array.from(materiaMap.entries()).map(([materia, counts]) => ({ materia, ...counts })));
 
-      if (mRes.data) setMensagens(mRes.data);
+      if (mRes.data) {
+        setMensagens(mRes.data);
+        setNaoLidas(mRes.data.filter((m: any) => m.remetente === "admin" && !m.lida).length);
+      }
     };
     fetchAll();
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && chatAberto) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [mensagens]);
+  }, [mensagens, chatAberto]);
+
+  const abrirChat = async () => {
+    setChatAberto(true);
+    setNaoLidas(0);
+    // Mark admin messages as read
+    await supabase.from("mensagens").update({ lida: true }).eq("remetente", "admin").eq("lida", false);
+  };
 
   const enviarMensagem = async () => {
     if (!novaMensagem.trim()) return;
@@ -209,53 +219,80 @@ const Index = () => {
             ))}
           </div>
         </motion.div>
-
-        {/* Chat */}
-        <motion.div variants={item}>
-          <h2 className="text-lg font-mono font-semibold mb-4 flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-accent" /> Chat
-          </h2>
-          <Card className="bg-card border-border">
-            <CardContent className="p-0">
-              <ScrollArea className="h-64 p-4" ref={scrollRef}>
-                <div className="space-y-3">
-                  {mensagens.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">Nenhuma mensagem ainda. Diga oi! 👋</p>
-                  )}
-                  {mensagens.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.remetente === "bella" ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-                          msg.remetente === "bella"
-                            ? "bg-primary/20 text-foreground rounded-br-md"
-                            : "bg-secondary text-foreground rounded-bl-md"
-                        }`}
-                      >
-                        <p>{msg.conteudo}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          {new Date(msg.created_at).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-              <div className="flex gap-2 p-4 border-t border-border">
-                <Input
-                  placeholder="Digite uma mensagem..."
-                  value={novaMensagem}
-                  onChange={(e) => setNovaMensagem(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && enviarMensagem()}
-                  className="flex-1"
-                />
-                <Button size="icon" onClick={enviarMensagem} disabled={!novaMensagem.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </motion.div>
+
+      {/* Floating Chat Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <AnimatePresence>
+          {chatAberto && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className="absolute bottom-16 right-0 w-80 sm:w-96"
+            >
+              <Card className="bg-card border-border border-glow shadow-2xl">
+                <div className="flex items-center justify-between p-4 border-b border-border">
+                  <h3 className="font-mono font-semibold text-sm flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-accent" /> Chat
+                  </h3>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setChatAberto(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <ScrollArea className="h-72 p-4" ref={scrollRef}>
+                  <div className="space-y-3">
+                    {mensagens.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-8">Nenhuma mensagem ainda. Diga oi! 👋</p>
+                    )}
+                    {mensagens.map((msg) => (
+                      <div key={msg.id} className={`flex ${msg.remetente === "bella" ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+                            msg.remetente === "bella"
+                              ? "bg-primary/20 text-foreground rounded-br-md"
+                              : "bg-secondary text-foreground rounded-bl-md"
+                          }`}
+                        >
+                          <p>{msg.conteudo}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {new Date(msg.created_at).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <div className="flex gap-2 p-3 border-t border-border">
+                  <Input
+                    placeholder="Digite uma mensagem..."
+                    value={novaMensagem}
+                    onChange={(e) => setNovaMensagem(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && enviarMensagem()}
+                    className="flex-1 h-9 text-sm"
+                  />
+                  <Button size="icon" className="h-9 w-9" onClick={enviarMensagem} disabled={!novaMensagem.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <Button
+          onClick={chatAberto ? () => setChatAberto(false) : abrirChat}
+          size="icon"
+          className="h-14 w-14 rounded-full glow-purple shadow-lg relative"
+        >
+          {chatAberto ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+          {!chatAberto && naoLidas > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+              {naoLidas}
+            </span>
+          )}
+        </Button>
+      </div>
     </Layout>
   );
 };

@@ -145,24 +145,35 @@ const Anotacoes = () => {
 
       {/* View dialog */}
       <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-mono">{viewing?.titulo}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            {viewing?.materia && <Badge variant="outline" className="text-primary border-primary/30">{viewing.materia}</Badge>}
-            <p className="text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed">{viewing?.conteudo}</p>
+        <DialogContent className="max-w-lg p-0 overflow-hidden">
+          <div className="bg-primary/10 px-6 pt-6 pb-4 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="font-mono text-lg">{viewing?.titulo}</DialogTitle>
+            </DialogHeader>
+            <div className="flex items-center gap-3 mt-2">
+              {viewing?.materia && <Badge className="bg-primary/20 text-primary border-0 font-mono text-[11px]">{viewing.materia}</Badge>}
+              {viewing && (
+                <span className="text-[11px] text-muted-foreground">
+                  {new Date(viewing.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="px-6 py-5 space-y-4">
+            <div className="bg-secondary/30 rounded-lg p-4 max-h-64 overflow-y-auto">
+              <p className="text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed">{viewing?.conteudo}</p>
+            </div>
             {viewing?.tags && viewing.tags.length > 0 && (
               <div className="flex gap-1.5 flex-wrap">
                 {viewing.tags.map((t) => <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>)}
               </div>
             )}
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => openEdit(viewing!)}>
-                <Edit2 className="h-3 w-3" /> Editar
+            <div className="flex gap-2 pt-1 border-t border-border pt-4">
+              <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => openEdit(viewing!)}>
+                <Edit2 className="h-3.5 w-3.5" /> Editar
               </Button>
-              <Button variant="outline" size="sm" className="gap-1 text-destructive" onClick={() => remove(viewing!.id)}>
-                <Trash2 className="h-3 w-3" /> Excluir
+              <Button variant="outline" size="sm" className="gap-1.5 flex-1 text-destructive hover:bg-destructive/10" onClick={() => remove(viewing!.id)}>
+                <Trash2 className="h-3.5 w-3.5" /> Excluir
               </Button>
             </div>
           </div>

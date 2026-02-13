@@ -211,11 +211,12 @@ const Index = () => {
         {/* Acesso Rápido */}
         <motion.div variants={item} className="space-y-3">
           <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Acesso rápido</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {[
               { label: "Resumos", to: "/resumos", icon: "📖" },
               { label: "Flashcards", to: "/flashcards", icon: "🧠" },
               { label: "Cronograma", to: "/cronograma", icon: "📅" },
+              { label: "Anotações", to: "/anotacoes", icon: "📝" },
             ].map((a) => (
               <Link key={a.to} to={a.to}>
                 <div className="group flex flex-col items-center gap-1.5 p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">

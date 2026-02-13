@@ -105,7 +105,7 @@ const Auth = () => {
             <BrainCircuit className="h-8 w-8 text-primary" />
           </div>
           <h1 className="font-mono text-xl font-bold text-gradient">Bella Estuda</h1>
-          <p className="text-xs text-muted-foreground">Sistemas de Informação</p>
+          <p className="text-xs text-muted-foreground">Sua plataforma de estudos</p>
         </div>
 
         <Card className="p-6 bg-card border-border">

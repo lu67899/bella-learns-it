@@ -1,27 +1,38 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, RotateCcw, Plus, ChevronRight, Trophy, X, Check } from "lucide-react";
+import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { flashcardsIniciais, quizQuestionsIniciais, type Flashcard } from "@/data/flashcards";
-import { materias } from "@/data/resumos";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Flashcard {
+  id: string;
+  materia: string;
+  pergunta: string;
+  resposta: string;
+}
+
+interface QuizQuestion {
+  id: string;
+  materia: string;
+  pergunta: string;
+  opcoes: string[];
+  correta: number;
+}
 
 const Flashcards = () => {
-  const [flashcards, setFlashcards] = useLocalStorage<Flashcard[]>("bella-flashcards", flashcardsIniciais);
-  const [quizScores, setQuizScores] = useLocalStorage<Record<string, number[]>>("bella-quiz-scores", {});
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [materiaFiltro, setMateriaFiltro] = useState<string>("todas");
-  const [dialogAberto, setDialogAberto] = useState(false);
-  const [form, setForm] = useState({ materia: "", pergunta: "", resposta: "" });
+  const { toast } = useToast();
 
   // Quiz state
   const [quizAtivo, setQuizAtivo] = useState(false);
@@ -30,15 +41,25 @@ const Flashcards = () => {
   const [quizMostrarResultado, setQuizMostrarResultado] = useState(false);
   const [quizSelecionada, setQuizSelecionada] = useState<number | null>(null);
 
-  const filtrados = flashcards.filter((f) => materiaFiltro === "todas" || f.materia === materiaFiltro);
-  const quizQuestions = quizQuestionsIniciais.filter((q) => materiaFiltro === "todas" || q.materia === materiaFiltro);
+  useEffect(() => {
+    const fetchData = async () => {
+      const [fcRes, quizRes] = await Promise.all([
+        supabase.from("flashcards").select("*").order("created_at", { ascending: false }),
+        supabase.from("quiz_questions").select("*").order("created_at", { ascending: false }),
+      ]);
+      if (fcRes.error || quizRes.error) {
+        toast({ title: "Erro ao carregar dados", variant: "destructive" });
+      }
+      setFlashcards(fcRes.data || []);
+      setQuizQuestions(quizRes.data || []);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
-  const salvarFlashcard = () => {
-    if (!form.materia || !form.pergunta || !form.resposta) return;
-    setFlashcards((prev) => [...prev, { id: `f-${Date.now()}`, ...form, isCustom: true }]);
-    setForm({ materia: "", pergunta: "", resposta: "" });
-    setDialogAberto(false);
-  };
+  const materias = [...new Set([...flashcards.map(f => f.materia), ...quizQuestions.map(q => q.materia)])];
+  const filtrados = flashcards.filter((f) => materiaFiltro === "todas" || f.materia === materiaFiltro);
+  const quizFiltradas = quizQuestions.filter((q) => materiaFiltro === "todas" || q.materia === materiaFiltro);
 
   const nextCard = () => {
     setFlipped(false);
@@ -59,14 +80,10 @@ const Flashcards = () => {
     setQuizRespostas(novasRespostas);
 
     setTimeout(() => {
-      if (quizIndex + 1 < quizQuestions.length) {
+      if (quizIndex + 1 < quizFiltradas.length) {
         setQuizIndex((prev) => prev + 1);
         setQuizSelecionada(null);
       } else {
-        const acertos = novasRespostas.filter((r, i) => r === quizQuestions[i].correta).length;
-        const pct = Math.round((acertos / quizQuestions.length) * 100);
-        const key = materiaFiltro === "todas" ? "geral" : materiaFiltro;
-        setQuizScores((prev) => ({ ...prev, [key]: [...(prev[key] || []), pct] }));
         setQuizMostrarResultado(true);
       }
     }, 1000);
@@ -74,8 +91,16 @@ const Flashcards = () => {
 
   const quizAcertos = useMemo(() => {
     if (!quizMostrarResultado) return 0;
-    return quizRespostas.filter((r, i) => r === quizQuestions[i].correta).length;
-  }, [quizMostrarResultado, quizRespostas, quizQuestions]);
+    return quizRespostas.filter((r, i) => r === quizFiltradas[i].correta).length;
+  }, [quizMostrarResultado, quizRespostas, quizFiltradas]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -87,30 +112,13 @@ const Flashcards = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Teste seus conhecimentos</p>
           </div>
-          <div className="flex gap-2">
-            <Select value={materiaFiltro} onValueChange={(v) => { setMateriaFiltro(v); setCardIndex(0); setFlipped(false); }}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas</SelectItem>
-                {materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
-              <DialogTrigger asChild><Button size="icon"><Plus className="h-4 w-4" /></Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle className="font-mono">Novo Flashcard</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                  <Select value={form.materia} onValueChange={(v) => setForm({ ...form, materia: v })}>
-                    <SelectTrigger><SelectValue placeholder="Matéria" /></SelectTrigger>
-                    <SelectContent>{materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <Input placeholder="Pergunta" value={form.pergunta} onChange={(e) => setForm({ ...form, pergunta: e.target.value })} />
-                  <Textarea placeholder="Resposta" value={form.resposta} onChange={(e) => setForm({ ...form, resposta: e.target.value })} />
-                  <Button onClick={salvarFlashcard} className="w-full">Salvar</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <Select value={materiaFiltro} onValueChange={(v) => { setMateriaFiltro(v); setCardIndex(0); setFlipped(false); }}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas</SelectItem>
+              {materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
 
         <Tabs defaultValue="flashcards">
@@ -121,7 +129,11 @@ const Flashcards = () => {
 
           <TabsContent value="flashcards" className="mt-6">
             {filtrados.length === 0 ? (
-              <p className="text-center text-muted-foreground py-12">Nenhum flashcard encontrado.</p>
+              <div className="text-center py-16 space-y-2">
+                <BrainCircuit className="h-12 w-12 mx-auto text-muted-foreground/30" />
+                <p className="text-muted-foreground">Nenhum flashcard cadastrado</p>
+                <p className="text-xs text-muted-foreground/60">Adicione flashcards pelo painel admin</p>
+              </div>
             ) : (
               <div className="flex flex-col items-center gap-6">
                 <p className="text-sm text-muted-foreground font-mono">{cardIndex + 1} / {filtrados.length}</p>
@@ -152,18 +164,24 @@ const Flashcards = () => {
           </TabsContent>
 
           <TabsContent value="quiz" className="mt-6">
-            {!quizAtivo ? (
+            {quizFiltradas.length === 0 ? (
+              <div className="text-center py-16 space-y-2">
+                <Trophy className="h-12 w-12 mx-auto text-muted-foreground/30" />
+                <p className="text-muted-foreground">Nenhuma questão de quiz cadastrada</p>
+                <p className="text-xs text-muted-foreground/60">Adicione questões pelo painel admin</p>
+              </div>
+            ) : !quizAtivo ? (
               <div className="text-center py-12 space-y-4">
                 <Trophy className="h-12 w-12 mx-auto text-primary animate-pulse-glow" />
                 <h3 className="font-mono font-semibold text-lg">Pronta para o Quiz?</h3>
-                <p className="text-sm text-muted-foreground">{quizQuestions.length} perguntas disponíveis</p>
-                <Button onClick={iniciarQuiz} disabled={quizQuestions.length === 0}>Começar Quiz</Button>
+                <p className="text-sm text-muted-foreground">{quizFiltradas.length} perguntas disponíveis</p>
+                <Button onClick={iniciarQuiz}>Começar Quiz</Button>
               </div>
             ) : quizMostrarResultado ? (
               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-12 space-y-4">
                 <Trophy className="h-16 w-16 mx-auto text-primary" />
-                <h3 className="font-mono font-bold text-2xl">{quizAcertos}/{quizQuestions.length} acertos!</h3>
-                <p className="text-muted-foreground">{Math.round((quizAcertos / quizQuestions.length) * 100)}% de aproveitamento</p>
+                <h3 className="font-mono font-bold text-2xl">{quizAcertos}/{quizFiltradas.length} acertos!</h3>
+                <p className="text-muted-foreground">{Math.round((quizAcertos / quizFiltradas.length) * 100)}% de aproveitamento</p>
                 <div className="flex gap-3 justify-center">
                   <Button variant="outline" onClick={() => setQuizAtivo(false)}>Voltar</Button>
                   <Button onClick={iniciarQuiz}>Tentar novamente</Button>
@@ -171,14 +189,14 @@ const Flashcards = () => {
               </motion.div>
             ) : (
               <div className="max-w-lg mx-auto space-y-6">
-                <p className="text-sm text-muted-foreground font-mono">{quizIndex + 1} / {quizQuestions.length}</p>
+                <p className="text-sm text-muted-foreground font-mono">{quizIndex + 1} / {quizFiltradas.length}</p>
                 <Card className="border-glow">
                   <CardContent className="p-6 space-y-6">
-                    <p className="font-medium text-lg">{quizQuestions[quizIndex]?.pergunta}</p>
+                    <p className="font-medium text-lg">{quizFiltradas[quizIndex]?.pergunta}</p>
                     <div className="space-y-3">
-                      {quizQuestions[quizIndex]?.opcoes.map((op, i) => {
+                      {quizFiltradas[quizIndex]?.opcoes.map((op, i) => {
                         const respondida = quizSelecionada !== null;
-                        const correta = quizQuestions[quizIndex].correta === i;
+                        const correta = quizFiltradas[quizIndex].correta === i;
                         const selecionada = quizSelecionada === i;
                         return (
                           <Button

@@ -244,29 +244,7 @@ const Index = () => {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-card border-border border-glow">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">
-                <BookOpen className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold font-mono">{stats.resumos}</p>
-                <p className="text-xs text-muted-foreground">Resumos</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border border-glow">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/15">
-                <BrainCircuit className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold font-mono">{stats.flashcards}</p>
-                <p className="text-xs text-muted-foreground">Flashcards</p>
-              </div>
-            </CardContent>
-          </Card>
+        <motion.div variants={item}>
           <Card className="bg-card border-border border-glow">
             <CardContent className="p-4 space-y-2">
               <div className="flex justify-between text-xs">

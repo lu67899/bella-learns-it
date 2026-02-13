@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, GraduationCap, MessageCircle, Send, X } from "lucide-react";
+import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, GraduationCap, MessageCircle, Send, X, Play, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -31,6 +31,8 @@ interface Modulo {
   materia: string;
   resumos: number;
   flashcards: number;
+  tarefas: number;
+  concluidas: number;
 }
 
 interface Mensagem {
@@ -51,13 +53,14 @@ const Index = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [rRes, fRes, cRes, rAll, fAll, mRes] = await Promise.all([
+      const [rRes, fRes, cRes, rAll, fAll, mRes, cAll] = await Promise.all([
         supabase.from("resumos").select("id", { count: "exact", head: true }),
         supabase.from("flashcards").select("id", { count: "exact", head: true }),
         supabase.from("cronograma").select("id, concluida"),
         supabase.from("resumos").select("materia"),
         supabase.from("flashcards").select("materia"),
         supabase.from("mensagens").select("*").order("created_at", { ascending: true }),
+        supabase.from("cronograma").select("materia, concluida"),
       ]);
 
       const tarefas = cRes.data || [];
@@ -68,16 +71,16 @@ const Index = () => {
         tarefasConcluidas: tarefas.filter((t: any) => t.concluida).length,
       });
 
-      const materiaMap = new Map<string, { resumos: number; flashcards: number }>();
-      (rAll.data || []).forEach((r: any) => {
-        const m = materiaMap.get(r.materia) || { resumos: 0, flashcards: 0 };
-        m.resumos++;
-        materiaMap.set(r.materia, m);
-      });
-      (fAll.data || []).forEach((f: any) => {
-        const m = materiaMap.get(f.materia) || { resumos: 0, flashcards: 0 };
-        m.flashcards++;
-        materiaMap.set(f.materia, m);
+      const materiaMap = new Map<string, { resumos: number; flashcards: number; tarefas: number; concluidas: number }>();
+      const ensure = (mat: string) => {
+        if (!materiaMap.has(mat)) materiaMap.set(mat, { resumos: 0, flashcards: 0, tarefas: 0, concluidas: 0 });
+        return materiaMap.get(mat)!;
+      };
+      (rAll.data || []).forEach((r: any) => { ensure(r.materia).resumos++; });
+      (fAll.data || []).forEach((f: any) => { ensure(f.materia).flashcards++; });
+      (cAll.data || []).forEach((c: any) => {
+        ensure(c.materia).tarefas++;
+        if (c.concluida) ensure(c.materia).concluidas++;
       });
       setModulos(Array.from(materiaMap.entries()).map(([materia, counts]) => ({ materia, ...counts })));
 
@@ -166,9 +169,40 @@ const Index = () => {
           </Card>
         </motion.div>
 
-        {/* Módulos */}
-        <motion.div variants={item}>
-          <h2 className="text-lg font-mono font-semibold mb-4 flex items-center gap-2">
+        {/* Continuar aula + Módulos */}
+        <motion.div variants={item} className="space-y-4">
+          {/* Continuar aula banner */}
+          {modulos.length > 0 && (() => {
+            // Pick the module with most content as "last studied"
+            const destaque = [...modulos].sort((a, b) => (b.resumos + b.flashcards) - (a.resumos + a.flashcards))[0];
+            const total = destaque.resumos + destaque.flashcards + destaque.tarefas;
+            const feito = destaque.concluidas;
+            const progresso = destaque.tarefas > 0 ? Math.round((feito / destaque.tarefas) * 100) : 0;
+            return (
+              <Link to="/resumos">
+                <Card className="bg-card border-border border-glow hover:glow-purple transition-all cursor-pointer group">
+                  <CardContent className="p-5 flex items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 group-hover:bg-primary/25 transition-colors">
+                      <Play className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground font-mono">▶️ Continuar aula</p>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                      <p className="font-mono font-semibold text-sm truncate">{destaque.materia}</p>
+                      <div className="space-y-1">
+                        <Progress value={progresso} className="h-2" />
+                        <p className="text-[11px] text-muted-foreground font-mono">{progresso}% concluído</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })()}
+
+          <h2 className="text-lg font-mono font-semibold flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-primary" /> Módulos
           </h2>
           {modulos.length === 0 ? (
@@ -178,22 +212,36 @@ const Index = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {modulos.map((mod) => (
-                <Card key={mod.materia} className="bg-card border-border hover:border-primary/40 transition-all group">
-                  <CardContent className="p-5 space-y-3">
-                    <h3 className="font-mono font-semibold text-sm truncate">{mod.materia}</h3>
-                    <div className="flex gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="h-3 w-3 text-primary" /> {mod.resumos} resumos
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <BrainCircuit className="h-3 w-3 text-accent" /> {mod.flashcards} cards
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-2">
+              {modulos.map((mod, i) => {
+                const progresso = mod.tarefas > 0 ? Math.round((mod.concluidas / mod.tarefas) * 100) : 0;
+                return (
+                  <Link key={mod.materia} to="/resumos">
+                    <Card className="bg-card border-border hover:border-primary/40 transition-all group cursor-pointer">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-sm font-mono font-bold text-muted-foreground group-hover:bg-primary/15 group-hover:text-primary transition-colors">
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-mono font-semibold text-sm truncate">{mod.materia}</p>
+                          <div className="flex gap-3 text-[11px] text-muted-foreground mt-1">
+                            <span>{mod.resumos} resumos</span>
+                            <span>·</span>
+                            <span>{mod.flashcards} cards</span>
+                            {mod.tarefas > 0 && (
+                              <>
+                                <span>·</span>
+                                <span className="text-primary">{progresso}%</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </motion.div>

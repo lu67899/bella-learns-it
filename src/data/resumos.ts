@@ -8,12 +8,42 @@ export interface Resumo {
 }
 
 export const materias = [
+  // Tecnologia
   "Programação",
   "Banco de Dados",
   "Redes de Computadores",
   "Engenharia de Software",
   "Estrutura de Dados",
   "Sistemas Operacionais",
+  // Ciências Exatas
+  "Matemática",
+  "Física",
+  "Estatística",
+  "Cálculo",
+  // Ciências Humanas
+  "Direito",
+  "Administração",
+  "Contabilidade",
+  "Economia",
+  "Psicologia",
+  "Sociologia",
+  "Filosofia",
+  "História",
+  // Saúde
+  "Medicina",
+  "Enfermagem",
+  "Farmácia",
+  "Nutrição",
+  // Engenharias
+  "Engenharia Civil",
+  "Engenharia Elétrica",
+  "Engenharia Mecânica",
+  // Comunicação & Educação
+  "Letras",
+  "Pedagogia",
+  "Marketing",
+  // Outros
+  "Outro",
 ];
 
 export const resumosIniciais: Resumo[] = [

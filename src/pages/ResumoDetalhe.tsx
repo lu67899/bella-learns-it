@@ -42,18 +42,13 @@ const ResumoDetalhe = () => {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : resumo ? (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <Badge variant="outline" className="mb-2 text-primary border-primary/30 w-fit">{resumo.materia}</Badge>
-                <CardTitle className="font-mono text-xl">{resumo.titulo}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                  {resumo.conteudo}
-                </div>
-              </CardContent>
-            </Card>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-4">
+              <Badge variant="outline" className="text-primary border-primary/30 w-fit">{resumo.materia}</Badge>
+              <h1 className="font-mono text-2xl font-bold">{resumo.titulo}</h1>
+              <div className="h-px bg-border" />
+              <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
+                {resumo.conteudo}
+              </div>
           </motion.div>
         ) : null}
       </div>

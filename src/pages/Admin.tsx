@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,9 +84,10 @@ const Admin = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="materias">
+        <Tabs defaultValue="cursos">
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
             <TabsList className="inline-flex h-auto min-w-max gap-1 p-1.5 flex-wrap md:flex-nowrap">
+              <TabsTrigger value="cursos" className="gap-2 px-4 py-2.5 text-sm"><Library className="h-4 w-4" /> Cursos</TabsTrigger>
               <TabsTrigger value="materias" className="gap-2 px-4 py-2.5 text-sm"><Tag className="h-4 w-4" /> Matérias</TabsTrigger>
               <TabsTrigger value="modulos" className="gap-2 px-4 py-2.5 text-sm"><GraduationCap className="h-4 w-4" /> Módulos</TabsTrigger>
               <TabsTrigger value="resumos" className="gap-2 px-4 py-2.5 text-sm"><BookOpen className="h-4 w-4" /> Resumos</TabsTrigger>
@@ -98,6 +99,7 @@ const Admin = () => {
             </TabsList>
           </div>
 
+          <TabsContent value="cursos"><CursosTab /></TabsContent>
           <TabsContent value="materias"><MateriasTab /></TabsContent>
           <TabsContent value="modulos"><ModulosTab /></TabsContent>
           <TabsContent value="resumos"><ResumosTab /></TabsContent>
@@ -112,7 +114,80 @@ const Admin = () => {
   );
 };
 
-// ─── MATÉRIAS TAB ────────────────────────────────────────
+// ─── CURSOS TAB ─────────────────────────────────────────
+function CursosTab() {
+  const [items, setItems] = useState<{ id: string; nome: string; descricao: string | null; ordem: number }[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState({ nome: "", descricao: "" });
+
+  const load = async () => {
+    const { data } = await supabase.from("cursos").select("*").order("ordem");
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.nome) return;
+    const payload = { nome: form.nome, descricao: form.descricao || null, ordem: editing ? editing.ordem : items.length };
+    if (editing) {
+      await supabase.from("cursos").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("cursos").insert(payload);
+    }
+    toast.success("Curso salvo!"); setDialogOpen(false); setEditing(null); setForm({ nome: "", descricao: "" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("cursos").delete().eq("id", id);
+    toast.success("Curso removido!"); load();
+  };
+
+  return (
+    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "" }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-16">#</TableHead>
+            <TableHead>Nome</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead className="w-24">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm">{item.ordem + 1}</TableCell>
+              <TableCell className="font-mono text-sm">{item.nome}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.descricao || "—"}</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "" }); setDialogOpen(true); }}>
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Curso</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Nome do curso (ex: Sistemas de Informação)" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+            <Input placeholder="Descrição (opcional)" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
+  );
+}
+
 function MateriasTab() {
   const { materias, reload } = useMaterias();
   const [novaMateria, setNovaMateria] = useState("");
@@ -581,35 +656,39 @@ function MensagensTab() {
 
 // ─── MÓDULOS TAB ─────────────────────────────────────────
 function ModulosTab() {
-  const [modulos, setModulos] = useState<{ id: string; nome: string; descricao: string | null; ordem: number }[]>([]);
+  const [cursos, setCursos] = useState<{ id: string; nome: string }[]>([]);
+  const [modulos, setModulos] = useState<{ id: string; nome: string; descricao: string | null; ordem: number; curso_id: string | null }[]>([]);
   const [topicos, setTopicos] = useState<{ id: string; modulo_id: string; titulo: string; conteudo: string; ordem: number }[]>([]);
   const [moduloDialogOpen, setModuloDialogOpen] = useState(false);
   const [topicoDialogOpen, setTopicoDialogOpen] = useState(false);
   const [editingModulo, setEditingModulo] = useState<any>(null);
   const [editingTopico, setEditingTopico] = useState<any>(null);
   const [selectedModuloId, setSelectedModuloId] = useState<string | null>(null);
-  const [moduloForm, setModuloForm] = useState({ nome: "", descricao: "" });
+  const [selectedCursoFilter, setSelectedCursoFilter] = useState<string>("all");
+  const [moduloForm, setModuloForm] = useState({ nome: "", descricao: "", curso_id: "" });
   const [topicoForm, setTopicoForm] = useState({ titulo: "", conteudo: "" });
 
   const loadAll = async () => {
-    const [mRes, tRes] = await Promise.all([
+    const [cRes, mRes, tRes] = await Promise.all([
+      supabase.from("cursos").select("id, nome").order("ordem"),
       supabase.from("modulos").select("*").order("ordem"),
       supabase.from("modulo_topicos").select("*").order("ordem"),
     ]);
+    if (cRes.data) setCursos(cRes.data);
     if (mRes.data) setModulos(mRes.data);
     if (tRes.data) setTopicos(tRes.data);
   };
   useEffect(() => { loadAll(); }, []);
 
   const saveModulo = async () => {
-    if (!moduloForm.nome) return;
-    const payload = { nome: moduloForm.nome, descricao: moduloForm.descricao || null, ordem: editingModulo ? editingModulo.ordem : modulos.length };
+    if (!moduloForm.nome || !moduloForm.curso_id) return;
+    const payload = { nome: moduloForm.nome, descricao: moduloForm.descricao || null, curso_id: moduloForm.curso_id, ordem: editingModulo ? editingModulo.ordem : modulos.length };
     if (editingModulo) {
       await supabase.from("modulos").update(payload).eq("id", editingModulo.id);
     } else {
       await supabase.from("modulos").insert(payload);
     }
-    toast.success("Módulo salvo!"); setModuloDialogOpen(false); setEditingModulo(null); setModuloForm({ nome: "", descricao: "" }); loadAll();
+    toast.success("Módulo salvo!"); setModuloDialogOpen(false); setEditingModulo(null); setModuloForm({ nome: "", descricao: "", curso_id: "" }); loadAll();
   };
 
   const removeModulo = async (id: string) => {
@@ -634,17 +713,27 @@ function ModulosTab() {
     toast.success("Tópico removido!"); loadAll();
   };
 
+  const filteredModulos = selectedCursoFilter === "all" ? modulos : modulos.filter(m => m.curso_id === selectedCursoFilter);
   const selectedTopicos = topicos.filter(t => t.modulo_id === selectedModuloId);
 
   return (
     <Card className="bg-card border-border mt-4">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <CardTitle className="font-mono text-lg flex items-center gap-2">
-          <GraduationCap className="h-5 w-5 text-primary" /> Módulos <Badge variant="secondary">{modulos.length}</Badge>
+          <GraduationCap className="h-5 w-5 text-primary" /> Módulos <Badge variant="secondary">{filteredModulos.length}</Badge>
         </CardTitle>
-        <Button onClick={() => { setEditingModulo(null); setModuloForm({ nome: "", descricao: "" }); setModuloDialogOpen(true); }} size="sm" className="gap-1">
-          <Plus className="h-3 w-3" /> Novo Módulo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={selectedCursoFilter} onValueChange={setSelectedCursoFilter}>
+            <SelectTrigger className="w-[180px] h-9 text-xs"><SelectValue placeholder="Filtrar por curso" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os cursos</SelectItem>
+              {cursos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => { setEditingModulo(null); setModuloForm({ nome: "", descricao: "", curso_id: "" }); setModuloDialogOpen(true); }} size="sm" className="gap-1">
+            <Plus className="h-3 w-3" /> Novo Módulo
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Módulos list */}
@@ -652,26 +741,26 @@ function ModulosTab() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">#</TableHead>
+              <TableHead>Curso</TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
               <TableHead>Tópicos</TableHead>
               <TableHead className="w-32">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {modulos.map((mod) => (
+            {filteredModulos.map((mod) => (
               <TableRow key={mod.id} className={selectedModuloId === mod.id ? "bg-primary/5" : ""}>
                 <TableCell className="font-mono text-sm">{mod.ordem + 1}</TableCell>
+                <TableCell><Badge variant="outline" className="text-xs">{cursos.find(c => c.id === mod.curso_id)?.nome || "—"}</Badge></TableCell>
                 <TableCell>
                   <button onClick={() => setSelectedModuloId(selectedModuloId === mod.id ? null : mod.id)} className="font-mono text-sm text-primary hover:underline">
                     {mod.nome}
                   </button>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{mod.descricao || "—"}</TableCell>
                 <TableCell><Badge variant="secondary">{topicos.filter(t => t.modulo_id === mod.id).length}</Badge></TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => { setEditingModulo(mod); setModuloForm({ nome: mod.nome, descricao: mod.descricao || "" }); setModuloDialogOpen(true); }}>
+                    <Button variant="ghost" size="icon" onClick={() => { setEditingModulo(mod); setModuloForm({ nome: mod.nome, descricao: mod.descricao || "", curso_id: mod.curso_id || "" }); setModuloDialogOpen(true); }}>
                       <Edit2 className="h-3 w-3" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => removeModulo(mod.id)}>
@@ -739,6 +828,10 @@ function ModulosTab() {
         <DialogContent>
           <DialogHeader><DialogTitle className="font-mono">{editingModulo ? "Editar" : "Novo"} Módulo</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <Select value={moduloForm.curso_id} onValueChange={(v) => setModuloForm({ ...moduloForm, curso_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione o curso" /></SelectTrigger>
+              <SelectContent>{cursos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+            </Select>
             <Input placeholder="Nome do módulo (ex: Banco de Dados)" value={moduloForm.nome} onChange={(e) => setModuloForm({ ...moduloForm, nome: e.target.value })} />
             <Input placeholder="Descrição (opcional)" value={moduloForm.descricao} onChange={(e) => setModuloForm({ ...moduloForm, descricao: e.target.value })} />
             <Button onClick={saveModulo} className="w-full">Salvar</Button>

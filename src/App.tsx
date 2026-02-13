@@ -12,6 +12,7 @@ import Cronograma from "./pages/Cronograma";
 import Anotacoes from "./pages/Anotacoes";
 import Admin from "./pages/Admin";
 import ModuloPage from "./pages/Modulo";
+import CursoPage from "./pages/Curso";
 import Progresso from "./pages/Progresso";
 import Desafios from "./pages/Desafios";
 import Auth from "./pages/Auth";
@@ -43,6 +44,7 @@ const AppRoutes = () => (
     <Route path="/cronograma" element={<ProtectedRoute><Cronograma /></ProtectedRoute>} />
     <Route path="/anotacoes" element={<ProtectedRoute><Anotacoes /></ProtectedRoute>} />
     <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+    <Route path="/curso/:id" element={<ProtectedRoute><CursoPage /></ProtectedRoute>} />
     <Route path="/modulo/:id" element={<ProtectedRoute><ModuloPage /></ProtectedRoute>} />
     <Route path="/progresso" element={<ProtectedRoute><Progresso /></ProtectedRoute>} />
     <Route path="/desafios" element={<ProtectedRoute><Desafios /></ProtectedRoute>} />

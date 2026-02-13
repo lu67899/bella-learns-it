@@ -80,6 +80,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cursos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       desafio_respostas: {
         Row: {
           created_at: string
@@ -261,6 +288,7 @@ export type Database = {
       modulos: {
         Row: {
           created_at: string
+          curso_id: string | null
           descricao: string | null
           icone: string | null
           id: string
@@ -269,6 +297,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          curso_id?: string | null
           descricao?: string | null
           icone?: string | null
           id?: string
@@ -277,13 +306,22 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          curso_id?: string | null
           descricao?: string | null
           icone?: string | null
           id?: string
           nome?: string
           ordem?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "modulos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notificacoes: {
         Row: {

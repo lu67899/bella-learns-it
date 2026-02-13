@@ -15,41 +15,55 @@ interface DesafioSemanal {
   pergunta: string;
   opcoes: string[];
   correta: number;
-  respondida: boolean;
-  resposta_usuario: number | null;
   created_at: string;
+}
+
+interface Resposta {
+  desafio_id: string;
+  resposta_usuario: number;
 }
 
 const Desafios = () => {
   const [desafios, setDesafios] = useState<DesafioSemanal[]>([]);
+  const [respostas, setRespostas] = useState<Map<string, number>>(new Map());
   const { user } = useAuth();
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("desafios_semanais").select("*").order("created_at", { ascending: false });
-      if (data) setDesafios(data as DesafioSemanal[]);
+      const [desafiosRes, respostasRes] = await Promise.all([
+        supabase.from("desafios_semanais").select("*").order("created_at", { ascending: false }),
+        supabase.from("desafio_respostas").select("desafio_id, resposta_usuario"),
+      ]);
+      if (desafiosRes.data) setDesafios(desafiosRes.data as DesafioSemanal[]);
+      if (respostasRes.data) {
+        const map = new Map<string, number>();
+        (respostasRes.data as Resposta[]).forEach((r) => map.set(r.desafio_id, r.resposta_usuario));
+        setRespostas(map);
+      }
     };
     load();
   }, []);
 
   const responder = async (desafioId: string, opcaoIdx: number) => {
+    if (respostas.has(desafioId) || !user) return;
+
+    await supabase.from("desafio_respostas").insert({
+      user_id: user.id,
+      desafio_id: desafioId,
+      resposta_usuario: opcaoIdx,
+    });
+    setRespostas((prev) => new Map(prev).set(desafioId, opcaoIdx));
+
     const desafio = desafios.find((d) => d.id === desafioId);
-    if (!desafio || desafio.respondida) return;
-
-    await supabase.from("desafios_semanais").update({ respondida: true, resposta_usuario: opcaoIdx }).eq("id", desafioId);
-    setDesafios((prev) =>
-      prev.map((d) => (d.id === desafioId ? { ...d, respondida: true, resposta_usuario: opcaoIdx } : d))
-    );
-
-    if (opcaoIdx === desafio.correta) {
+    if (desafio && opcaoIdx === desafio.correta) {
       toast.success("Resposta correta! 🎉");
     } else {
       toast.error("Resposta incorreta 😕");
     }
   };
 
-  const respondidos = desafios.filter((d) => d.respondida).length;
-  const acertos = desafios.filter((d) => d.respondida && d.resposta_usuario === d.correta).length;
+  const respondidos = desafios.filter((d) => respostas.has(d.id)).length;
+  const acertos = desafios.filter((d) => respostas.has(d.id) && respostas.get(d.id) === d.correta).length;
 
   return (
     <Layout>
@@ -66,7 +80,6 @@ const Desafios = () => {
           </div>
         </div>
 
-        {/* Score card */}
         <Card className="bg-card border-border border-glow">
           <CardContent className="p-5 space-y-2">
             <div className="flex justify-between text-sm">
@@ -82,7 +95,6 @@ const Desafios = () => {
           </CardContent>
         </Card>
 
-        {/* Questions */}
         {desafios.length === 0 ? (
           <Card className="bg-card border-border">
             <CardContent className="p-8 text-center text-muted-foreground text-sm">
@@ -91,44 +103,47 @@ const Desafios = () => {
           </Card>
         ) : (
           <div className="space-y-4">
-            {desafios.map((desafio, idx) => (
-              <Card key={desafio.id} className="bg-card border-border">
-                <CardContent className="p-5 space-y-3">
-                  <p className="font-mono font-semibold text-sm">
-                    {idx + 1}. {desafio.pergunta}
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {desafio.opcoes.map((opcao, opIdx) => {
-                      const isRespondida = desafio.respondida;
-                      const isCorreta = opIdx === desafio.correta;
-                      const isEscolhida = opIdx === desafio.resposta_usuario;
-                      let btnClass = "text-left justify-start h-auto py-3 px-4 text-sm font-mono";
+            {desafios.map((desafio, idx) => {
+              const respondida = respostas.has(desafio.id);
+              const respostaUsuario = respostas.get(desafio.id);
+              return (
+                <Card key={desafio.id} className="bg-card border-border">
+                  <CardContent className="p-5 space-y-3">
+                    <p className="font-mono font-semibold text-sm">
+                      {idx + 1}. {desafio.pergunta}
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {desafio.opcoes.map((opcao, opIdx) => {
+                        const isCorreta = opIdx === desafio.correta;
+                        const isEscolhida = opIdx === respostaUsuario;
+                        let btnClass = "text-left justify-start h-auto py-3 px-4 text-sm font-mono";
 
-                      if (isRespondida) {
-                        if (isCorreta) {
-                          btnClass += " border-primary bg-primary/10 text-primary";
-                        } else if (isEscolhida && !isCorreta) {
-                          btnClass += " border-destructive bg-destructive/10 text-destructive";
+                        if (respondida) {
+                          if (isCorreta) {
+                            btnClass += " border-primary bg-primary/10 text-primary";
+                          } else if (isEscolhida && !isCorreta) {
+                            btnClass += " border-destructive bg-destructive/10 text-destructive";
+                          }
                         }
-                      }
 
-                      return (
-                        <Button
-                          key={opIdx}
-                          variant="outline"
-                          className={btnClass}
-                          disabled={isRespondida}
-                          onClick={() => responder(desafio.id, opIdx)}
-                        >
-                          {isRespondida && isCorreta && <CheckCircle2 className="h-4 w-4 mr-2 shrink-0" />}
-                          {opcao}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        return (
+                          <Button
+                            key={opIdx}
+                            variant="outline"
+                            className={btnClass}
+                            disabled={respondida}
+                            onClick={() => responder(desafio.id, opIdx)}
+                          >
+                            {respondida && isCorreta && <CheckCircle2 className="h-4 w-4 mr-2 shrink-0" />}
+                            {opcao}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </motion.div>

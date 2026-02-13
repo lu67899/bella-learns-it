@@ -347,7 +347,7 @@ function QuizTab() {
 
 
 // ─── DESAFIOS SEMANAIS TAB ──────────────────────────────
-interface DesafioSemanal { id: string; pergunta: string; opcoes: string[]; correta: number; respondida: boolean; resposta_usuario: number | null; created_at: string; }
+interface DesafioSemanal { id: string; pergunta: string; opcoes: string[]; correta: number; created_at: string; }
 
 function DesafiosTab() {
   const [items, setItems] = useState<DesafioSemanal[]>([]);
@@ -400,30 +400,20 @@ function DesafiosTab() {
   };
 
   const resetDesafio = async (id: string) => {
-    await supabase.from("desafios_semanais").update({ respondida: false, resposta_usuario: null }).eq("id", id);
-    toast.success("Desafio resetado!"); load();
+    await supabase.from("desafio_respostas").delete().eq("desafio_id", id);
+    toast.success("Respostas resetadas!"); load();
   };
 
   return (
     <CrudSection title="Desafios da Semana" count={items.length} onAdd={() => { setEditing(null); setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" }); setDialogOpen(true); }}>
       <Table>
-        <TableHeader><TableRow><TableHead>Pergunta</TableHead><TableHead>Status</TableHead><TableHead className="w-32">Ações</TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Pergunta</TableHead><TableHead className="w-32">Ações</TableHead></TableRow></TableHeader>
         <TableBody>
           {items.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="font-mono text-sm">{item.pergunta}</TableCell>
               <TableCell>
-                <Badge variant={item.respondida ? "default" : "outline"} className={item.respondida ? "bg-primary/20 text-primary border-primary/30" : ""}>
-                  {item.respondida ? (item.resposta_usuario === item.correta ? "✅ Acertou" : "❌ Errou") : "Pendente"}
-                </Badge>
-              </TableCell>
-              <TableCell>
                 <div className="flex gap-1">
-                  {item.respondida && (
-                    <Button variant="ghost" size="icon" onClick={() => resetDesafio(item.id)} title="Resetar">
-                      <ArrowUp className="h-3 w-3" />
-                    </Button>
-                  )}
                   <Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>

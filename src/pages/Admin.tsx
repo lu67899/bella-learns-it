@@ -85,18 +85,37 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="cursos">
-          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <TabsList className="inline-flex h-auto min-w-max gap-1 p-1.5 flex-wrap md:flex-nowrap">
-              <TabsTrigger value="cursos" className="gap-2 px-4 py-2.5 text-sm"><Library className="h-4 w-4" /> Cursos</TabsTrigger>
-              <TabsTrigger value="materias" className="gap-2 px-4 py-2.5 text-sm"><Tag className="h-4 w-4" /> Matérias</TabsTrigger>
-              <TabsTrigger value="modulos" className="gap-2 px-4 py-2.5 text-sm"><GraduationCap className="h-4 w-4" /> Módulos</TabsTrigger>
-              <TabsTrigger value="resumos" className="gap-2 px-4 py-2.5 text-sm"><BookOpen className="h-4 w-4" /> Resumos</TabsTrigger>
-              <TabsTrigger value="flashcards" className="gap-2 px-4 py-2.5 text-sm"><BrainCircuit className="h-4 w-4" /> Flashcards</TabsTrigger>
-              <TabsTrigger value="quiz" className="gap-2 px-4 py-2.5 text-sm"><BrainCircuit className="h-4 w-4" /> Quiz</TabsTrigger>
-              <TabsTrigger value="desafios" className="gap-2 px-4 py-2.5 text-sm"><Trophy className="h-4 w-4" /> Desafios</TabsTrigger>
-              <TabsTrigger value="frases" className="gap-2 px-4 py-2.5 text-sm"><Sparkles className="h-4 w-4" /> Frases</TabsTrigger>
-              <TabsTrigger value="mensagens" className="gap-2 px-4 py-2.5 text-sm"><MessageCircle className="h-4 w-4" /> Chat</TabsTrigger>
-            </TabsList>
+          {/* Grouped navigation */}
+          <div className="space-y-3">
+            {/* Group 1: Estrutura do Conteúdo */}
+            <div>
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">📂 Estrutura do Conteúdo</p>
+              <TabsList className="inline-flex h-auto gap-1 p-1">
+                <TabsTrigger value="cursos" className="gap-2 px-4 py-2 text-sm"><Library className="h-4 w-4" /> Cursos</TabsTrigger>
+                <TabsTrigger value="modulos" className="gap-2 px-4 py-2 text-sm"><GraduationCap className="h-4 w-4" /> Módulos & Tópicos</TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Group 2: Material de Estudo */}
+            <div>
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">📚 Material de Estudo</p>
+              <TabsList className="inline-flex h-auto gap-1 p-1">
+                <TabsTrigger value="materias" className="gap-2 px-4 py-2 text-sm"><Tag className="h-4 w-4" /> Matérias</TabsTrigger>
+                <TabsTrigger value="resumos" className="gap-2 px-4 py-2 text-sm"><BookOpen className="h-4 w-4" /> Resumos</TabsTrigger>
+                <TabsTrigger value="flashcards" className="gap-2 px-4 py-2 text-sm"><BrainCircuit className="h-4 w-4" /> Flashcards</TabsTrigger>
+                <TabsTrigger value="quiz" className="gap-2 px-4 py-2 text-sm"><BrainCircuit className="h-4 w-4" /> Quiz</TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Group 3: Engajamento & Comunicação */}
+            <div>
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">💬 Engajamento</p>
+              <TabsList className="inline-flex h-auto gap-1 p-1">
+                <TabsTrigger value="desafios" className="gap-2 px-4 py-2 text-sm"><Trophy className="h-4 w-4" /> Desafios</TabsTrigger>
+                <TabsTrigger value="frases" className="gap-2 px-4 py-2 text-sm"><Sparkles className="h-4 w-4" /> Frases</TabsTrigger>
+                <TabsTrigger value="mensagens" className="gap-2 px-4 py-2 text-sm"><MessageCircle className="h-4 w-4" /> Chat</TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           <TabsContent value="cursos"><CursosTab /></TabsContent>

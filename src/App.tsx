@@ -10,6 +10,8 @@ import Cronograma from "./pages/Cronograma";
 import Anotacoes from "./pages/Anotacoes";
 import Admin from "./pages/Admin";
 import ModuloPage from "./pages/Modulo";
+import Progresso from "./pages/Progresso";
+import Desafios from "./pages/Desafios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/anotacoes" element={<Anotacoes />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/modulo/:id" element={<ModuloPage />} />
+          <Route path="/progresso" element={<Progresso />} />
+          <Route path="/desafios" element={<Desafios />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

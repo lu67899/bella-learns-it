@@ -374,7 +374,7 @@ function DesafiosTab() {
         titulo: "Novo desafio semanal! 🏆",
         mensagem: `Um novo desafio foi adicionado. Teste seus conhecimentos!`,
         tipo: "novo_conteudo",
-        link: "/",
+        link: "/desafios",
       });
     }
     toast.success("Desafio salvo!"); setDialogOpen(false); setEditing(null);

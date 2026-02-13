@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, GraduationCap, MessageCircle, Send, X, ChevronRight, ChevronDown, Bell, CheckCircle2, Trophy, CircleDot } from "lucide-react";
+import { BookOpen, BrainCircuit, CalendarDays, StickyNote, Sparkles, GraduationCap, MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+
 
 const quickLinks = [
   { title: "Resumos", desc: "Revisar matérias", icon: BookOpen, url: "/resumos", color: "text-neon-purple" },
@@ -55,12 +55,7 @@ interface Notificacao {
 
 interface DesafioSemanal {
   id: string;
-  pergunta: string;
-  opcoes: string[];
-  correta: number;
   respondida: boolean;
-  resposta_usuario: number | null;
-  created_at: string;
 }
 
 const Index = () => {
@@ -76,8 +71,6 @@ const Index = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [overallProgress, setOverallProgress] = useState(0);
-  const [progressExpanded, setProgressExpanded] = useState(false);
-  const [desafiosExpanded, setDesafiosExpanded] = useState(false);
   const [desafios, setDesafios] = useState<DesafioSemanal[]>([]);
 
   useEffect(() => {
@@ -91,7 +84,7 @@ const Index = () => {
         supabase.from("mensagens").select("*").order("created_at", { ascending: true }),
         supabase.from("topico_progresso").select("topico_id"),
         supabase.from("notificacoes").select("*").order("created_at", { ascending: false }).limit(20),
-        supabase.from("desafios_semanais").select("*").order("created_at", { ascending: false }),
+        supabase.from("desafios_semanais").select("id, respondida"),
       ]);
 
       const tarefas = cRes.data || [];
@@ -168,22 +161,6 @@ const Index = () => {
     if (notif.link) {
       setNotifAberta(false);
       navigate(notif.link);
-    }
-  };
-
-  const responderDesafio = async (desafioId: string, opcaoIdx: number) => {
-    const desafio = desafios.find((d) => d.id === desafioId);
-    if (!desafio || desafio.respondida) return;
-
-    await supabase.from("desafios_semanais").update({ respondida: true, resposta_usuario: opcaoIdx }).eq("id", desafioId);
-    setDesafios((prev) =>
-      prev.map((d) => (d.id === desafioId ? { ...d, respondida: true, resposta_usuario: opcaoIdx } : d))
-    );
-
-    if (opcaoIdx === desafio.correta) {
-      toast.success("Resposta correta! 🎉");
-    } else {
-      toast.error("Resposta incorreta 😕");
     }
   };
 
@@ -264,146 +241,41 @@ const Index = () => {
 
         {/* Overall Progress - Expandable */}
         <motion.div variants={item}>
-          <Card
-            className="bg-card border-border border-glow cursor-pointer hover:border-primary/40 transition-all"
-            onClick={() => setProgressExpanded(!progressExpanded)}
-          >
-            <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between text-xs items-center">
-                <span className="text-muted-foreground font-mono flex items-center gap-1">
-                  Progresso Geral dos Módulos
-                  <ChevronDown className={`h-3 w-3 transition-transform ${progressExpanded ? "rotate-180" : ""}`} />
-                </span>
-                <span className="font-mono text-primary">{Math.round(overallProgress)}%</span>
-              </div>
-              <Progress value={overallProgress} className="h-3" />
-            </CardContent>
-          </Card>
-          <AnimatePresence>
-            {progressExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <Card className="bg-card border-border mt-2">
-                  <CardContent className="p-4 space-y-3">
-                    <h3 className="text-sm font-mono font-semibold text-muted-foreground">Detalhes por módulo</h3>
-                    {modulos.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">Nenhum módulo cadastrado.</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {modulos.map((mod) => {
-                          const modProgress = (mod.topicos_count || 0) > 0
-                            ? ((mod.completed_count || 0) / (mod.topicos_count || 1)) * 100
-                            : 0;
-                          const isComplete = modProgress === 100;
-                          return (
-                            <div key={mod.id} className="space-y-1">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {isComplete ? (
-                                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                                  ) : (
-                                    <CircleDot className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                  <span className={`text-sm font-mono ${isComplete ? "text-primary" : ""}`}>{mod.nome}</span>
-                                </div>
-                                <span className="text-xs font-mono text-muted-foreground">
-                                  {mod.completed_count || 0}/{mod.topicos_count || 0}
-                                </span>
-                              </div>
-                              <Progress value={modProgress} className="h-1.5" />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <Link to="/progresso">
+            <Card className="bg-card border-border border-glow cursor-pointer hover:border-primary/40 transition-all group">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex justify-between text-xs items-center">
+                  <span className="text-muted-foreground font-mono">Progresso Geral dos Módulos</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-primary">{Math.round(overallProgress)}%</span>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                </div>
+                <Progress value={overallProgress} className="h-3" />
+              </CardContent>
+            </Card>
+          </Link>
         </motion.div>
 
-        {/* Desafios da Semana - Expandable */}
+        {/* Desafios da Semana */}
         <motion.div variants={item}>
-          <Card
-            className="bg-card border-border border-glow cursor-pointer hover:border-primary/40 transition-all"
-            onClick={() => setDesafiosExpanded(!desafiosExpanded)}
-          >
-            <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between text-xs items-center">
-                <span className="text-muted-foreground font-mono flex items-center gap-1">
-                  <Trophy className="h-3 w-3" />
-                  Desafios da Semana
-                  <ChevronDown className={`h-3 w-3 transition-transform ${desafiosExpanded ? "rotate-180" : ""}`} />
-                </span>
-                <span className="font-mono text-primary">{desafiosRespondidos}/{desafiosTotal}</span>
-              </div>
-              <Progress value={desafiosTotal > 0 ? (desafiosRespondidos / desafiosTotal) * 100 : 0} className="h-2" />
-            </CardContent>
-          </Card>
-          <AnimatePresence>
-            {desafiosExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <Card className="bg-card border-border mt-2">
-                  <CardContent className="p-4 space-y-4">
-                    {desafios.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">Nenhum desafio disponível ainda. 🎯</p>
-                    ) : (
-                      desafios.map((desafio, idx) => (
-                        <div key={desafio.id} className="space-y-2 border-b border-border pb-4 last:border-0 last:pb-0">
-                          <p className="text-sm font-mono font-semibold">
-                            {idx + 1}. {desafio.pergunta}
-                          </p>
-                          <div className="grid grid-cols-1 gap-2">
-                            {desafio.opcoes.map((opcao, opIdx) => {
-                              const isRespondida = desafio.respondida;
-                              const isCorreta = opIdx === desafio.correta;
-                              const isEscolhida = opIdx === desafio.resposta_usuario;
-                              let btnClass = "text-left justify-start h-auto py-2 px-3 text-sm font-mono";
-                              let variant: "outline" | "default" | "destructive" = "outline";
-
-                              if (isRespondida) {
-                                if (isCorreta) {
-                                  btnClass += " border-primary bg-primary/10 text-primary";
-                                } else if (isEscolhida && !isCorreta) {
-                                  btnClass += " border-destructive bg-destructive/10 text-destructive";
-                                }
-                              }
-
-                              return (
-                                <Button
-                                  key={opIdx}
-                                  variant={variant}
-                                  className={btnClass}
-                                  disabled={isRespondida}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    responderDesafio(desafio.id, opIdx);
-                                  }}
-                                >
-                                  {isRespondida && isCorreta && <CheckCircle2 className="h-3 w-3 mr-2 shrink-0" />}
-                                  {opcao}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <Link to="/desafios">
+            <Card className="bg-card border-border border-glow cursor-pointer hover:border-primary/40 transition-all group">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex justify-between text-xs items-center">
+                  <span className="text-muted-foreground font-mono flex items-center gap-1">
+                    <Trophy className="h-3 w-3" />
+                    Desafios da Semana
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-primary">{desafiosRespondidos}/{desafiosTotal}</span>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                </div>
+                <Progress value={desafiosTotal > 0 ? (desafiosRespondidos / desafiosTotal) * 100 : 0} className="h-2" />
+              </CardContent>
+            </Card>
+          </Link>
         </motion.div>
 
         {/* Módulos */}

@@ -47,7 +47,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div>
               <h1 className="font-mono text-base font-bold text-gradient">Bella Estuda</h1>
-              <p className="text-[10px] text-muted-foreground">Sistemas de Informação</p>
+              <p className="text-[10px] text-muted-foreground">Sua plataforma de estudos</p>
             </div>
           )}
         </div>

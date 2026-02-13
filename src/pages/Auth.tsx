@@ -47,16 +47,18 @@ const Auth = () => {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { display_name: displayName.trim() },
+          },
         });
         if (error) throw error;
 
         const userId = data.user?.id;
         if (!userId) throw new Error("Erro ao criar conta");
 
-        // Upload avatar if provided
-        let avatarUrl: string | null = null;
-        if (avatarFile) {
+        // Wait for session to be available, then upload avatar & update profile
+        if (data.session && avatarFile) {
           const ext = avatarFile.name.split(".").pop();
           const path = `${userId}/avatar.${ext}`;
           const { error: uploadError } = await supabase.storage
@@ -64,17 +66,9 @@ const Auth = () => {
             .upload(path, avatarFile, { upsert: true });
           if (!uploadError) {
             const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-            avatarUrl = urlData.publicUrl;
+            await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", userId);
           }
         }
-
-        // Create profile
-        const { error: profileError } = await supabase.from("profiles").insert({
-          user_id: userId,
-          display_name: displayName.trim(),
-          avatar_url: avatarUrl,
-        });
-        if (profileError) throw profileError;
 
         toast.success("Conta criada com sucesso! 🎉");
       } else {

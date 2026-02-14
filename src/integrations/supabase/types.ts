@@ -47,6 +47,30 @@ export type Database = {
         }
         Relationships: []
       }
+      app_features: {
+        Row: {
+          created_at: string
+          id: number
+          music_enabled: boolean
+          news_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          music_enabled?: boolean
+          news_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          music_enabled?: boolean
+          news_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cronograma: {
         Row: {
           concluida: boolean
@@ -462,6 +486,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_music_preferences: {
+        Row: {
+          created_at: string
+          genre_ids: number[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          genre_ids: number[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          genre_ids?: number[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

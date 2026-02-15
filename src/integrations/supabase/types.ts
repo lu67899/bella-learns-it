@@ -122,6 +122,30 @@ export type Database = {
         }
         Relationships: []
       }
+      belinha_stories: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          image_url: string
+          texto: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          image_url: string
+          texto?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          image_url?: string
+          texto?: string | null
+        }
+        Relationships: []
+      }
       cronograma: {
         Row: {
           concluida: boolean

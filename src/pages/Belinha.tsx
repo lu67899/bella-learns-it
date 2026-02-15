@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { StoryRing, BelinhaStoriesViewer, useBelinhaStories } from "@/components/BelinhaStories";
 import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -120,6 +121,8 @@ const Belinha = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [showProfile, setShowProfile] = useState(false);
+  const [showStories, setShowStories] = useState(false);
+  const { hasStories } = useBelinhaStories();
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -181,13 +184,18 @@ const Belinha = () => {
       <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
         {/* Header */}
         <div className="flex items-center justify-between pb-4">
-          <button onClick={() => setShowProfile(true)} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <BelinhaAvatar avatarUrl={avatarUrl} size="lg" />
-            <div className="text-left">
+          <div className="flex items-center gap-3">
+            <StoryRing
+              avatarUrl={avatarUrl}
+              hasStories={hasStories}
+              onClick={() => hasStories ? setShowStories(true) : setShowProfile(true)}
+              size="lg"
+            />
+            <button onClick={() => setShowProfile(true)} className="text-left hover:opacity-80 transition-opacity">
               <h1 className="font-mono font-bold text-lg">Belinha</h1>
               <p className="text-[10px] text-muted-foreground">Toque para ver informações</p>
-            </div>
-          </button>
+            </button>
+          </div>
           {messages.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearChat} className="gap-1.5 text-muted-foreground">
               <Trash2 className="h-3.5 w-3.5" /> Limpar
@@ -294,6 +302,7 @@ const Belinha = () => {
           </form>
         </div>
       </div>
+      <BelinhaStoriesViewer open={showStories} onClose={() => setShowStories(false)} />
     </Layout>
   );
 };

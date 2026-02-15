@@ -94,6 +94,50 @@
     --neon-pink: 350 70% 60%;
     --neon-green: 340 40% 65%;
   }
+
+  [data-theme="hogwarts"] {
+    --background: 25 20% 8%;
+    --foreground: 40 15% 88%;
+
+    --card: 25 18% 12%;
+    --card-foreground: 40 15% 88%;
+
+    --popover: 25 18% 12%;
+    --popover-foreground: 40 15% 88%;
+
+    --primary: 45 85% 55%;
+    --primary-foreground: 25 20% 8%;
+
+    --secondary: 25 15% 18%;
+    --secondary-foreground: 40 15% 88%;
+
+    --muted: 25 12% 16%;
+    --muted-foreground: 40 8% 55%;
+
+    --accent: 0 75% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 12% 22%;
+    --input: 25 12% 22%;
+    --ring: 45 85% 55%;
+
+    --sidebar-background: 25 22% 6%;
+    --sidebar-foreground: 40 10% 65%;
+    --sidebar-primary: 45 85% 55%;
+    --sidebar-primary-foreground: 25 20% 8%;
+    --sidebar-accent: 25 15% 14%;
+    --sidebar-accent-foreground: 40 15% 88%;
+    --sidebar-border: 25 12% 16%;
+    --sidebar-ring: 45 85% 55%;
+
+    --neon-purple: 45 85% 55%;
+    --neon-cyan: 0 75% 45%;
+    --neon-pink: 30 70% 50%;
+    --neon-green: 120 40% 45%;
+  }
 }
 
 @layer base {

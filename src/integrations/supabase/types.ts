@@ -508,6 +508,39 @@ export type Database = {
         }
         Relationships: []
       }
+      videos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          duracao: number
+          id: string
+          ordem: number
+          titulo: string
+          updated_at: string
+          url_youtube: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          duracao: number
+          id?: string
+          ordem?: number
+          titulo: string
+          updated_at?: string
+          url_youtube: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          duracao?: number
+          id?: string
+          ordem?: number
+          titulo?: string
+          updated_at?: string
+          url_youtube?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

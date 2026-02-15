@@ -371,60 +371,98 @@ const Index = () => {
       <div className="fixed bottom-20 right-6 z-50">
         <AnimatePresence>
           {chatAberto && (
-            <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }}>
-              <Card className="w-80 bg-card border-border shadow-2xl overflow-hidden">
-                <div className="flex items-center justify-between p-3 border-b border-border cursor-pointer" onClick={() => setChatMinimizado(!chatMinimizado)}>
-                  <div className="flex items-center gap-1.5">
-                    <MessageCircle className="h-3 w-3 text-accent" />
-                    <span className="font-mono text-xs font-semibold">Mensagens</span>
-                    {naoLidas > 0 && !chatMinimizado && (
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">{naoLidas}</span>
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            >
+              <div className="w-80 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl overflow-hidden">
+                {/* Header */}
+                <div
+                  className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                  onClick={() => setChatMinimizado(!chatMinimizado)}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs font-medium text-foreground/80">Mensagens</span>
+                    {naoLidas > 0 && (
+                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+                        {naoLidas}
+                      </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setChatMinimizado(!chatMinimizado); }}>
+                  <div className="flex items-center gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={(e) => { e.stopPropagation(); setChatMinimizado(!chatMinimizado); }}
+                    >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}
+                    >
                       <X className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
+
+                {/* Body */}
                 <AnimatePresence>
                   {!chatMinimizado && (
                     <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                      <ScrollArea className="h-64 p-3" ref={scrollRef}>
-                        <div className="space-y-2">
+                      <div className="h-px bg-border/30" />
+                      <ScrollArea className="h-64 px-4 py-3" ref={scrollRef}>
+                        <div className="space-y-3">
                           {mensagens.length === 0 && (
-                            <div className="text-center py-8">
-                              <p className="text-xs text-muted-foreground">Nenhuma mensagem ainda</p>
+                            <div className="flex flex-col items-center justify-center py-10 gap-2">
+                              <MessageCircle className="h-8 w-8 text-muted-foreground/20" />
+                              <p className="text-[11px] text-muted-foreground/50">Nenhuma mensagem ainda</p>
                             </div>
                           )}
                           {mensagens.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.remetente === "bella" ? "justify-end" : "justify-start"}`}>
-                              <div className={`max-w-[80%] rounded-xl px-3 py-1.5 text-xs ${msg.remetente === "bella" ? "bg-primary/20 rounded-br-sm" : "bg-secondary rounded-bl-sm"}`}>
+                              <div
+                                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
+                                  msg.remetente === "bella"
+                                    ? "bg-primary text-primary-foreground rounded-br-md"
+                                    : "bg-secondary/60 text-foreground rounded-bl-md"
+                                }`}
+                              >
                                 {msg.conteudo}
                               </div>
                             </div>
                           ))}
                         </div>
                       </ScrollArea>
-                      <div className="flex gap-2 p-2 border-t border-border">
-                        <Input
-                          placeholder="Mensagem..."
-                          value={novaMensagem}
-                          onChange={(e) => setNovaMensagem(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && enviarMensagem()}
-                          className="flex-1 h-9 text-sm border-0 bg-secondary/50 focus-visible:ring-1"
-                        />
-                        <Button size="icon" className="h-9 w-9" onClick={enviarMensagem} disabled={!novaMensagem.trim()}>
-                          <Send className="h-3 w-3" />
-                        </Button>
+                      <div className="p-3 pt-0">
+                        <div className="flex gap-2 rounded-xl bg-secondary/40 p-1.5">
+                          <Input
+                            placeholder="Escreva uma mensagem..."
+                            value={novaMensagem}
+                            onChange={(e) => setNovaMensagem(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && enviarMensagem()}
+                            className="flex-1 h-8 text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/40"
+                          />
+                          <Button
+                            size="icon"
+                            className="h-8 w-8 rounded-lg shrink-0"
+                            onClick={enviarMensagem}
+                            disabled={!novaMensagem.trim()}
+                          >
+                            <Send className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </Card>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -433,12 +471,20 @@ const Index = () => {
       {/* Chat Button */}
       <div className="fixed bottom-6 right-6 z-50">
         {!chatAberto && (
-          <Button onClick={abrirChat} size="icon" className="h-12 w-12 rounded-full shadow-lg relative" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={abrirChat}
+            className="relative h-12 w-12 rounded-full shadow-lg shadow-primary/20 flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}
+          >
             <MessageCircle className="h-5 w-5 text-white" />
             {naoLidas > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">{naoLidas}</span>
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                {naoLidas}
+              </span>
             )}
-          </Button>
+          </motion.button>
         )}
       </div>
     </Layout>

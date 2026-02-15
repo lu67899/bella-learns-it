@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Newspaper } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Newspaper, Reply, Pencil, Check } from "lucide-react";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -40,6 +40,8 @@ interface Mensagem {
   remetente: string;
   conteudo: string;
   created_at: string;
+  reply_to: string | null;
+  editado: boolean;
 }
 
 interface Notificacao {
@@ -70,6 +72,9 @@ const Index = () => {
   const [frases, setFrases] = useState<string[]>([]);
   const [fraseIdx, setFraseIdx] = useState(0);
   const [adminConfig, setAdminConfig] = useState<{ nome: string; avatar_url: string | null }>({ nome: "Admin", avatar_url: null });
+  const [replyTo, setReplyTo] = useState<Mensagem | null>(null);
+  const [editingMsg, setEditingMsg] = useState<Mensagem | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -151,6 +156,14 @@ const Index = () => {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "mensagens" },
+        (payload) => {
+          const updated = payload.new as Mensagem;
+          setMensagens((prev) => prev.map((m) => m.id === updated.id ? updated : m));
+        }
+      )
       .subscribe();
 
     return () => {
@@ -179,8 +192,52 @@ const Index = () => {
 
   const enviarMensagem = async () => {
     if (!novaMensagem.trim()) return;
+    const texto = novaMensagem.trim();
     setNovaMensagem("");
-    await supabase.from("mensagens").insert({ remetente: "bella", conteudo: novaMensagem.trim() }).select().single();
+
+    if (editingMsg) {
+      // Edit mode
+      await supabase.from("mensagens").update({ conteudo: texto, editado: true }).eq("id", editingMsg.id);
+      setEditingMsg(null);
+      return;
+    }
+
+    const payload: any = { remetente: "bella", conteudo: texto };
+    if (replyTo) {
+      payload.reply_to = replyTo.id;
+      setReplyTo(null);
+    }
+    await supabase.from("mensagens").insert(payload).select().single();
+  };
+
+  const canEdit = (msg: Mensagem) => {
+    if (msg.remetente !== "bella") return false;
+    const diff = Date.now() - new Date(msg.created_at).getTime();
+    return diff < 3 * 60 * 1000; // 3 minutes
+  };
+
+  const startEdit = (msg: Mensagem) => {
+    setEditingMsg(msg);
+    setReplyTo(null);
+    setNovaMensagem(msg.conteudo);
+    inputRef.current?.focus();
+  };
+
+  const cancelEdit = () => {
+    setEditingMsg(null);
+    setNovaMensagem("");
+  };
+
+  const handleSwipeReply = (msg: Mensagem) => {
+    setReplyTo(msg);
+    setEditingMsg(null);
+    setNovaMensagem("");
+    inputRef.current?.focus();
+  };
+
+  const getReplyPreview = (replyId: string | null) => {
+    if (!replyId) return null;
+    return mensagens.find((m) => m.id === replyId);
   };
 
   const marcarNotifLida = async (notif: Notificacao) => {
@@ -453,37 +510,134 @@ const Index = () => {
                               <p className="text-[11px] text-muted-foreground/50">Nenhuma mensagem ainda</p>
                             </div>
                           )}
-                          {mensagens.map((msg) => (
-                            <div key={msg.id} className={`flex flex-col ${msg.remetente === "bella" ? "items-end" : "items-start"}`}>
-                              <div className={`flex items-center gap-1.5 mb-0.5 px-1 ${msg.remetente === "bella" ? "flex-row-reverse" : ""}`}>
-                                {msg.remetente === "admin" && adminConfig.avatar_url ? (
-                                  <img src={adminConfig.avatar_url} alt="" className="h-4 w-4 rounded-full object-cover" />
-                                ) : null}
-                                <span className="text-[9px] font-medium text-muted-foreground">
-                                  {msg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
-                                </span>
-                              </div>
-                              <div
-                                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
-                                  msg.remetente === "bella"
-                                    ? "bg-primary text-primary-foreground rounded-br-md"
-                                    : "bg-secondary/60 text-foreground rounded-bl-md"
-                                }`}
+                          {mensagens.map((msg) => {
+                            const isUser = msg.remetente === "bella";
+                            const replyMsg = getReplyPreview(msg.reply_to);
+                            return (
+                              <motion.div
+                                key={msg.id}
+                                className={`flex flex-col ${isUser ? "items-end" : "items-start"} relative group`}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={0.3}
+                                onDragEnd={(_e: any, info: PanInfo) => {
+                                  if (Math.abs(info.offset.x) > 50) {
+                                    handleSwipeReply(msg);
+                                  }
+                                }}
+                                style={{ touchAction: "pan-y" }}
                               >
-                                {msg.conteudo}
-                              </div>
-                            </div>
-                          ))}
+                                {/* Reply indicator on swipe */}
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 opacity-0 group-active:opacity-50 transition-opacity">
+                                  <Reply className="h-3 w-3 text-muted-foreground" />
+                                </div>
+
+                                {/* Name + avatar */}
+                                <div className={`flex items-center gap-1.5 mb-0.5 px-1 ${isUser ? "flex-row-reverse" : ""}`}>
+                                  {msg.remetente === "admin" && adminConfig.avatar_url ? (
+                                    <img src={adminConfig.avatar_url} alt="" className="h-4 w-4 rounded-full object-cover" />
+                                  ) : null}
+                                  <span className="text-[9px] font-medium text-muted-foreground">
+                                    {msg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                                  </span>
+                                </div>
+
+                                {/* Reply preview */}
+                                {replyMsg && (
+                                  <div className={`max-w-[80%] mb-0.5 px-2.5 py-1 rounded-lg bg-muted/50 border-l-2 border-primary/40 ${isUser ? "mr-0.5" : "ml-0.5"}`}>
+                                    <p className="text-[9px] font-medium text-primary/70">
+                                      {replyMsg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                                    </p>
+                                    <p className="text-[9px] text-muted-foreground truncate">{replyMsg.conteudo}</p>
+                                  </div>
+                                )}
+
+                                {/* Message bubble */}
+                                <div className="relative">
+                                  <div
+                                    className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
+                                      isUser
+                                        ? "bg-primary text-primary-foreground rounded-br-md"
+                                        : "bg-secondary/60 text-foreground rounded-bl-md"
+                                    }`}
+                                  >
+                                    {msg.conteudo}
+                                    {msg.editado && (
+                                      <span className={`text-[8px] ml-1 ${isUser ? "text-primary-foreground/50" : "text-muted-foreground/50"}`}>
+                                        (editado)
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Edit button for user messages within 3 min */}
+                                  {isUser && canEdit(msg) && !editingMsg && (
+                                    <button
+                                      onClick={() => startEdit(msg)}
+                                      className="absolute -left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 rounded-full bg-secondary flex items-center justify-center"
+                                    >
+                                      <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                                    </button>
+                                  )}
+                                </div>
+                              </motion.div>
+                            );
+                          })}
                           <div ref={bottomRef} />
                         </div>
                       </ScrollArea>
+
+                      {/* Reply / Edit bar */}
+                      <AnimatePresence>
+                        {(replyTo || editingMsg) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-3 py-1.5 bg-muted/30 flex items-center gap-2">
+                              {replyTo && (
+                                <>
+                                  <Reply className="h-3 w-3 text-primary shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[9px] font-medium text-primary">
+                                      Respondendo a {replyTo.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                                    </p>
+                                    <p className="text-[9px] text-muted-foreground truncate">{replyTo.conteudo}</p>
+                                  </div>
+                                </>
+                              )}
+                              {editingMsg && (
+                                <>
+                                  <Pencil className="h-3 w-3 text-primary shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[9px] font-medium text-primary">Editando mensagem</p>
+                                    <p className="text-[9px] text-muted-foreground truncate">{editingMsg.conteudo}</p>
+                                  </div>
+                                </>
+                              )}
+                              <button
+                                onClick={() => { setReplyTo(null); cancelEdit(); }}
+                                className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-secondary"
+                              >
+                                <X className="h-2.5 w-2.5 text-muted-foreground" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <div className="p-3 pt-0">
                         <div className="flex gap-2 rounded-xl bg-secondary/40 p-1.5">
                           <Input
-                            placeholder="Escreva uma mensagem..."
+                            ref={inputRef}
+                            placeholder={editingMsg ? "Editar mensagem..." : "Escreva uma mensagem..."}
                             value={novaMensagem}
                             onChange={(e) => setNovaMensagem(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && enviarMensagem()}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") enviarMensagem();
+                              if (e.key === "Escape") { setReplyTo(null); cancelEdit(); }
+                            }}
                             className="flex-1 h-8 text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/40"
                           />
                           <Button
@@ -492,7 +646,7 @@ const Index = () => {
                             onClick={enviarMensagem}
                             disabled={!novaMensagem.trim()}
                           >
-                            <Send className="h-3 w-3" />
+                            {editingMsg ? <Check className="h-3 w-3" /> : <Send className="h-3 w-3" />}
                           </Button>
                         </div>
                       </div>

@@ -278,25 +278,39 @@ export type Database = {
         Row: {
           conteudo: string
           created_at: string
+          editado: boolean
           id: string
           lida: boolean
           remetente: string
+          reply_to: string | null
         }
         Insert: {
           conteudo: string
           created_at?: string
+          editado?: boolean
           id?: string
           lida?: boolean
           remetente?: string
+          reply_to?: string | null
         }
         Update: {
           conteudo?: string
           created_at?: string
+          editado?: boolean
           id?: string
           lida?: boolean
           remetente?: string
+          reply_to?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "mensagens"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       modulo_topicos: {
         Row: {

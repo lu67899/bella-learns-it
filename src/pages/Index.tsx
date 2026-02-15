@@ -415,8 +415,6 @@ const Index = () => {
             {[
               { label: "Resumos", to: "/resumos", icon: "📖", type: "emoji" as const },
               { label: "Flashcards", to: "/flashcards", icon: "🧠", type: "emoji" as const },
-              { label: "Cronograma", to: "/cronograma", icon: "📅", type: "emoji" as const },
-              { label: "Anotações", to: "/anotacoes", icon: "📝", type: "emoji" as const },
               { label: "Mix", to: "/mix", icon: PlayCircle, type: "icon" as const },
               ...(features.newsEnabled ? [{ label: "Notícias", to: "/noticias", icon: Newspaper, type: "icon" as const }] : []),
             ].map((a) => {

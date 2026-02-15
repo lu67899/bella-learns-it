@@ -69,10 +69,11 @@ const Index = () => {
   const [desafiosCount, setDesafiosCount] = useState({ total: 0, respondidos: 0 });
   const [frases, setFrases] = useState<string[]>([]);
   const [fraseIdx, setFraseIdx] = useState(0);
+  const [adminConfig, setAdminConfig] = useState<{ nome: string; avatar_url: string | null }>({ nome: "Admin", avatar_url: null });
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [cursoRes, modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes] = await Promise.all([
+      const [cursoRes, modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes, adminRes] = await Promise.all([
         supabase.from("cursos").select("*").order("ordem"),
         supabase.from("modulos").select("id, curso_id"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
@@ -82,6 +83,7 @@ const Index = () => {
         supabase.from("desafios_semanais").select("id"),
         supabase.from("desafio_respostas").select("desafio_id"),
         supabase.from("frases_motivacionais").select("texto").eq("ativa", true),
+        supabase.from("admin_config").select("nome, avatar_url").eq("id", 1).single(),
       ]);
 
       const topicosByModule = new Map<string, string[]>();
@@ -128,6 +130,7 @@ const Index = () => {
         setDesafiosCount({ total: desafiosRes.data.length, respondidos });
       }
       if (frasesRes.data) setFrases(frasesRes.data.map((f: any) => f.texto));
+      if (adminRes.data) setAdminConfig({ nome: adminRes.data.nome, avatar_url: adminRes.data.avatar_url });
     };
     fetchAll();
 
@@ -452,9 +455,14 @@ const Index = () => {
                           )}
                           {mensagens.map((msg) => (
                             <div key={msg.id} className={`flex flex-col ${msg.remetente === "bella" ? "items-end" : "items-start"}`}>
-                              <span className="text-[9px] font-medium text-muted-foreground mb-0.5 px-1">
-                                {msg.remetente === "admin" ? "Deny" : profile?.display_name || "Você"}
-                              </span>
+                              <div className={`flex items-center gap-1.5 mb-0.5 px-1 ${msg.remetente === "bella" ? "flex-row-reverse" : ""}`}>
+                                {msg.remetente === "admin" && adminConfig.avatar_url ? (
+                                  <img src={adminConfig.avatar_url} alt="" className="h-4 w-4 rounded-full object-cover" />
+                                ) : null}
+                                <span className="text-[9px] font-medium text-muted-foreground">
+                                  {msg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                                </span>
+                              </div>
                               <div
                                 className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
                                   msg.remetente === "bella"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -117,6 +117,14 @@ const Admin = () => {
                 <TabsTrigger value="mensagens" className="gap-2 px-4 py-2 text-sm"><MessageCircle className="h-4 w-4" /> Chat</TabsTrigger>
               </TabsList>
             </div>
+
+            {/* Group 4: Configurações */}
+            <div>
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">⚙️ Configurações</p>
+              <TabsList className="inline-flex h-auto gap-1 p-1">
+                <TabsTrigger value="perfil" className="gap-2 px-4 py-2 text-sm"><User className="h-4 w-4" /> Perfil Admin</TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           <TabsContent value="cursos"><CursosTab /></TabsContent>
@@ -129,6 +137,7 @@ const Admin = () => {
           <TabsContent value="desafios"><DesafiosTab /></TabsContent>
           <TabsContent value="frases"><FrasesTab /></TabsContent>
           <TabsContent value="mensagens"><MensagensTab /></TabsContent>
+          <TabsContent value="perfil"><AdminConfigTab /></TabsContent>
         </Tabs>
       </div>
     </Layout>
@@ -1053,6 +1062,101 @@ function VideosTab() {
         </DialogContent>
       </Dialog>
     </CrudSection>
+  );
+}
+
+// ─── ADMIN CONFIG TAB ────────────────────────────────────
+function AdminConfigTab() {
+  const [nome, setNome] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    const { data } = await supabase.from("admin_config").select("*").eq("id", 1).single();
+    if (data) {
+      setNome(data.nome);
+      setAvatarUrl(data.avatar_url);
+    }
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const saveNome = async () => {
+    if (!nome.trim()) return;
+    await supabase.from("admin_config").update({ nome: nome.trim() }).eq("id", 1);
+    toast.success("Nome atualizado!");
+  };
+
+  const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `admin/avatar.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Erro ao enviar foto");
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = urlData.publicUrl + "?t=" + Date.now();
+    
+    await supabase.from("admin_config").update({ avatar_url: url }).eq("id", 1);
+    setAvatarUrl(url);
+    setUploading(false);
+    toast.success("Foto atualizada!");
+  };
+
+  if (loading) return <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>;
+
+  return (
+    <Card className="bg-card border-border mt-4">
+      <CardHeader>
+        <CardTitle className="font-mono text-lg flex items-center gap-2">
+          <User className="h-5 w-5 text-primary" /> Perfil do Admin
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Avatar */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Admin" className="h-16 w-16 rounded-full object-cover border-2 border-primary/30" />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center border-2 border-border">
+                <User className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Foto de perfil</p>
+            <p className="text-xs text-muted-foreground">Aparece no chat para os usuários</p>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-primary hover:underline">
+              <Upload className="h-3 w-3" />
+              {uploading ? "Enviando..." : "Alterar foto"}
+              <input type="file" accept="image/*" className="hidden" onChange={uploadAvatar} disabled={uploading} />
+            </label>
+          </div>
+        </div>
+
+        {/* Nome */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Nome do admin</p>
+          <p className="text-xs text-muted-foreground">Esse nome aparece no chat</p>
+          <div className="flex gap-2">
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" className="max-w-xs" />
+            <Button onClick={saveNome} size="sm">Salvar</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

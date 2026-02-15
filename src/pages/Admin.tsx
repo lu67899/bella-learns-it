@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,6 +104,7 @@ const Admin = () => {
                 <TabsTrigger value="resumos" className="gap-2 px-4 py-2 text-sm"><BookOpen className="h-4 w-4" /> Resumos</TabsTrigger>
                 <TabsTrigger value="flashcards" className="gap-2 px-4 py-2 text-sm"><BrainCircuit className="h-4 w-4" /> Flashcards</TabsTrigger>
                 <TabsTrigger value="quiz" className="gap-2 px-4 py-2 text-sm"><BrainCircuit className="h-4 w-4" /> Quiz</TabsTrigger>
+                <TabsTrigger value="videos" className="gap-2 px-4 py-2 text-sm"><PlayCircle className="h-4 w-4" /> Vídeos</TabsTrigger>
               </TabsList>
             </div>
 
@@ -124,6 +125,7 @@ const Admin = () => {
           <TabsContent value="resumos"><ResumosTab /></TabsContent>
           <TabsContent value="flashcards"><FlashcardsTab /></TabsContent>
           <TabsContent value="quiz"><QuizTab /></TabsContent>
+          <TabsContent value="videos"><VideosTab /></TabsContent>
           <TabsContent value="desafios"><DesafiosTab /></TabsContent>
           <TabsContent value="frases"><FrasesTab /></TabsContent>
           <TabsContent value="mensagens"><MensagensTab /></TabsContent>
@@ -936,6 +938,92 @@ function FrasesTab() {
           <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Frase</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <Textarea placeholder="Digite a frase motivacional..." rows={3} value={form.texto} onChange={(e) => setForm({ texto: e.target.value })} />
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
+  );
+}
+
+// ─── VIDEOS TAB ──────────────────────────────────────────
+interface VideoItem { id: string; titulo: string; descricao: string | null; url_youtube: string; duracao: number; ordem: number; }
+
+function VideosTab() {
+  const [items, setItems] = useState<VideoItem[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<VideoItem | null>(null);
+  const [form, setForm] = useState({ titulo: "", descricao: "", url_youtube: "", duracao: "" });
+
+  const load = async () => {
+    const { data } = await supabase.from("videos").select("*").order("ordem");
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.titulo || !form.url_youtube || !form.duracao) return;
+    const payload = {
+      titulo: form.titulo,
+      descricao: form.descricao || null,
+      url_youtube: form.url_youtube,
+      duracao: parseInt(form.duracao),
+      ordem: editing ? editing.ordem : items.length,
+    };
+    if (editing) {
+      await supabase.from("videos").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("videos").insert(payload);
+    }
+    toast.success("Vídeo salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("videos").delete().eq("id", id);
+    toast.success("Removido!"); load();
+  };
+
+  const edit = (item: VideoItem) => {
+    setEditing(item);
+    setForm({ titulo: item.titulo, descricao: item.descricao || "", url_youtube: item.url_youtube, duracao: String(item.duracao) });
+    setDialogOpen(true);
+  };
+
+  return (
+    <CrudSection title="Vídeos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "" }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-16">#</TableHead>
+            <TableHead>Título</TableHead>
+            <TableHead>Duração</TableHead>
+            <TableHead className="w-24">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm">{item.ordem + 1}</TableCell>
+              <TableCell className="font-mono text-sm">{item.titulo}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.duracao}min</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Vídeo</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Título do vídeo" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+            <Input placeholder="URL do YouTube (ex: https://youtube.com/watch?v=...)" value={form.url_youtube} onChange={(e) => setForm({ ...form, url_youtube: e.target.value })} />
+            <Input placeholder="Descrição (opcional)" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+            <Input placeholder="Duração em minutos (ex: 15)" type="number" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

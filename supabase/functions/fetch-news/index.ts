@@ -32,6 +32,7 @@ function parseRSSItems(xml: string): NewsItem[] {
     }
   }
 
+  items.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
   return items.slice(0, 15);
 }
 

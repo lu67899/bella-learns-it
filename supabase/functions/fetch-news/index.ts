@@ -40,6 +40,8 @@ const CATEGORY_QUERIES: Record<string, string> = {
   games: 'games+jogos',
   filmes: 'filmes+cinema',
   series: 'séries+streaming',
+  esportes: 'esportes+futebol',
+  tv: 'televisão+TV+entretenimento',
 };
 
 Deno.serve(async (req) => {

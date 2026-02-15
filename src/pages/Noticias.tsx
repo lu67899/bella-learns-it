@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Newspaper, ExternalLink, Monitor, Gamepad2, Film, Tv } from "lucide-react";
+import { Newspaper, ExternalLink, Monitor, Gamepad2, Film, Tv, Trophy } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,8 @@ const CATEGORIES = [
   { id: "games", label: "Games", icon: Gamepad2 },
   { id: "filmes", label: "Filmes", icon: Film },
   { id: "series", label: "Séries", icon: Tv },
+  { id: "esportes", label: "Esportes", icon: Trophy },
+  { id: "tv", label: "TV", icon: Newspaper },
 ];
 
 const container = {
@@ -78,7 +80,7 @@ const Noticias = () => {
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto">
             {CATEGORIES.map((cat) => (
               <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5 text-xs">
                 <cat.icon className="h-3.5 w-3.5" />

@@ -586,13 +586,9 @@ const Index = () => {
                                         : "bg-secondary/60 text-foreground rounded-bl-md"
                                     }`}
                                   >
-                                    {msg.conteudo}
-                                    {msg.editado && (
-                                      <span className={`text-[8px] ml-1 ${isUser ? "text-primary-foreground/50" : "text-muted-foreground/50"}`}>
-                                        (editado)
-                                      </span>
-                                    )}
-                                    <span className={`block text-[8px] mt-0.5 ${isUser ? "text-primary-foreground/40 text-right" : "text-muted-foreground/40"}`}>
+                                    <span>{msg.conteudo}</span>
+                                    <span className={`inline-flex items-center gap-0.5 ml-1.5 translate-y-[3px] text-[8px] whitespace-nowrap ${isUser ? "text-primary-foreground/40" : "text-muted-foreground/40"}`}>
+                                      {msg.editado && <span>editado</span>}
                                       {formatMsgTime(msg.created_at)}
                                     </span>
                                   </div>

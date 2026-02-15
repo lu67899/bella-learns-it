@@ -477,241 +477,233 @@ const Index = () => {
       </motion.div>
 
       {/* Chat Flutuante */}
-      <div className="fixed bottom-20 right-6 z-50">
-        <AnimatePresence>
-          {chatAberto && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              style={{ transformOrigin: "bottom right" }}
-            >
-              <div className="w-80 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl overflow-hidden">
-                {/* Header */}
-                <div
-                  className="flex items-center justify-between px-4 py-3 cursor-pointer"
-                  onClick={() => setChatMinimizado(!chatMinimizado)}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-medium text-foreground/80">Mensagens</span>
-                    {naoLidas > 0 && (
-                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
-                        {naoLidas}
-                      </span>
-                    )}
+      <AnimatePresence>
+        {chatAberto && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed bottom-24 right-4 z-50 w-[340px]"
+            style={{ transformOrigin: "bottom right" }}
+          >
+            <div className="rounded-2xl bg-background/80 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_hsl(var(--primary)/0.15)] overflow-hidden">
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-5 py-3.5 cursor-pointer border-b border-border/20"
+                onClick={() => setChatMinimizado(!chatMinimizado)}
+              >
+                <div className="flex items-center gap-2.5">
+                  {adminConfig.avatar_url ? (
+                    <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border/30" />
+                  ) : (
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MessageCircle className="h-3 w-3 text-primary" />
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
+                    <div className="flex items-center gap-1">
+                      <div className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      <span className="text-[9px] text-muted-foreground">online</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-0.5">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                      onClick={(e) => { e.stopPropagation(); setChatMinimizado(!chatMinimizado); }}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                      onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
+                  {naoLidas > 0 && (
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">
+                      {naoLidas}
+                    </span>
+                  )}
                 </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
+                    onClick={(e) => { e.stopPropagation(); setChatMinimizado(!chatMinimizado); }}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
+                    onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
 
-                {/* Body */}
-                <AnimatePresence>
-                  {!chatMinimizado && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                      <div className="h-px bg-border/30" />
-                      <ScrollArea className="h-64 px-4 py-3">
-                        <div className="space-y-3">
-                          {mensagens.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-10 gap-2">
-                              <MessageCircle className="h-8 w-8 text-muted-foreground/20" />
-                              <p className="text-[11px] text-muted-foreground/50">Nenhuma mensagem ainda</p>
+              {/* Body */}
+              <AnimatePresence>
+                {!chatMinimizado && (
+                  <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+                    <ScrollArea className="h-72 px-4 py-3">
+                      <div className="space-y-2.5">
+                        {mensagens.length === 0 && (
+                          <div className="flex flex-col items-center justify-center py-12 gap-2">
+                            <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center">
+                              <MessageCircle className="h-4 w-4 text-muted-foreground/30" />
                             </div>
-                          )}
-                          {mensagens.map((msg) => {
-                            const isUser = msg.remetente === "bella";
-                            const replyMsg = getReplyPreview(msg.reply_to);
-                            return (
-                              <motion.div
-                                key={msg.id}
-                                className={`flex flex-col ${isUser ? "items-end" : "items-start"} relative group`}
-                                drag="x"
-                                dragConstraints={{ left: 0, right: 0 }}
-                                dragElastic={0.3}
-                                onDragEnd={(_e: any, info: PanInfo) => {
-                                  if (Math.abs(info.offset.x) > 50) {
-                                    handleSwipeReply(msg);
-                                  }
-                                }}
-                                style={{ touchAction: "pan-y" }}
-                              >
-                                {/* Reply indicator on swipe */}
-                                <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 opacity-0 group-active:opacity-50 transition-opacity">
-                                  <Reply className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-[11px] text-muted-foreground/40">Nenhuma mensagem ainda</p>
+                          </div>
+                        )}
+                        {mensagens.map((msg) => {
+                          const isUser = msg.remetente === "bella";
+                          const replyMsg = getReplyPreview(msg.reply_to);
+                          return (
+                            <motion.div
+                              key={msg.id}
+                              className={`flex flex-col ${isUser ? "items-end" : "items-start"} relative group`}
+                              drag="x"
+                              dragConstraints={{ left: 0, right: 0 }}
+                              dragElastic={0.3}
+                              onDragEnd={(_e: any, info: PanInfo) => {
+                                if (Math.abs(info.offset.x) > 50) {
+                                  handleSwipeReply(msg);
+                                }
+                              }}
+                              style={{ touchAction: "pan-y" }}
+                            >
+                              {/* Reply preview */}
+                              {replyMsg && (
+                                <div className={`max-w-[75%] mb-1 px-2.5 py-1 rounded-lg bg-secondary/30 border-l-2 border-primary/30 ${isUser ? "mr-1" : "ml-1"}`}>
+                                  <p className="text-[9px] font-medium text-primary/60">
+                                    {replyMsg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                                  </p>
+                                  <p className="text-[9px] text-muted-foreground/60 truncate">{replyMsg.conteudo}</p>
                                 </div>
+                              )}
 
-                                {/* Name + avatar */}
-                                <div className={`flex items-center gap-1.5 mb-0.5 px-1 ${isUser ? "flex-row-reverse" : ""}`}>
-                                  {msg.remetente === "admin" && adminConfig.avatar_url ? (
-                                    <img src={adminConfig.avatar_url} alt="" className="h-4 w-4 rounded-full object-cover" />
-                                  ) : null}
-                                  <span className="text-[9px] font-medium text-muted-foreground">
-                                    {msg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                              {/* Message bubble */}
+                              <div className="relative max-w-[80%]">
+                                <div
+                                  className={`rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed ${
+                                    isUser
+                                      ? "bg-primary/90 text-primary-foreground rounded-br-sm"
+                                      : "bg-secondary/40 text-foreground/90 rounded-bl-sm"
+                                  }`}
+                                >
+                                  <span>{msg.conteudo}</span>
+                                  <span className={`inline-flex items-center gap-1 ml-2 align-bottom text-[8px] whitespace-nowrap ${isUser ? "text-primary-foreground/35" : "text-muted-foreground/35"}`}>
+                                    {msg.editado && <span>editado ·</span>}
+                                    {formatMsgTime(msg.created_at)}
                                   </span>
                                 </div>
 
-                                {/* Reply preview */}
-                                {replyMsg && (
-                                  <div className={`max-w-[80%] mb-0.5 px-2.5 py-1 rounded-lg bg-muted/50 border-l-2 border-primary/40 ${isUser ? "mr-0.5" : "ml-0.5"}`}>
-                                    <p className="text-[9px] font-medium text-primary/70">
-                                      {replyMsg.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
-                                    </p>
-                                    <p className="text-[9px] text-muted-foreground truncate">{replyMsg.conteudo}</p>
+                                {/* Action buttons */}
+                                {isUser && !editingMsg && (
+                                  <div className="absolute -left-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-0.5">
+                                    {canEdit(msg) && (
+                                      <button
+                                        onClick={() => startEdit(msg)}
+                                        className="h-6 w-6 rounded-full bg-secondary/60 backdrop-blur-sm flex items-center justify-center hover:bg-secondary transition-colors"
+                                      >
+                                        <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => deletarMensagem(msg)}
+                                      className="h-6 w-6 rounded-full bg-secondary/60 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                                    >
+                                      <Trash2 className="h-2.5 w-2.5 text-muted-foreground" />
+                                    </button>
                                   </div>
                                 )}
-
-                                {/* Message bubble */}
-                                <div className="relative">
-                                  <div
-                                    className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
-                                      isUser
-                                        ? "bg-primary text-primary-foreground rounded-br-md"
-                                        : "bg-secondary/60 text-foreground rounded-bl-md"
-                                    }`}
-                                  >
-                                    <span>{msg.conteudo}</span>
-                                    <span className={`inline-flex items-center gap-0.5 ml-1.5 translate-y-[3px] text-[8px] whitespace-nowrap ${isUser ? "text-primary-foreground/40" : "text-muted-foreground/40"}`}>
-                                      {msg.editado && <span>editado</span>}
-                                      {formatMsgTime(msg.created_at)}
-                                    </span>
-                                  </div>
-
-                                  {/* Action buttons for user messages */}
-                                  {isUser && !editingMsg && (
-                                    <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                                      {canEdit(msg) && (
-                                        <button
-                                          onClick={() => startEdit(msg)}
-                                          className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center"
-                                        >
-                                          <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                                        </button>
-                                      )}
-                                      <button
-                                        onClick={() => deletarMensagem(msg)}
-                                        className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center hover:bg-destructive/20"
-                                      >
-                                        <Trash2 className="h-2.5 w-2.5 text-muted-foreground hover:text-destructive" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </motion.div>
-                            );
-                          })}
-                          <div ref={bottomRef} />
-                        </div>
-                      </ScrollArea>
-
-                      {/* Reply / Edit bar */}
-                      <AnimatePresence>
-                        {(replyTo || editingMsg) && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-3 py-1.5 bg-muted/30 flex items-center gap-2">
-                              {replyTo && (
-                                <>
-                                  <Reply className="h-3 w-3 text-primary shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-[9px] font-medium text-primary">
-                                      Respondendo a {replyTo.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
-                                    </p>
-                                    <p className="text-[9px] text-muted-foreground truncate">{replyTo.conteudo}</p>
-                                  </div>
-                                </>
-                              )}
-                              {editingMsg && (
-                                <>
-                                  <Pencil className="h-3 w-3 text-primary shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-[9px] font-medium text-primary">Editando mensagem</p>
-                                    <p className="text-[9px] text-muted-foreground truncate">{editingMsg.conteudo}</p>
-                                  </div>
-                                </>
-                              )}
-                              <button
-                                onClick={() => { setReplyTo(null); cancelEdit(); }}
-                                className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-secondary"
-                              >
-                                <X className="h-2.5 w-2.5 text-muted-foreground" />
-                              </button>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <div className="p-3 pt-0">
-                        <div className="flex gap-2 rounded-xl bg-secondary/40 p-1.5">
-                          <Input
-                            ref={inputRef}
-                            placeholder={editingMsg ? "Editar mensagem..." : "Escreva uma mensagem..."}
-                            value={novaMensagem}
-                            onChange={(e) => setNovaMensagem(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") enviarMensagem();
-                              if (e.key === "Escape") { setReplyTo(null); cancelEdit(); }
-                            }}
-                            className="flex-1 h-8 text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/40"
-                          />
-                          <Button
-                            size="icon"
-                            className="h-8 w-8 rounded-lg shrink-0"
-                            onClick={enviarMensagem}
-                            disabled={!novaMensagem.trim()}
-                          >
-                            {editingMsg ? <Check className="h-3 w-3" /> : <Send className="h-3 w-3" />}
-                          </Button>
-                        </div>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                        <div ref={bottomRef} />
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                    </ScrollArea>
 
-      {/* Chat Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {!chatAberto && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={abrirChat}
-            className="relative h-12 w-12 rounded-full shadow-lg shadow-primary/20 flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}
-          >
-            <MessageCircle className="h-5 w-5 text-white" />
-            {naoLidas > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                {naoLidas}
-              </span>
-            )}
-          </motion.button>
+                    {/* Reply / Edit bar */}
+                    <AnimatePresence>
+                      {(replyTo || editingMsg) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 py-2 bg-secondary/20 border-t border-border/10 flex items-center gap-2">
+                            {replyTo && (
+                              <>
+                                <Reply className="h-3 w-3 text-primary/60 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[9px] font-medium text-primary/70">
+                                    {replyTo.remetente === "admin" ? adminConfig.nome : profile?.display_name || "Você"}
+                                  </p>
+                                  <p className="text-[9px] text-muted-foreground/50 truncate">{replyTo.conteudo}</p>
+                                </div>
+                              </>
+                            )}
+                            {editingMsg && (
+                              <>
+                                <Pencil className="h-3 w-3 text-primary/60 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[9px] font-medium text-primary/70">Editando</p>
+                                  <p className="text-[9px] text-muted-foreground/50 truncate">{editingMsg.conteudo}</p>
+                                </div>
+                              </>
+                            )}
+                            <button
+                              onClick={() => { setReplyTo(null); cancelEdit(); }}
+                              className="h-5 w-5 rounded-full flex items-center justify-center hover:bg-secondary/50 transition-colors"
+                            >
+                              <X className="h-2.5 w-2.5 text-muted-foreground/50" />
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Input */}
+                    <div className="p-3 border-t border-border/10">
+                      <div className="flex items-center gap-2 rounded-xl bg-secondary/30 px-3 py-1">
+                        <Input
+                          ref={inputRef}
+                          placeholder={editingMsg ? "Editar mensagem..." : "Mensagem..."}
+                          value={novaMensagem}
+                          onChange={(e) => setNovaMensagem(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") enviarMensagem();
+                            if (e.key === "Escape") { setReplyTo(null); cancelEdit(); }
+                          }}
+                          className="flex-1 h-8 text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/30"
+                        />
+                        <button
+                          onClick={enviarMensagem}
+                          disabled={!novaMensagem.trim()}
+                          className="h-7 w-7 rounded-full flex items-center justify-center text-primary hover:bg-primary/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent"
+                        >
+                          {editingMsg ? <Check className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
+
+      {/* Chat FAB */}
+      {!chatAberto && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          onClick={abrirChat}
+          className="fixed bottom-6 right-4 z-50 h-12 w-12 rounded-full bg-primary/90 backdrop-blur-sm shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.4)] flex items-center justify-center transition-shadow hover:shadow-[0_4px_30px_-4px_hsl(var(--primary)/0.5)]"
+        >
+          <MessageCircle className="h-5 w-5 text-primary-foreground" />
+          {naoLidas > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground ring-2 ring-background">
+              {naoLidas}
+            </span>
+          )}
+        </motion.button>
+      )}
     </Layout>
   );
 };

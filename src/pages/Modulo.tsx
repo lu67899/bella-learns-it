@@ -161,24 +161,10 @@ const ModuloPage = () => {
             >
               <Card className="bg-card border-border">
                 <CardContent className="p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4">
                     <Badge variant="outline" className="text-primary border-primary/30 font-mono">
                       {selectedTopico?.titulo}
                     </Badge>
-                    {selectedTopico && (
-                      <Button
-                        variant={completedIds.has(selectedTopico.id) ? "default" : "outline"}
-                        size="sm"
-                        className="gap-1.5 text-xs"
-                        onClick={() => toggleComplete(selectedTopico.id)}
-                      >
-                        {completedIds.has(selectedTopico.id) ? (
-                          <><CheckCircle2 className="h-3.5 w-3.5" /> Concluído</>
-                        ) : (
-                          <><Circle className="h-3.5 w-3.5" /> Marcar como concluído</>
-                        )}
-                      </Button>
-                    )}
                   </div>
                   <div className="prose prose-invert prose-sm max-w-none">
                     {selectedTopico?.conteudo.split("\n").map((line, i) => (
@@ -187,6 +173,22 @@ const ModuloPage = () => {
                       </p>
                     ))}
                   </div>
+                  {selectedTopico && (
+                    <div className="mt-6 pt-4 border-t border-border">
+                      <Button
+                        variant={completedIds.has(selectedTopico.id) ? "default" : "outline"}
+                        size="sm"
+                        className="gap-1.5 text-xs w-full"
+                        onClick={() => toggleComplete(selectedTopico.id)}
+                      >
+                        {completedIds.has(selectedTopico.id) ? (
+                          <><CheckCircle2 className="h-3.5 w-3.5" /> Concluído</>
+                        ) : (
+                          <><Circle className="h-3.5 w-3.5" /> Marcar como concluído</>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

@@ -75,6 +75,8 @@ const Index = () => {
   const [adminConfig, setAdminConfig] = useState<{ nome: string; avatar_url: string | null }>({ nome: "Admin", avatar_url: null });
   const [replyTo, setReplyTo] = useState<Mensagem | null>(null);
   const [editingMsg, setEditingMsg] = useState<Mensagem | null>(null);
+  const [longPressMsg, setLongPressMsg] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -534,7 +536,7 @@ const Index = () => {
               <AnimatePresence>
                 {!chatMinimizado && (
                   <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                    <ScrollArea className="h-72 px-4 py-3">
+                    <ScrollArea className="h-72 px-4 py-3" onClick={() => setLongPressMsg(null)}>
                       <div className="space-y-2.5">
                         {mensagens.length === 0 && (
                           <div className="flex flex-col items-center justify-center py-12 gap-2">
@@ -574,11 +576,20 @@ const Index = () => {
                               {/* Message bubble */}
                               <div className="relative max-w-[80%]">
                                 <div
-                                  className={`rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed ${
+                                  className={`rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed select-none ${
                                     isUser
                                       ? "bg-primary/90 text-primary-foreground rounded-br-sm"
                                       : "bg-secondary/40 text-foreground/90 rounded-bl-sm"
-                                  }`}
+                                  } ${longPressMsg === msg.id ? "ring-1 ring-primary/30" : ""}`}
+                                  onPointerDown={() => {
+                                    if (!isUser) return;
+                                    longPressTimer.current = setTimeout(() => {
+                                      setLongPressMsg(msg.id);
+                                    }, 500);
+                                  }}
+                                  onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                                  onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                                  onContextMenu={(e) => { e.preventDefault(); if (isUser) setLongPressMsg(msg.id); }}
                                 >
                                   <span>{msg.conteudo}</span>
                                   <span className={`inline-flex items-center gap-1 ml-2 align-bottom text-[8px] whitespace-nowrap ${isUser ? "text-primary-foreground/35" : "text-muted-foreground/35"}`}>
@@ -587,25 +598,42 @@ const Index = () => {
                                   </span>
                                 </div>
 
-                                {/* Action buttons */}
-                                {isUser && !editingMsg && (
-                                  <div className="absolute -left-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-0.5">
-                                    {canEdit(msg) && (
-                                      <button
-                                        onClick={() => startEdit(msg)}
-                                        className="h-6 w-6 rounded-full bg-secondary/60 backdrop-blur-sm flex items-center justify-center hover:bg-secondary transition-colors"
-                                      >
-                                        <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={() => deletarMensagem(msg)}
-                                      className="h-6 w-6 rounded-full bg-secondary/60 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                                {/* Long-press action menu */}
+                                <AnimatePresence>
+                                  {longPressMsg === msg.id && isUser && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.9, y: 4 }}
+                                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                                      exit={{ opacity: 0, scale: 0.9, y: 4 }}
+                                      transition={{ duration: 0.15 }}
+                                      className="absolute -top-10 right-0 z-10 flex items-center gap-1 rounded-xl bg-card/95 backdrop-blur-xl border border-border/30 shadow-lg px-1.5 py-1"
                                     >
-                                      <Trash2 className="h-2.5 w-2.5 text-muted-foreground" />
-                                    </button>
-                                  </div>
-                                )}
+                                      <button
+                                        onClick={() => { handleSwipeReply(msg); setLongPressMsg(null); }}
+                                        className="h-7 px-2.5 rounded-lg flex items-center gap-1.5 text-[10px] text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                                      >
+                                        <Reply className="h-3 w-3" />
+                                        <span>Responder</span>
+                                      </button>
+                                      {canEdit(msg) && (
+                                        <button
+                                          onClick={() => { startEdit(msg); setLongPressMsg(null); }}
+                                          className="h-7 px-2.5 rounded-lg flex items-center gap-1.5 text-[10px] text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                                        >
+                                          <Pencil className="h-3 w-3" />
+                                          <span>Editar</span>
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => { deletarMensagem(msg); setLongPressMsg(null); }}
+                                        className="h-7 px-2.5 rounded-lg flex items-center gap-1.5 text-[10px] text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                        <span>Apagar</span>
+                                      </button>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
                             </motion.div>
                           );

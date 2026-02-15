@@ -1092,8 +1092,10 @@ function AdminConfigTab() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Usuário não autenticado"); setUploading(false); return; }
     const ext = file.name.split(".").pop();
-    const path = `admin/avatar.${ext}`;
+    const path = `${user.id}/admin-avatar.${ext}`;
     
     const { error: uploadError } = await supabase.storage
       .from("avatars")

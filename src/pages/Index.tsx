@@ -64,7 +64,7 @@ const Index = () => {
   const [naoLidas, setNaoLidas] = useState(0);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [notifAberta, setNotifAberta] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [overallProgress, setOverallProgress] = useState(0);
   const [desafiosCount, setDesafiosCount] = useState({ total: 0, respondidos: 0 });
   const [frases, setFrases] = useState<string[]>([]);
@@ -133,7 +133,9 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current && chatAberto) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (chatAberto && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [mensagens, chatAberto]);
 
   useEffect(() => {
@@ -418,7 +420,7 @@ const Index = () => {
                   {!chatMinimizado && (
                     <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
                       <div className="h-px bg-border/30" />
-                      <ScrollArea className="h-64 px-4 py-3" ref={scrollRef}>
+                      <ScrollArea className="h-64 px-4 py-3">
                         <div className="space-y-3">
                           {mensagens.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-10 gap-2">
@@ -439,6 +441,7 @@ const Index = () => {
                               </div>
                             </div>
                           ))}
+                          <div ref={bottomRef} />
                         </div>
                       </ScrollArea>
                       <div className="p-3 pt-0">

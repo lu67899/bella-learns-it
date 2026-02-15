@@ -106,7 +106,7 @@ const Noticias = () => {
                 <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
                   {news[cat.id].map((n, idx) => (
                     <motion.div key={idx} variants={item}>
-                      <a href={n.link} target="_blank" rel="noopener noreferrer" className="block">
+                      <a href={n.link} target="_blank" rel="noopener noreferrer" className="block" onClick={(e) => { e.preventDefault(); window.open(n.link, '_blank'); }}>
                         <Card className="p-4 bg-card border-border hover:border-primary/30 transition-all group cursor-pointer">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">

@@ -272,7 +272,7 @@ const Index = () => {
         {/* Acesso Rápido */}
         <motion.div variants={item} className="space-y-3">
           <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Acesso rápido</p>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: "Resumos", to: "/resumos", icon: "📖" },
               { label: "Flashcards", to: "/flashcards", icon: "🧠" },

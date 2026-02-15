@@ -17,6 +17,7 @@ import CursoPage from "./pages/Curso";
 import Progresso from "./pages/Progresso";
 import Desafios from "./pages/Desafios";
 import Mix from "./pages/Mix";
+import Noticias from "./pages/Noticias";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ const AppRoutes = () => (
     <Route path="/progresso" element={<ProtectedRoute><Progresso /></ProtectedRoute>} />
     <Route path="/desafios" element={<ProtectedRoute><Desafios /></ProtectedRoute>} />
     <Route path="/mix" element={<ProtectedRoute><Mix /></ProtectedRoute>} />
+    <Route path="/noticias" element={<ProtectedRoute><Noticias /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

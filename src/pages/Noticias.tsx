@@ -110,7 +110,7 @@ const Noticias = () => {
                         <Card className="p-4 bg-card border-border hover:border-primary/30 transition-all group cursor-pointer">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className="font-mono text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
+                              <p className="font-mono text-sm font-medium group-hover:text-primary transition-colors">
                                 {n.title}
                               </p>
                               <div className="flex items-center gap-2 mt-1.5">

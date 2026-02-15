@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -117,12 +118,17 @@ const Belinha = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [showProfile, setShowProfile] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    supabase.from("assistant_config").select("avatar_url").eq("id", 1).single()
-      .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url); });
+    supabase.from("assistant_config").select("avatar_url, system_prompt").eq("id", 1).single()
+      .then(({ data }) => {
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data?.system_prompt) setSystemPrompt(data.system_prompt);
+      });
   }, []);
 
   useEffect(() => {
@@ -175,13 +181,13 @@ const Belinha = () => {
       <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
         {/* Header */}
         <div className="flex items-center justify-between pb-4">
-          <div className="flex items-center gap-3">
+          <button onClick={() => setShowProfile(true)} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <BelinhaAvatar avatarUrl={avatarUrl} size="lg" />
-            <div>
+            <div className="text-left">
               <h1 className="font-mono font-bold text-lg">Belinha</h1>
-              <p className="text-[10px] text-muted-foreground">Sua assistente de estudos</p>
+              <p className="text-[10px] text-muted-foreground">Toque para ver informações</p>
             </div>
-          </div>
+          </button>
           {messages.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearChat} className="gap-1.5 text-muted-foreground">
               <Trash2 className="h-3.5 w-3.5" /> Limpar
@@ -189,29 +195,32 @@ const Belinha = () => {
           )}
         </div>
 
+        {/* Profile Dialog */}
+        <Dialog open={showProfile} onOpenChange={setShowProfile}>
+          <DialogContent className="max-w-sm p-0 overflow-hidden border-border">
+            <div className="bg-gradient-to-b from-primary/20 to-transparent pt-8 pb-4 flex flex-col items-center gap-3">
+              <BelinhaAvatar avatarUrl={avatarUrl} size="lg" />
+              <h2 className="font-mono font-bold text-xl">Belinha</h2>
+              <p className="text-xs text-muted-foreground">Assistente de estudos</p>
+            </div>
+            <div className="px-5 pb-5 space-y-3">
+              <div className="rounded-lg bg-secondary/50 p-3">
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Recado</p>
+                <p className="text-sm leading-relaxed">
+                  {systemPrompt
+                    ? systemPrompt.length > 200
+                      ? systemPrompt.slice(0, 200) + "..."
+                      : systemPrompt
+                    : "Olá! Estou aqui para te ajudar nos estudos 💜"}
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Messages */}
         <ScrollArea className="flex-1 pr-2">
           <div className="space-y-4 pb-4">
-            {messages.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-20 space-y-3"
-              >
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Belinha" className="h-16 w-16 mx-auto rounded-2xl object-cover" />
-                ) : (
-                  <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-primary/10">
-                    <Bot className="h-8 w-8 text-primary" />
-                  </div>
-                )}
-                <h2 className="font-mono font-semibold text-lg">Olá! Eu sou a Belinha 💜</h2>
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Sua assistente pessoal de estudos. Pergunte qualquer coisa!
-                </p>
-              </motion.div>
-            )}
-
             <AnimatePresence>
               {messages.map((msg, i) => (
                 <motion.div

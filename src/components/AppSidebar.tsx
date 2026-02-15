@@ -24,11 +24,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Resumos", url: "/resumos", icon: BookOpen },
-  { title: "Flashcards", url: "/flashcards", icon: BrainCircuit },
-  { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
-  { title: "Anotações", url: "/anotacoes", icon: StickyNote },
   { title: "Perfil", url: "/perfil", icon: User },
   { title: "Admin", url: "/admin", icon: Shield },
 ];

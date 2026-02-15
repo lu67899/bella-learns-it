@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -98,12 +99,31 @@ async function streamChat({
   onDone();
 }
 
+const BelinhaAvatar = ({ avatarUrl, size = "sm" }: { avatarUrl: string | null; size?: "sm" | "lg" }) => {
+  const dims = size === "lg" ? "h-10 w-10" : "h-7 w-7";
+  const iconDims = size === "lg" ? "h-5 w-5" : "h-3.5 w-3.5";
+  if (avatarUrl) {
+    return <img src={avatarUrl} alt="Belinha" className={`${dims} rounded-full object-cover shrink-0`} />;
+  }
+  return (
+    <div className={`flex ${dims} shrink-0 items-center justify-center rounded-full bg-primary/20`}>
+      <Bot className={`${iconDims} text-primary`} />
+    </div>
+  );
+};
+
 const Belinha = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    supabase.from("assistant_config").select("avatar_url").eq("id", 1).single()
+      .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url); });
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -156,9 +176,7 @@ const Belinha = () => {
         {/* Header */}
         <div className="flex items-center justify-between pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
-              <Bot className="h-5 w-5 text-primary" />
-            </div>
+            <BelinhaAvatar avatarUrl={avatarUrl} size="lg" />
             <div>
               <h1 className="font-mono font-bold text-lg">Belinha</h1>
               <p className="text-[10px] text-muted-foreground">Sua assistente de estudos</p>
@@ -180,9 +198,13 @@ const Belinha = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-20 space-y-3"
               >
-                <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-primary/10">
-                  <Bot className="h-8 w-8 text-primary" />
-                </div>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Belinha" className="h-16 w-16 mx-auto rounded-2xl object-cover" />
+                ) : (
+                  <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-primary/10">
+                    <Bot className="h-8 w-8 text-primary" />
+                  </div>
+                )}
                 <h2 className="font-mono font-semibold text-lg">Olá! Eu sou a Belinha 💜</h2>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   Sua assistente pessoal de estudos. Pergunte qualquer coisa!
@@ -199,8 +221,8 @@ const Belinha = () => {
                   className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/20 mt-0.5">
-                      <Bot className="h-3.5 w-3.5 text-primary" />
+                    <div className="mt-0.5">
+                      <BelinhaAvatar avatarUrl={avatarUrl} />
                     </div>
                   )}
                   <Card
@@ -223,8 +245,8 @@ const Belinha = () => {
 
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2.5">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/20 mt-0.5">
-                  <Bot className="h-3.5 w-3.5 text-primary" />
+                <div className="mt-0.5">
+                  <BelinhaAvatar avatarUrl={avatarUrl} />
                 </div>
                 <Card className="bg-card border-border px-4 py-3">
                   <div className="flex gap-1">

@@ -119,7 +119,7 @@ const Belinha = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [systemPrompt, setSystemPrompt] = useState("");
+  const [recado, setRecado] = useState("");
   const [showProfile, setShowProfile] = useState(false);
   const [showStories, setShowStories] = useState(false);
   const { hasStories } = useBelinhaStories();
@@ -127,10 +127,10 @@ const Belinha = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    supabase.from("assistant_config").select("avatar_url, system_prompt").eq("id", 1).single()
+    supabase.from("assistant_config").select("avatar_url, recado").eq("id", 1).single()
       .then(({ data }) => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
-        if (data?.system_prompt) setSystemPrompt(data.system_prompt);
+        if (data?.recado) setRecado(data.recado);
       });
   }, []);
 
@@ -215,11 +215,7 @@ const Belinha = () => {
               <div className="rounded-lg bg-secondary/50 p-3">
                 <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Recado</p>
                 <p className="text-sm leading-relaxed">
-                  {systemPrompt
-                    ? systemPrompt.length > 200
-                      ? systemPrompt.slice(0, 200) + "..."
-                      : systemPrompt
-                    : "Olá! Estou aqui para te ajudar nos estudos 💜"}
+                  {recado || "Olá! Estou aqui para te ajudar nos estudos 💜"}
                 </p>
               </div>
             </div>

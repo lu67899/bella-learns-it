@@ -1168,6 +1168,7 @@ function AdminConfigTab() {
 function BelinhaConfigTab() {
   const [systemPrompt, setSystemPrompt] = useState("");
   const [model, setModel] = useState("");
+  const [recado, setRecado] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1177,12 +1178,13 @@ function BelinhaConfigTab() {
     const load = async () => {
       const { data } = await supabase
         .from("assistant_config")
-        .select("system_prompt, model, avatar_url")
+        .select("system_prompt, model, avatar_url, recado")
         .eq("id", 1)
         .single();
       if (data) {
         setSystemPrompt(data.system_prompt);
         setModel(data.model);
+        setRecado(data.recado || "");
         setAvatarUrl(data.avatar_url);
       }
       setLoading(false);
@@ -1224,7 +1226,7 @@ function BelinhaConfigTab() {
     setSaving(true);
     const { error } = await supabase
       .from("assistant_config")
-      .update({ system_prompt: systemPrompt, model })
+      .update({ system_prompt: systemPrompt, model, recado })
       .eq("id", 1);
     setSaving(false);
     if (error) {
@@ -1274,6 +1276,19 @@ function BelinhaConfigTab() {
             onChange={(e) => setModel(e.target.value)}
             placeholder="openai/gpt-4o-mini"
             className="max-w-md"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Recado</p>
+          <p className="text-xs text-muted-foreground">
+            Mensagem exibida no perfil da Belinha quando o usuário toca no nome dela.
+          </p>
+          <Textarea
+            value={recado}
+            onChange={(e) => setRecado(e.target.value)}
+            rows={3}
+            placeholder="Olá! Estou aqui para te ajudar nos estudos 💜"
           />
         </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy } from "lucide-react";
+import { CircularProgress } from "@/components/CircularProgress";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -240,18 +241,26 @@ const Index = () => {
           </motion.div>
         )}
 
-        {/* Progress & Desafios - side by side */}
-        <motion.div variants={item} className="grid grid-cols-2 gap-3">
+        {/* Progresso Geral */}
+        <motion.div variants={item} className="p-4 rounded-xl bg-card border border-border">
           <Link to="/progresso">
-            <div className="group p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Progresso</span>
-                <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground/70 font-mono uppercase tracking-wider">
+                  Progresso Geral
+                </p>
+                <p className="text-sm font-medium mt-0.5">
+                  {Math.round(overallProgress)}% completo
+                </p>
               </div>
-              <p className="text-2xl font-bold font-mono text-gradient">{Math.round(overallProgress)}%</p>
-              <Progress value={overallProgress} className="h-1 mt-3" />
+              <CircularProgress value={overallProgress} size={44} strokeWidth={3} />
             </div>
+            <Progress value={overallProgress} className="mt-3" />
           </Link>
+        </motion.div>
+
+        {/* Desafios */}
+        <motion.div variants={item}>
           <Link to="/desafios">
             <div className="group p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
               <div className="flex items-center justify-between mb-3">

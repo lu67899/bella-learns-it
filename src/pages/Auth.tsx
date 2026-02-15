@@ -98,7 +98,7 @@ const Auth = () => {
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/20">
             <BrainCircuit className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="font-mono text-xl font-bold text-gradient">Bella Estuda</h1>
+          <h1 className="font-mono text-xl font-bold text-gradient">Bella Space</h1>
           <p className="text-xs text-muted-foreground">Sua plataforma de estudos</p>
         </div>
 

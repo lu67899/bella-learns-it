@@ -486,7 +486,7 @@ const Index = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed bottom-24 right-4 z-50 w-[340px]"
+            className="fixed bottom-20 right-4 left-4 sm:left-auto sm:w-[340px] z-50"
             style={{ transformOrigin: "bottom right" }}
           >
             <div className="rounded-2xl bg-background/80 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_hsl(var(--primary)/0.15)] overflow-hidden">
@@ -505,10 +505,6 @@ const Index = () => {
                   )}
                   <div>
                     <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
-                    <div className="flex items-center gap-1">
-                      <div className="h-1.5 w-1.5 rounded-full bg-accent" />
-                      <span className="text-[9px] text-muted-foreground">online</span>
-                    </div>
                   </div>
                   {naoLidas > 0 && (
                     <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">
@@ -581,14 +577,28 @@ const Index = () => {
                                       ? "bg-primary/90 text-primary-foreground rounded-br-sm"
                                       : "bg-secondary/40 text-foreground/90 rounded-bl-sm"
                                   } ${longPressMsg === msg.id ? "ring-1 ring-primary/30" : ""}`}
-                                  onPointerDown={() => {
+                                  onTouchStart={() => {
                                     if (!isUser) return;
                                     longPressTimer.current = setTimeout(() => {
+                                      longPressTimer.current = null;
                                       setLongPressMsg(msg.id);
                                     }, 500);
                                   }}
-                                  onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-                                  onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                                  onTouchEnd={(e) => {
+                                    if (longPressTimer.current) {
+                                      clearTimeout(longPressTimer.current);
+                                      longPressTimer.current = null;
+                                    }
+                                    if (longPressMsg === msg.id) e.preventDefault();
+                                  }}
+                                  onMouseDown={() => {
+                                    if (!isUser) return;
+                                    longPressTimer.current = setTimeout(() => {
+                                      longPressTimer.current = null;
+                                      setLongPressMsg(msg.id);
+                                    }, 500);
+                                  }}
+                                  onMouseUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
                                   onContextMenu={(e) => { e.preventDefault(); if (isUser) setLongPressMsg(msg.id); }}
                                 >
                                   <span>{msg.conteudo}</span>
@@ -606,7 +616,9 @@ const Index = () => {
                                       animate={{ opacity: 1, scale: 1, y: 0 }}
                                       exit={{ opacity: 0, scale: 0.9, y: 4 }}
                                       transition={{ duration: 0.15 }}
-                                      className="absolute -top-10 right-0 z-10 flex items-center gap-1 rounded-xl bg-card/95 backdrop-blur-xl border border-border/30 shadow-lg px-1.5 py-1"
+                                      className="absolute -top-11 right-0 z-10 flex items-center gap-0.5 rounded-xl bg-card/95 backdrop-blur-xl border border-border/30 shadow-lg px-1 py-1"
+                                      onClick={(e) => e.stopPropagation()}
+                                      onPointerDown={(e) => e.stopPropagation()}
                                     >
                                       <button
                                         onClick={() => { handleSwipeReply(msg); setLongPressMsg(null); }}

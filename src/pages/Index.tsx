@@ -130,6 +130,29 @@ const Index = () => {
       if (frasesRes.data) setFrases(frasesRes.data.map((f: any) => f.texto));
     };
     fetchAll();
+
+    // Realtime subscription for mensagens
+    const channel = supabase
+      .channel("mensagens-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "mensagens" },
+        (payload) => {
+          const newMsg = payload.new as Mensagem;
+          setMensagens((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+          if (newMsg.remetente === "admin") {
+            setNaoLidas((prev) => prev + 1);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -153,9 +176,8 @@ const Index = () => {
 
   const enviarMensagem = async () => {
     if (!novaMensagem.trim()) return;
-    const { data } = await supabase.from("mensagens").insert({ remetente: "bella", conteudo: novaMensagem.trim() }).select().single();
-    if (data) setMensagens((prev) => [...prev, data]);
     setNovaMensagem("");
+    await supabase.from("mensagens").insert({ remetente: "bella", conteudo: novaMensagem.trim() }).select().single();
   };
 
   const marcarNotifLida = async (notif: Notificacao) => {

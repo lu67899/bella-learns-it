@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1293,8 +1293,130 @@ function BelinhaConfigTab() {
         <Button onClick={save} disabled={saving} className="gap-2">
           {saving ? "Salvando..." : "Salvar configuração"}
         </Button>
+
+        {/* Stories Section */}
+        <BelinhaStoriesManager />
       </CardContent>
     </Card>
+  );
+}
+
+// ─── BELINHA STORIES MANAGER ─────────────────────────────
+function BelinhaStoriesManager() {
+  const [stories, setStories] = useState<{ id: string; image_url: string; texto: string | null; tipo: string; created_at: string; expires_at: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [texto, setTexto] = useState("");
+
+  const load = async () => {
+    const { data } = await supabase
+      .from("belinha_stories")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) setStories(data as any);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const uploadStory = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Faça login primeiro"); setUploading(false); return; }
+
+    const isVideo = file.type.startsWith("video/");
+    const tipo = isVideo ? "video" : "image";
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/story-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Erro ao enviar arquivo");
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+
+    await supabase.from("belinha_stories").insert({
+      image_url: urlData.publicUrl,
+      texto: texto.trim() || null,
+      tipo,
+    });
+
+    setTexto("");
+    setUploading(false);
+    toast.success("Story publicado!");
+    load();
+    e.target.value = "";
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("belinha_stories").delete().eq("id", id);
+    toast.success("Story removido!");
+    load();
+  };
+
+  const isExpired = (expires_at: string) => new Date(expires_at) < new Date();
+
+  return (
+    <div className="space-y-4 border-t border-border pt-6">
+      <div>
+        <p className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4" /> Stories da Belinha</p>
+        <p className="text-xs text-muted-foreground">Publique imagens ou vídeos que desaparecem em 24h</p>
+      </div>
+
+      <div className="space-y-3">
+        <Input
+          placeholder="Texto do story (opcional)"
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+        />
+        <div className="flex gap-2">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer text-sm bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
+            <Image className="h-4 w-4" />
+            {uploading ? "Enviando..." : "Imagem"}
+            <input type="file" accept="image/*" className="hidden" onChange={uploadStory} disabled={uploading} />
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer text-sm bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 transition-colors">
+            <Video className="h-4 w-4" />
+            {uploading ? "Enviando..." : "Vídeo"}
+            <input type="file" accept="video/*" className="hidden" onChange={uploadStory} disabled={uploading} />
+          </label>
+        </div>
+      </div>
+
+      {stories.length > 0 && (
+        <div className="space-y-2">
+          {stories.map((s) => (
+            <div key={s.id} className={`flex items-center gap-3 p-2 rounded-lg border ${isExpired(s.expires_at) ? "opacity-50 border-border" : "border-primary/20"}`}>
+              <div className="h-12 w-12 rounded-lg overflow-hidden bg-secondary shrink-0">
+                {s.tipo === "video" ? (
+                  <video src={s.image_url} className="h-full w-full object-cover" muted />
+                ) : (
+                  <img src={s.image_url} alt="" className="h-full w-full object-cover" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  {s.tipo === "video" ? <Video className="h-3 w-3 text-muted-foreground" /> : <Image className="h-3 w-3 text-muted-foreground" />}
+                  <span className="text-xs text-muted-foreground capitalize">{s.tipo}</span>
+                  {isExpired(s.expires_at) && <Badge variant="outline" className="text-[10px] py-0">Expirado</Badge>}
+                </div>
+                {s.texto && <p className="text-sm truncate">{s.texto}</p>}
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => remove(s.id)}>
+                <Trash2 className="h-3 w-3 text-destructive" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Story {
   id: string;
   image_url: string;
   texto: string | null;
+  tipo: string;
   created_at: string;
 }
 
@@ -25,7 +26,7 @@ export function useBelinhaStories() {
       .gte("expires_at", new Date().toISOString())
       .order("created_at", { ascending: true })
       .then(({ data }) => {
-        if (data) setStories(data);
+        if (data) setStories(data as any);
       });
   }, []);
 
@@ -77,6 +78,8 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
   const [stories, setStories] = useState<Story[]>([]);
   const [current, setCurrent] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(5000);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -86,11 +89,13 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
       .gte("expires_at", new Date().toISOString())
       .order("created_at", { ascending: true })
       .then(({ data }) => {
-        if (data) setStories(data);
+        if (data) setStories(data as any);
         setCurrent(0);
         setProgress(0);
       });
   }, [open]);
+
+  const story = stories[current];
 
   const next = useCallback(() => {
     if (current < stories.length - 1) {
@@ -111,21 +116,32 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
   // Auto-advance timer
   useEffect(() => {
     if (!open || stories.length === 0) return;
+    const isVideo = story?.tipo === "video";
+    const duration = isVideo ? videoDuration : 5000; // 5s for images
+    const intervalMs = 50;
+    const increment = (intervalMs / duration) * 100;
+
     const interval = setInterval(() => {
       setProgress((p) => {
         if (p >= 100) {
           next();
           return 0;
         }
-        return p + 2;
+        return p + increment;
       });
-    }, 100);
+    }, intervalMs);
     return () => clearInterval(interval);
-  }, [open, stories.length, next]);
+  }, [open, stories.length, next, story?.tipo, videoDuration]);
+
+  // Handle video duration
+  const handleVideoLoaded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const dur = e.currentTarget.duration;
+    if (dur && isFinite(dur)) {
+      setVideoDuration(dur * 1000);
+    }
+  };
 
   if (!open || stories.length === 0) return null;
-
-  const story = stories[current];
 
   return (
     <AnimatePresence>
@@ -158,13 +174,26 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
           <X className="h-6 w-6" />
         </button>
 
-        {/* Image */}
-        <img
-          key={story.id}
-          src={story.image_url}
-          alt=""
-          className="max-h-[85vh] max-w-full object-contain rounded-lg"
-        />
+        {/* Content */}
+        {story.tipo === "video" ? (
+          <video
+            ref={videoRef}
+            key={story.id}
+            src={story.image_url}
+            autoPlay
+            muted
+            playsInline
+            onLoadedMetadata={handleVideoLoaded}
+            className="max-h-[85vh] max-w-full object-contain rounded-lg"
+          />
+        ) : (
+          <img
+            key={story.id}
+            src={story.image_url}
+            alt=""
+            className="max-h-[85vh] max-w-full object-contain rounded-lg"
+          />
+        )}
 
         {/* Text overlay */}
         {story.texto && (

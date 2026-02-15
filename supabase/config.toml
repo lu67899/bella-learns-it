@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.get-youtube-duration]
 verify_jwt = false
+
+[functions.belinha-chat]
+verify_jwt = false

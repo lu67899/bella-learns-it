@@ -19,6 +19,7 @@ import Desafios from "./pages/Desafios";
 import Mix from "./pages/Mix";
 import Noticias from "./pages/Noticias";
 import Perfil from "./pages/Perfil";
+import Belinha from "./pages/Belinha";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -55,6 +56,7 @@ const AppRoutes = () => (
     <Route path="/mix" element={<ProtectedRoute><Mix /></ProtectedRoute>} />
     <Route path="/noticias" element={<ProtectedRoute><Noticias /></ProtectedRoute>} />
     <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+    <Route path="/belinha" element={<ProtectedRoute><Belinha /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

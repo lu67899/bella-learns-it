@@ -954,6 +954,7 @@ function VideosTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<VideoItem | null>(null);
   const [form, setForm] = useState({ titulo: "", descricao: "", url_youtube: "", duracao: "" });
+  const [fetchingDuration, setFetchingDuration] = useState(false);
 
   const load = async () => {
     const { data } = await supabase.from("videos").select("*").order("ordem");
@@ -961,13 +962,33 @@ function VideosTab() {
   };
   useEffect(() => { load(); }, []);
 
+  const fetchDuration = async (url: string) => {
+    if (!url.includes("youtu")) return;
+    setFetchingDuration(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("get-youtube-duration", { body: { url } });
+      if (!error && data?.success) {
+        setForm((prev) => ({ ...prev, duracao: String(data.duration) }));
+      }
+    } catch (e) {
+      console.error("Error fetching duration:", e);
+    } finally {
+      setFetchingDuration(false);
+    }
+  };
+
+  const handleUrlChange = (url: string) => {
+    setForm((prev) => ({ ...prev, url_youtube: url }));
+    fetchDuration(url);
+  };
+
   const save = async () => {
-    if (!form.titulo || !form.url_youtube || !form.duracao) return;
+    if (!form.titulo || !form.url_youtube) return;
     const payload = {
       titulo: form.titulo,
       descricao: form.descricao || null,
       url_youtube: form.url_youtube,
-      duracao: parseInt(form.duracao),
+      duracao: parseInt(form.duracao) || 0,
       ordem: editing ? editing.ordem : items.length,
     };
     if (editing) {
@@ -1021,9 +1042,12 @@ function VideosTab() {
           <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Vídeo</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <Input placeholder="Título do vídeo" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-            <Input placeholder="URL do YouTube (ex: https://youtube.com/watch?v=...)" value={form.url_youtube} onChange={(e) => setForm({ ...form, url_youtube: e.target.value })} />
+            <Input placeholder="URL do YouTube (ex: https://youtube.com/watch?v=...)" value={form.url_youtube} onChange={(e) => handleUrlChange(e.target.value)} />
             <Input placeholder="Descrição (opcional)" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
-            <Input placeholder="Duração em minutos (ex: 15)" type="number" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: e.target.value })} />
+            <div className="relative">
+              <Input placeholder="Duração (min)" type="number" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: e.target.value })} disabled={fetchingDuration} />
+              {fetchingDuration && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground animate-pulse">Buscando...</span>}
+            </div>
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

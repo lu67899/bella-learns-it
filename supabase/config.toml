@@ -2,3 +2,6 @@ project_id = "fizcmvavzgoaznzindwl"
 
 [functions.fetch-news]
 verify_jwt = false
+
+[functions.get-youtube-duration]
+verify_jwt = false

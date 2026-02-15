@@ -1,10 +1,17 @@
-import { Moon, Sparkles } from "lucide-react";
+import { Moon, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { motion } from "framer-motion";
 
+const themeIcons = {
+  dark: { icon: Sparkles, label: "Tema Rosa" },
+  pink: { icon: Wand2, label: "Tema Hogwarts" },
+  hogwarts: { icon: Moon, label: "Tema Escuro" },
+};
+
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+  const { icon: Icon, label } = themeIcons[theme];
 
   return (
     <Button
@@ -12,7 +19,7 @@ export function ThemeToggle() {
       size="icon"
       className="h-8 w-8"
       onClick={toggleTheme}
-      title={theme === "dark" ? "Tema Rosa" : "Tema Escuro"}
+      title={label}
     >
       <motion.div
         key={theme}
@@ -20,11 +27,7 @@ export function ThemeToggle() {
         animate={{ rotate: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {theme === "dark" ? (
-          <Sparkles className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <Moon className="h-4 w-4 text-muted-foreground" />
-        )}
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </motion.div>
     </Button>
   );

@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_config: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: number
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: number
+          nome?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: number
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       anotacoes: {
         Row: {
           conteudo: string

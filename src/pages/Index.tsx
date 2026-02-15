@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Newspaper, Reply, Pencil, Check, Trash2 } from "lucide-react";
+import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot } from "lucide-react";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Link, useNavigate } from "react-router-dom";
@@ -416,7 +416,7 @@ const Index = () => {
               { label: "Resumos", to: "/resumos", icon: "📖", type: "emoji" as const },
               { label: "Flashcards", to: "/flashcards", icon: "🧠", type: "emoji" as const },
               { label: "Mix", to: "/mix", icon: PlayCircle, type: "icon" as const },
-              ...(features.newsEnabled ? [{ label: "Notícias", to: "/noticias", icon: Newspaper, type: "icon" as const }] : []),
+              { label: "Belinha", to: "/belinha", icon: Bot, type: "icon" as const },
             ].map((a) => {
               const IconComponent = a.type === "icon" ? a.icon as React.ComponentType<{ className?: string }> : null;
               return (

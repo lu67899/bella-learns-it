@@ -1,0 +1,1 @@
+ALTER TABLE public.assistant_config ADD COLUMN avatar_url text DEFAULT NULL;

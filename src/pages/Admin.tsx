@@ -1168,24 +1168,57 @@ function AdminConfigTab() {
 function BelinhaConfigTab() {
   const [systemPrompt, setSystemPrompt] = useState("");
   const [model, setModel] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
         .from("assistant_config")
-        .select("system_prompt, model")
+        .select("system_prompt, model, avatar_url")
         .eq("id", 1)
         .single();
       if (data) {
         setSystemPrompt(data.system_prompt);
         setModel(data.model);
+        setAvatarUrl(data.avatar_url);
       }
       setLoading(false);
     };
     load();
   }, []);
+
+  const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Faça login primeiro"); setUploading(false); return; }
+
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/belinha-avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Erro ao enviar foto");
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = urlData.publicUrl + "?t=" + Date.now();
+
+    await supabase.from("assistant_config").update({ avatar_url: url }).eq("id", 1);
+    setAvatarUrl(url);
+    setUploading(false);
+    toast.success("Foto da Belinha atualizada!");
+  };
 
   const save = async () => {
     setSaving(true);
@@ -1211,6 +1244,28 @@ function BelinhaConfigTab() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Avatar */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Belinha" className="h-16 w-16 rounded-full object-cover border-2 border-primary/30" />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center border-2 border-border">
+                <Bot className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Foto de perfil da Belinha</p>
+            <p className="text-xs text-muted-foreground">Aparece no chat como avatar da assistente</p>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-primary hover:underline">
+              <Upload className="h-3 w-3" />
+              {uploading ? "Enviando..." : "Alterar foto"}
+              <input type="file" accept="image/*" className="hidden" onChange={uploadAvatar} disabled={uploading} />
+            </label>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <p className="text-sm font-medium">Modelo da IA</p>
           <p className="text-xs text-muted-foreground">Modelo usado no OpenRouter (ex: openai/gpt-4o-mini, google/gemini-2.0-flash-exp)</p>

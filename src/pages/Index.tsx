@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Newspaper, Reply, Pencil, Check } from "lucide-react";
+import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Newspaper, Reply, Pencil, Check, Trash2 } from "lucide-react";
+import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -82,7 +83,7 @@ const Index = () => {
         supabase.from("cursos").select("*").order("ordem"),
         supabase.from("modulos").select("id, curso_id"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
-        supabase.from("mensagens").select("*").order("created_at", { ascending: true }),
+        supabase.from("mensagens").select("*").gte("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()).order("created_at", { ascending: true }),
         supabase.from("topico_progresso").select("topico_id"),
         supabase.from("notificacoes").select("*").order("created_at", { ascending: false }).limit(20),
         supabase.from("desafios_semanais").select("id"),
@@ -139,6 +140,9 @@ const Index = () => {
     };
     fetchAll();
 
+    // Cleanup old messages (48h)
+    supabase.from("mensagens").delete().lt("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString());
+
     // Realtime subscription for mensagens
     const channel = supabase
       .channel("mensagens-realtime")
@@ -162,6 +166,14 @@ const Index = () => {
         (payload) => {
           const updated = payload.new as Mensagem;
           setMensagens((prev) => prev.map((m) => m.id === updated.id ? updated : m));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "mensagens" },
+        (payload) => {
+          const old = payload.old as { id: string };
+          setMensagens((prev) => prev.filter((m) => m.id !== old.id));
         }
       )
       .subscribe();
@@ -233,6 +245,19 @@ const Index = () => {
     setEditingMsg(null);
     setNovaMensagem("");
     inputRef.current?.focus();
+  };
+
+  const deletarMensagem = async (msg: Mensagem) => {
+    await supabase.from("mensagens").delete().eq("id", msg.id);
+    setMensagens((prev) => prev.filter((m) => m.id !== msg.id));
+  };
+
+  const formatMsgTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffH = differenceInHours(now, date);
+    if (diffH < 24) return format(date, "HH:mm");
+    return format(date, "dd/MM HH:mm");
   };
 
   const getReplyPreview = (replyId: string | null) => {
@@ -567,16 +592,29 @@ const Index = () => {
                                         (editado)
                                       </span>
                                     )}
+                                    <span className={`block text-[8px] mt-0.5 ${isUser ? "text-primary-foreground/40 text-right" : "text-muted-foreground/40"}`}>
+                                      {formatMsgTime(msg.created_at)}
+                                    </span>
                                   </div>
 
-                                  {/* Edit button for user messages within 3 min */}
-                                  {isUser && canEdit(msg) && !editingMsg && (
-                                    <button
-                                      onClick={() => startEdit(msg)}
-                                      className="absolute -left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 rounded-full bg-secondary flex items-center justify-center"
-                                    >
-                                      <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                                    </button>
+                                  {/* Action buttons for user messages */}
+                                  {isUser && !editingMsg && (
+                                    <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                                      {canEdit(msg) && (
+                                        <button
+                                          onClick={() => startEdit(msg)}
+                                          className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center"
+                                        >
+                                          <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => deletarMensagem(msg)}
+                                        className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center hover:bg-destructive/20"
+                                      >
+                                        <Trash2 className="h-2.5 w-2.5 text-muted-foreground hover:text-destructive" />
+                                      </button>
+                                    </div>
                                   )}
                                 </div>
                               </motion.div>

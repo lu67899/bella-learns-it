@@ -5,6 +5,7 @@ import {
   Shield,
   LogOut,
   User,
+  Bot,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -23,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const items = [
   { title: "Perfil", url: "/perfil", icon: User },
+  { title: "Belinha", url: "/belinha", icon: Bot },
   { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
   { title: "Admin", url: "/admin", icon: Shield },

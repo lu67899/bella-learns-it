@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -123,6 +123,7 @@ const Admin = () => {
               <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">⚙️ Configurações</p>
               <TabsList className="inline-flex h-auto gap-1 p-1">
                 <TabsTrigger value="perfil" className="gap-2 px-4 py-2 text-sm"><User className="h-4 w-4" /> Perfil Admin</TabsTrigger>
+                <TabsTrigger value="belinha" className="gap-2 px-4 py-2 text-sm"><Bot className="h-4 w-4" /> Belinha IA</TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -138,6 +139,7 @@ const Admin = () => {
           <TabsContent value="frases"><FrasesTab /></TabsContent>
           <TabsContent value="mensagens"><MensagensTab /></TabsContent>
           <TabsContent value="perfil"><AdminConfigTab /></TabsContent>
+          <TabsContent value="belinha"><BelinhaConfigTab /></TabsContent>
         </Tabs>
       </div>
     </Layout>
@@ -1157,6 +1159,85 @@ function AdminConfigTab() {
             <Button onClick={saveNome} size="sm">Salvar</Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── BELINHA CONFIG TAB ───────────────────────────────────
+function BelinhaConfigTab() {
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [model, setModel] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("assistant_config")
+        .select("system_prompt, model")
+        .eq("id", 1)
+        .single();
+      if (data) {
+        setSystemPrompt(data.system_prompt);
+        setModel(data.model);
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("assistant_config")
+      .update({ system_prompt: systemPrompt, model })
+      .eq("id", 1);
+    setSaving(false);
+    if (error) {
+      toast.error("Erro ao salvar configuração");
+    } else {
+      toast.success("Configuração da Belinha salva!");
+    }
+  };
+
+  if (loading) return <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>;
+
+  return (
+    <Card className="bg-card border-border mt-4">
+      <CardHeader>
+        <CardTitle className="font-mono text-lg flex items-center gap-2">
+          <Bot className="h-5 w-5 text-primary" /> Configuração da Belinha
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Modelo da IA</p>
+          <p className="text-xs text-muted-foreground">Modelo usado no OpenRouter (ex: openai/gpt-4o-mini, google/gemini-2.0-flash-exp)</p>
+          <Input
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            placeholder="openai/gpt-4o-mini"
+            className="max-w-md"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Prompt do sistema</p>
+          <p className="text-xs text-muted-foreground">
+            Define a personalidade e o comportamento da Belinha. Seja específica sobre como ela deve responder.
+          </p>
+          <Textarea
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            rows={10}
+            placeholder="Você é a Belinha, uma assistente de estudos..."
+          />
+        </div>
+
+        <Button onClick={save} disabled={saving} className="gap-2">
+          {saving ? "Salvando..." : "Salvar configuração"}
+        </Button>
       </CardContent>
     </Card>
   );

@@ -726,19 +726,20 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {/* Chat FAB */}
+      {/* Chat FAB - Tech style */}
       {!chatAberto && (
         <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.92 }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.9 }}
           onClick={abrirChat}
-          className="fixed bottom-6 right-4 z-50 h-12 w-12 rounded-full bg-primary/90 backdrop-blur-sm shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.4)] flex items-center justify-center transition-shadow hover:shadow-[0_4px_30px_-4px_hsl(var(--primary)/0.5)]"
+          className="fixed bottom-6 right-4 z-50 h-9 px-3 rounded-lg bg-card/80 backdrop-blur-xl border border-primary/20 shadow-[0_0_15px_-3px_hsl(var(--primary)/0.25),0_0_6px_-2px_hsl(var(--primary)/0.15)] flex items-center gap-1.5 transition-all hover:border-primary/40 hover:shadow-[0_0_20px_-3px_hsl(var(--primary)/0.4)] group"
         >
-          <MessageCircle className="h-5 w-5 text-primary-foreground" />
+          <span className="text-primary/60 text-[10px] font-mono group-hover:text-primary transition-colors">&gt;_</span>
+          <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">chat</span>
           {naoLidas > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground ring-2 ring-background">
+            <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary/90 text-[8px] font-bold text-primary-foreground px-1">
               {naoLidas}
             </span>
           )}

@@ -1,16 +1,19 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Newspaper } from "lucide-react";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Link, useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { SegmentProgress } from "@/components/SegmentProgress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Layout } from "@/components/Layout";
+import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAppFeatures } from "@/contexts/AppFeaturesContext";
 
 const container = {
   hidden: { opacity: 0 },
@@ -51,10 +54,13 @@ interface Notificacao {
 const Index = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { features } = useAppFeatures();
+  const reduceMotion = useReducedMotion();
   const [cursos, setCursos] = useState<CursoDB[]>([]);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
   const [chatAberto, setChatAberto] = useState(false);
+  const [chatMinimizado, setChatMinimizado] = useState(false);
   const [naoLidas, setNaoLidas] = useState(0);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [notifAberta, setNotifAberta] = useState(false);
@@ -78,7 +84,6 @@ const Index = () => {
         supabase.from("frases_motivacionais").select("texto").eq("ativa", true),
       ]);
 
-      // Build module->topicos map
       const topicosByModule = new Map<string, string[]>();
       (topRes.data || []).forEach((t: any) => {
         const arr = topicosByModule.get(t.modulo_id) || [];
@@ -88,7 +93,6 @@ const Index = () => {
 
       const completedSet = new Set((progRes.data || []).map((p: any) => p.topico_id));
 
-      // Build curso->modules map
       const modulesByCurso = new Map<string, string[]>();
       (modRes.data || []).forEach((m: any) => {
         if (m.curso_id) {
@@ -140,6 +144,7 @@ const Index = () => {
 
   const abrirChat = async () => {
     setChatAberto(true);
+    setChatMinimizado(false);
     setNaoLidas(0);
     await supabase.from("mensagens").update({ lida: true }).eq("remetente", "admin").eq("lida", false);
   };
@@ -162,6 +167,8 @@ const Index = () => {
   const notifNaoLidas = notificacoes.filter((n) => !n.lida).length;
   const hora = new Date().getHours();
   const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+  const hoverLift = reduceMotion ? {} : { y: -2, scale: 1.01 };
+  const tapDown = reduceMotion ? {} : { scale: 0.99 };
 
   return (
     <Layout>
@@ -233,7 +240,13 @@ const Index = () => {
               {frases.length > 1 && (
                 <div className="flex justify-center gap-1 mt-3">
                   {frases.map((_, i) => (
-                    <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i === fraseIdx ? "w-4 bg-primary/50" : "w-1 bg-muted"}`} />
+                    <button
+                      key={i}
+                      onClick={() => setFraseIdx(i)}
+                      className={`h-1 rounded-full transition-all duration-500 ${
+                        i === fraseIdx ? "w-6 bg-primary" : "w-1.5 bg-muted hover:bg-muted-foreground/30"
+                      }`}
+                    />
                   ))}
                 </div>
               )}
@@ -241,60 +254,77 @@ const Index = () => {
           </motion.div>
         )}
 
-        {/* Progresso Geral */}
-        <motion.div variants={item} className="p-4 rounded-xl bg-card border border-border">
-          <Link to="/progresso">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground/70 font-mono uppercase tracking-wider">
-                  Progresso Geral
-                </p>
-                <p className="text-sm font-medium mt-0.5">
-                  {Math.round(overallProgress)}% completo
-                </p>
+        {/* Progress & Desafios - side by side */}
+        <div className="grid grid-cols-2 gap-3">
+          <motion.div variants={item} whileHover={hoverLift} whileTap={tapDown}>
+            <Link to="/progresso">
+              <div className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Progresso</span>
+                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <CircularProgress value={overallProgress} size={56} strokeWidth={4} variant="gradient" />
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-gradient">{Math.round(overallProgress)}%</p>
+                    <p className="text-[10px] text-muted-foreground">Concluído</p>
+                  </div>
+                </div>
               </div>
-              <CircularProgress value={overallProgress} size={44} strokeWidth={3} variant="gradient" />
-            </div>
-            <Progress value={overallProgress} className="mt-3" />
-          </Link>
-        </motion.div>
-
-        {/* Desafios */}
-        <motion.div variants={item}>
-          <Link to="/desafios">
-            <div className="group p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider flex items-center gap-1">
-                  <Trophy className="h-3 w-3" /> Desafios
-                </span>
-                <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+            </Link>
+          </motion.div>
+          <motion.div variants={item} whileHover={hoverLift} whileTap={tapDown}>
+            <Link to="/desafios">
+              <div className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider flex items-center gap-1">
+                    <Trophy className="h-3 w-3" /> Desafios
+                  </span>
+                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <CircularProgress value={desafiosCount.total > 0 ? (desafiosCount.respondidos / desafiosCount.total) * 100 : 0} size={56} strokeWidth={4} />
+                  <div>
+                    <p className="text-2xl font-bold font-mono">
+                      <span className="text-gradient">{desafiosCount.respondidos}</span>
+                      <span className="text-muted-foreground text-sm">/{desafiosCount.total}</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Respondidos</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-2xl font-bold font-mono">
-                <span className="text-gradient">{desafiosCount.respondidos}</span>
-                <span className="text-muted-foreground text-sm">/{desafiosCount.total}</span>
-              </p>
-              <Progress value={desafiosCount.total > 0 ? (desafiosCount.respondidos / desafiosCount.total) * 100 : 0} className="h-1 mt-3" />
-            </div>
-          </Link>
-        </motion.div>
+            </Link>
+          </motion.div>
+        </div>
 
         {/* Acesso Rápido */}
         <motion.div variants={item} className="space-y-3">
           <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Acesso rápido</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             {[
-              { label: "Resumos", to: "/resumos", icon: "📖" },
-              { label: "Flashcards", to: "/flashcards", icon: "🧠" },
-              { label: "Cronograma", to: "/cronograma", icon: "📅" },
-              { label: "Anotações", to: "/anotacoes", icon: "📝" },
-            ].map((a) => (
-              <Link key={a.to} to={a.to}>
-                <div className="group flex flex-col items-center gap-1.5 p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
-                  <span className="text-lg">{a.icon}</span>
-                  <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
-                </div>
-              </Link>
-            ))}
+              { label: "Resumos", to: "/resumos", icon: "📖", type: "emoji" as const },
+              { label: "Flashcards", to: "/flashcards", icon: "🧠", type: "emoji" as const },
+              { label: "Cronograma", to: "/cronograma", icon: "📅", type: "emoji" as const },
+              { label: "Anotações", to: "/anotacoes", icon: "📝", type: "emoji" as const },
+              { label: "Mix", to: "/mix", icon: PlayCircle, type: "icon" as const },
+              ...(features.newsEnabled ? [{ label: "Notícias", to: "/noticias", icon: Newspaper, type: "icon" as const }] : []),
+            ].map((a) => {
+              const IconComponent = a.type === "icon" ? a.icon as React.ComponentType<{ className?: string }> : null;
+              return (
+                <Link key={a.to} to={a.to}>
+                  <motion.div whileHover={hoverLift} whileTap={tapDown} className="group flex flex-col items-center gap-1.5 p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
+                    {a.type === "emoji" ? (
+                      <span className="text-lg">{a.icon as string}</span>
+                    ) : (
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+                        {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
+                      </div>
+                    )}
+                    <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
+                  </motion.div>
+                </Link>
+              );
+            })}
           </div>
         </motion.div>
 
@@ -309,7 +339,7 @@ const Index = () => {
                 const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
                 return (
                   <Link key={curso.id} to={`/curso/${curso.id}`}>
-                    <div className="group flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/30 transition-all cursor-pointer">
+                    <motion.div whileHover={hoverLift} whileTap={tapDown} className="group flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/30 transition-all cursor-pointer">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-mono font-semibold text-muted-foreground group-hover:text-primary transition-colors">
                         {pct === 100 ? <CheckCircle2 className="h-4 w-4 text-primary" /> : "📚"}
                       </div>
@@ -317,14 +347,17 @@ const Index = () => {
                         <p className="font-mono text-sm truncate">{curso.nome}</p>
                         {curso.descricao && <p className="text-xs text-muted-foreground truncate">{curso.descricao}</p>}
                         <div className="flex items-center gap-2 mt-1">
-                          <Progress value={pct} className="h-1 flex-1" />
+                          <SegmentProgress value={pct} segments={5} className="flex-1" />
                           <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                            {curso.modulos_count || 0} módulos · {Math.round(pct)}%
+                            {Math.round(pct)}%
                           </span>
                         </div>
+                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                          {curso.modulos_count || 0} módulos · {curso.completed_topicos || 0}/{curso.total_topicos || 0} tópicos
+                        </p>
                       </div>
                       <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
+                    </motion.div>
                   </Link>
                 );
               })}
@@ -334,42 +367,79 @@ const Index = () => {
 
       </motion.div>
 
-      {/* Chat */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Chat Flutuante */}
+      <div className="fixed bottom-20 right-6 z-50">
         <AnimatePresence>
           {chatAberto && (
-            <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="absolute bottom-14 right-0 w-80">
-              <Card className="bg-card border-border shadow-2xl">
-                <div className="flex items-center justify-between p-3 border-b border-border">
-                  <span className="font-mono text-xs font-semibold flex items-center gap-1.5"><MessageCircle className="h-3 w-3 text-accent" />Chat</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setChatAberto(false)}><X className="h-3 w-3" /></Button>
-                </div>
-                <ScrollArea className="h-64 p-3" ref={scrollRef}>
-                  <div className="space-y-2">
-                    {mensagens.length === 0 && <p className="text-xs text-muted-foreground text-center py-8">Diga oi! 👋</p>}
-                    {mensagens.map((msg) => (
-                      <div key={msg.id} className={`flex ${msg.remetente === "bella" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[80%] rounded-xl px-3 py-1.5 text-xs ${msg.remetente === "bella" ? "bg-primary/20 rounded-br-sm" : "bg-secondary rounded-bl-sm"}`}>
-                          <p>{msg.conteudo}</p>
-                        </div>
-                      </div>
-                    ))}
+            <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }}>
+              <Card className="w-80 bg-card border-border shadow-2xl overflow-hidden">
+                <div className="flex items-center justify-between p-3 border-b border-border cursor-pointer" onClick={() => setChatMinimizado(!chatMinimizado)}>
+                  <div className="flex items-center gap-1.5">
+                    <MessageCircle className="h-3 w-3 text-accent" />
+                    <span className="font-mono text-xs font-semibold">Mensagens</span>
+                    {naoLidas > 0 && !chatMinimizado && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">{naoLidas}</span>
+                    )}
                   </div>
-                </ScrollArea>
-                <div className="flex gap-2 p-2 border-t border-border">
-                  <Input placeholder="Mensagem..." value={novaMensagem} onChange={(e) => setNovaMensagem(e.target.value)} onKeyDown={(e) => e.key === "Enter" && enviarMensagem()} className="flex-1 h-8 text-xs" />
-                  <Button size="icon" className="h-8 w-8" onClick={enviarMensagem} disabled={!novaMensagem.trim()}><Send className="h-3 w-3" /></Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setChatMinimizado(!chatMinimizado); }}>
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
+                <AnimatePresence>
+                  {!chatMinimizado && (
+                    <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+                      <ScrollArea className="h-64 p-3" ref={scrollRef}>
+                        <div className="space-y-2">
+                          {mensagens.length === 0 && (
+                            <div className="text-center py-8">
+                              <p className="text-xs text-muted-foreground">Nenhuma mensagem ainda</p>
+                            </div>
+                          )}
+                          {mensagens.map((msg) => (
+                            <div key={msg.id} className={`flex ${msg.remetente === "bella" ? "justify-end" : "justify-start"}`}>
+                              <div className={`max-w-[80%] rounded-xl px-3 py-1.5 text-xs ${msg.remetente === "bella" ? "bg-primary/20 rounded-br-sm" : "bg-secondary rounded-bl-sm"}`}>
+                                {msg.conteudo}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <div className="flex gap-2 p-2 border-t border-border">
+                        <Input
+                          placeholder="Mensagem..."
+                          value={novaMensagem}
+                          onChange={(e) => setNovaMensagem(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && enviarMensagem()}
+                          className="flex-1 h-9 text-sm border-0 bg-secondary/50 focus-visible:ring-1"
+                        />
+                        <Button size="icon" className="h-9 w-9" onClick={enviarMensagem} disabled={!novaMensagem.trim()}>
+                          <Send className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Card>
             </motion.div>
           )}
         </AnimatePresence>
-        <Button onClick={chatAberto ? () => setChatAberto(false) : abrirChat} size="icon" className="h-12 w-12 rounded-full shadow-lg relative" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
-          {chatAberto ? <X className="h-5 w-5 text-white" /> : <MessageCircle className="h-5 w-5 text-white" />}
-          {!chatAberto && naoLidas > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">{naoLidas}</span>
-          )}
-        </Button>
+      </div>
+
+      {/* Chat Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {!chatAberto && (
+          <Button onClick={abrirChat} size="icon" className="h-12 w-12 rounded-full shadow-lg relative" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+            <MessageCircle className="h-5 w-5 text-white" />
+            {naoLidas > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">{naoLidas}</span>
+            )}
+          </Button>
+        )}
       </div>
     </Layout>
   );

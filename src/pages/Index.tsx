@@ -253,7 +253,7 @@ const Index = () => {
                   {Math.round(overallProgress)}% completo
                 </p>
               </div>
-              <CircularProgress value={overallProgress} size={44} strokeWidth={3} />
+              <CircularProgress value={overallProgress} size={44} strokeWidth={3} variant="gradient" />
             </div>
             <Progress value={overallProgress} className="mt-3" />
           </Link>

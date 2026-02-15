@@ -37,7 +37,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent className="pt-4">
         {/* Logo */}
-        <div className="flex items-center gap-3 px-4 pb-4">
+        <NavLink to="/" className="flex items-center gap-3 px-4 pb-4 hover:opacity-80 transition-opacity">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20 glow-purple">
             <BrainCircuit className="h-5 w-5 text-primary" />
           </div>
@@ -47,7 +47,7 @@ export function AppSidebar() {
               <p className="text-[10px] text-muted-foreground">Sua plataforma de estudos</p>
             </div>
           )}
-        </div>
+        </NavLink>
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-muted-foreground/60 text-[10px] uppercase tracking-widest">

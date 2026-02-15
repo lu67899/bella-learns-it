@@ -1,0 +1,1 @@
+ALTER TABLE public.assistant_config ADD COLUMN recado text NOT NULL DEFAULT 'Olá! Estou aqui para te ajudar nos estudos 💜';

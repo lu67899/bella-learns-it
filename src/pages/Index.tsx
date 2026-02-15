@@ -451,7 +451,10 @@ const Index = () => {
                             </div>
                           )}
                           {mensagens.map((msg) => (
-                            <div key={msg.id} className={`flex ${msg.remetente === "bella" ? "justify-end" : "justify-start"}`}>
+                            <div key={msg.id} className={`flex flex-col ${msg.remetente === "bella" ? "items-end" : "items-start"}`}>
+                              <span className="text-[9px] font-medium text-muted-foreground mb-0.5 px-1">
+                                {msg.remetente === "admin" ? "Deny" : profile?.display_name || "Você"}
+                              </span>
                               <div
                                 className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
                                   msg.remetente === "bella"

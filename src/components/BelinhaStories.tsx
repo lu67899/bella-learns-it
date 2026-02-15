@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Story {
@@ -79,6 +79,7 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
   const [current, setCurrent] = useState(0);
   const [progress, setProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState(5000);
+  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -166,13 +167,23 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
           ))}
         </div>
 
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-8 right-3 z-10 text-white/80 hover:text-white"
-        >
-          <X className="h-6 w-6" />
-        </button>
+        {/* Close & Sound controls */}
+        <div className="absolute top-8 right-3 z-10 flex items-center gap-3">
+          {story.tipo === "video" && (
+            <button
+              onClick={() => {
+                setIsMuted((m) => !m);
+                if (videoRef.current) videoRef.current.muted = !videoRef.current.muted;
+              }}
+              className="text-white/80 hover:text-white"
+            >
+              {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            </button>
+          )}
+          <button onClick={onClose} className="text-white/80 hover:text-white">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
 
         {/* Content */}
         {story.tipo === "video" ? (
@@ -181,7 +192,7 @@ export function BelinhaStoriesViewer({ open, onClose }: BelinhaStoriesProps) {
             key={story.id}
             src={story.image_url}
             autoPlay
-            muted
+            muted={isMuted}
             playsInline
             onLoadedMetadata={handleVideoLoaded}
             className="max-h-[85vh] max-w-full object-contain rounded-lg"

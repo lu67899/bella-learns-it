@@ -95,6 +95,30 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_config: {
+        Row: {
+          created_at: string
+          id: number
+          model: string
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          model?: string
+          system_prompt?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          model?: string
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cronograma: {
         Row: {
           concluida: boolean

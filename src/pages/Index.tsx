@@ -486,7 +486,7 @@ const Index = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed bottom-20 right-4 left-4 sm:left-auto sm:w-[340px] z-50"
+            className={`fixed right-4 left-4 sm:left-auto sm:w-[340px] z-50 ${chatMinimizado ? "bottom-8" : "bottom-20"}`}
             style={{ transformOrigin: "bottom right" }}
           >
             <div className="rounded-2xl bg-background/80 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_hsl(var(--primary)/0.15)] overflow-hidden">
@@ -504,7 +504,7 @@ const Index = () => {
                     </div>
                   )}
                   <div>
-                    <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
+                    <span className="text-xs font-medium text-foreground">{chatMinimizado ? "Chat" : adminConfig.nome}</span>
                   </div>
                   {naoLidas > 0 && (
                     <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">

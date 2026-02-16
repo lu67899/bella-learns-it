@@ -145,26 +145,36 @@ const ModuloPage = () => {
             {/* Sidebar - topic list */}
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2">
               <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest mb-3">Tópicos</p>
-              {topicos.map((t, i) => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedTopico(t)}
-                  className={`w-full text-left rounded-lg px-4 py-3 text-sm transition-all flex items-center gap-3 ${
-                    selectedTopico?.id === t.id
-                      ? "bg-primary/15 text-primary border-glow"
-                      : "bg-card hover:bg-secondary text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {completedIds.has(t.id) ? (
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-green-500" />
-                  ) : (
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-mono font-bold">
-                      {i + 1}
-                    </span>
-                  )}
-                  <span className="truncate font-mono">{t.titulo}</span>
-                </button>
-              ))}
+              {topicos.map((t, i) => {
+                const isUnlocked = i === 0 || completedIds.has(topicos[i - 1].id);
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => isUnlocked && setSelectedTopico(t)}
+                    disabled={!isUnlocked}
+                    className={`w-full text-left rounded-lg px-4 py-3 text-sm transition-all flex items-center gap-3 ${
+                      !isUnlocked
+                        ? "bg-card/50 text-muted-foreground/40 cursor-not-allowed opacity-50"
+                        : selectedTopico?.id === t.id
+                          ? "bg-primary/15 text-primary border-glow"
+                          : "bg-card hover:bg-secondary text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {completedIds.has(t.id) ? (
+                      <CheckCircle2 className="h-5 w-5 shrink-0 text-green-500" />
+                    ) : !isUnlocked ? (
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary/50 text-xs font-mono font-bold">
+                        🔒
+                      </span>
+                    ) : (
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-mono font-bold">
+                        {i + 1}
+                      </span>
+                    )}
+                    <span className="truncate font-mono">{t.titulo}</span>
+                  </button>
+                );
+              })}
             </motion.div>
 
             {/* Content area */}

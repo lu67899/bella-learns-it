@@ -287,20 +287,20 @@ const Index = () => {
 
         {/* Header */}
         <motion.div variants={item}>
-          <div className="relative rounded-2xl bg-card border border-border p-5">
+          <div className="relative rounded-2xl bg-card border border-border px-5 py-6">
             {/* Decorative glow */}
             <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
             <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
 
-            <div className="relative flex items-start justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground font-mono tracking-wider uppercase">{saudacao}</p>
-                <h1 className="text-2xl font-bold font-mono mt-1 truncate">
-                  <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
+            <div className="relative flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase mb-1">{saudacao}</p>
+                <h1 className="text-xl font-bold font-mono truncate">
+                  <span className="text-gradient">{profile?.display_name || "Estudante"}</span> ✨
                 </h1>
               </div>
-              <div className="relative">
-                <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setNotifAberta(!notifAberta)}>
+              <div className="relative shrink-0">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" onClick={() => setNotifAberta(!notifAberta)}>
                   <Bell className="h-4 w-4" />
                   {notifNaoLidas > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">

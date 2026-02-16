@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface Modulo {
   id: string;
@@ -26,6 +27,7 @@ interface Topico {
 const ModuloPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [modulo, setModulo] = useState<Modulo | null>(null);
   const [topicos, setTopicos] = useState<Topico[]>([]);
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null);
@@ -62,8 +64,20 @@ const ModuloPage = () => {
         return next;
       });
     } else {
+      // Check if this topic was already completed before (to avoid showing coin message on re-completions)
+      const { data: existing } = await supabase
+        .from("topico_progresso")
+        .select("id")
+        .eq("topico_id", topicoId)
+        .eq("user_id", user!.id);
+      const isFirstTime = !existing || existing.length === 0;
+
       await supabase.from("topico_progresso").insert({ topico_id: topicoId, user_id: user!.id });
       setCompletedIds((prev) => new Set(prev).add(topicoId));
+
+      if (isFirstTime) {
+        toast({ title: "🪙 +5 moedas!", description: "Você ganhou moedas por concluir este tópico!" });
+      }
     }
   };
 

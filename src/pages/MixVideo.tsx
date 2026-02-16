@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, PlayCircle } from "lucide-react";
+import { ArrowLeft, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,9 @@ interface Video {
   descricao: string | null;
   url_youtube: string;
   duracao: number;
+  categoria_id: string | null;
+  ordem: number;
+  created_at: string;
 }
 
 function extrairVideoId(url: string): string | null {
@@ -31,13 +34,27 @@ const MixVideo = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const [video, setVideo] = useState<Video | null>(null);
+  const [categoryVideos, setCategoryVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       if (!id) return;
       const { data } = await supabase.from("videos").select("*").eq("id", id).single();
-      if (data) setVideo(data);
+      if (data) {
+        setVideo(data as Video);
+        // Load sibling videos from same category
+        if (data.categoria_id) {
+          const { data: siblings } = await supabase
+            .from("videos")
+            .select("*")
+            .eq("categoria_id", data.categoria_id)
+            .order("created_at", { ascending: false });
+          if (siblings) setCategoryVideos(siblings as Video[]);
+        } else {
+          setCategoryVideos([]);
+        }
+      }
       setLoading(false);
 
       // Mark as watched
@@ -50,6 +67,10 @@ const MixVideo = () => {
     };
     load();
   }, [id, session?.user?.id]);
+
+  const currentIndex = categoryVideos.findIndex(v => v.id === id);
+  const prevVideo = currentIndex > 0 ? categoryVideos[currentIndex - 1] : null;
+  const nextVideo = currentIndex < categoryVideos.length - 1 ? categoryVideos[currentIndex + 1] : null;
 
   const videoId = video ? extrairVideoId(video.url_youtube) : null;
 
@@ -85,6 +106,30 @@ const MixVideo = () => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
+                </div>
+              )}
+              {/* Prev / Next buttons */}
+              {categoryVideos.length > 1 && (
+                <div className="flex items-center justify-between mt-3">
+                  <button
+                    onClick={() => prevVideo && navigate(`/mix/${prevVideo.id}`)}
+                    disabled={!prevVideo}
+                    className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Anterior
+                  </button>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    {currentIndex + 1}/{categoryVideos.length}
+                  </span>
+                  <button
+                    onClick={() => nextVideo && navigate(`/mix/${nextVideo.id}`)}
+                    disabled={!nextVideo}
+                    className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Próximo
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               )}
             </div>

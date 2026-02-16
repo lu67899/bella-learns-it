@@ -40,66 +40,13 @@ const ResumoDetalhe = () => {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : resumo ? (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <div
-              className="relative rounded-sm overflow-hidden"
-              style={{
-                background: "hsl(240 12% 14%)",
-                boxShadow: "4px 4px 20px rgba(0,0,0,0.4), inset 0 0 60px rgba(0,0,0,0.1)",
-              }}
-            >
-              {/* Margem esquerda do caderno */}
-              <div className="absolute left-10 top-0 bottom-0 w-px" style={{ background: "hsl(0 50% 45% / 0.4)" }} />
-              <div className="absolute left-[42px] top-0 bottom-0 w-px" style={{ background: "hsl(0 50% 45% / 0.25)" }} />
-
-              {/* Furos do caderno */}
-              <div className="absolute left-3 top-8 w-3 h-3 rounded-full border-2" style={{ borderColor: "hsl(var(--muted-foreground) / 0.3)" }} />
-              <div className="absolute left-3 top-1/3 w-3 h-3 rounded-full border-2" style={{ borderColor: "hsl(var(--muted-foreground) / 0.3)" }} />
-              <div className="absolute left-3 top-2/3 w-3 h-3 rounded-full border-2" style={{ borderColor: "hsl(var(--muted-foreground) / 0.3)" }} />
-
-              <div className="pl-14 pr-6 py-6">
-                {/* Matéria como "escrita à mão" no topo */}
-                <div
-                  className="text-xs tracking-widest uppercase mb-1"
-                  style={{
-                    color: "hsl(var(--primary))",
-                    fontFamily: "'Caveat', cursive",
-                    fontSize: "14px",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  {resumo.materia}
-                </div>
-
-                {/* Título */}
-                <h1
-                  className="font-bold mb-6 pb-2"
-                  style={{
-                    fontFamily: "'Caveat', cursive",
-                    fontSize: "28px",
-                    color: "hsl(var(--foreground))",
-                    borderBottom: "1px solid hsl(var(--border))",
-                  }}
-                >
-                  {resumo.titulo}
-                </h1>
-
-                {/* Conteúdo com linhas de caderno */}
-                <div
-                  className="whitespace-pre-wrap"
-                  style={{
-                    fontFamily: "'Caveat', cursive",
-                    fontSize: "17px",
-                    lineHeight: "2em",
-                    color: "hsl(var(--foreground) / 0.85)",
-                    backgroundImage: "repeating-linear-gradient(transparent, transparent 1.95em, hsl(var(--border) / 0.4) 1.95em, hsl(var(--border) / 0.4) 2em)",
-                    backgroundSize: "100% 2em",
-                    backgroundPositionY: "0.05em",
-                  }}
-                >
-                  {resumo.conteudo}
-                </div>
-              </div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-4">
+            <div>
+              <p className="text-xs text-primary font-mono uppercase tracking-wider">{resumo.materia}</p>
+              <h1 className="text-2xl font-mono font-bold mt-1">{resumo.titulo}</h1>
+            </div>
+            <div className="bg-card border border-border rounded-lg p-5">
+              <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{resumo.conteudo}</p>
             </div>
           </motion.div>
         ) : null}

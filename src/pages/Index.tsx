@@ -431,7 +431,7 @@ const Index = () => {
                 <Link key={a.to} to={a.to}>
                   <motion.div whileHover={hoverLift} whileTap={tapDown} className="group flex flex-col items-center gap-1.5 p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
                     {a.type === "emoji" ? (
-                      <span className="text-lg">{a.icon as string}</span>
+                      <span className="text-lg emoji-fix">{a.icon as string}</span>
                     ) : (
                       <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
                         {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
@@ -467,7 +467,7 @@ const Index = () => {
                           {isComplete ? (
                             <CheckCircle2 className="h-5 w-5 text-primary" />
                           ) : (
-                            <span className="text-base">📚</span>
+                            <span className="text-base emoji-fix">📚</span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">

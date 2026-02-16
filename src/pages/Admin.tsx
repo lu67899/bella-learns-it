@@ -167,7 +167,7 @@ const Admin = () => {
             >
               {adminSections.map((group) => (
                 <div key={group.group} className="space-y-2.5">
-                  <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider px-1">{group.group}</p>
+                  <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider px-1"><span className="emoji-fix mr-1">{group.group.split(" ")[0]}</span>{group.group.split(" ").slice(1).join(" ")}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {group.items.map((item) => {
                       const Icon = item.icon;

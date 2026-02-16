@@ -175,3 +175,20 @@
   0%, 100% { transform: translateX(0); opacity: 0.5; }
   50% { transform: translateX(3px); opacity: 1; }
 }
+
+/* Fix emoji vertical alignment in mono/sans fonts */
+.font-mono img.emoji,
+.font-mono .emoji,
+h1, h2, h3, p, span, button {
+  font-variant-emoji: text;
+}
+
+/* Ensure emojis don't inherit mono font causing misalignment */
+@layer utilities {
+  .emoji-fix {
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 1;
+  }
+}

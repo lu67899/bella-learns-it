@@ -286,48 +286,56 @@ const Index = () => {
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-10 pb-20">
 
         {/* Header */}
-        <motion.div variants={item} className="flex items-start justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-mono tracking-wider uppercase">{saudacao}</p>
-            <h1 className="text-2xl font-bold font-mono mt-1">
-              Olá, <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
-            </h1>
-          </div>
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setNotifAberta(!notifAberta)}>
-              <Bell className="h-4 w-4" />
-              {notifNaoLidas > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                  {notifNaoLidas}
-                </span>
-              )}
-            </Button>
-            <AnimatePresence>
-              {notifAberta && (
-                <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 top-11 w-72 z-50">
-                  <Card className="bg-card border-border shadow-xl">
-                    <div className="flex items-center justify-between p-3 border-b border-border">
-                      <span className="font-mono text-xs font-semibold">Notificações</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNotifAberta(false)}><X className="h-3 w-3" /></Button>
-                    </div>
-                    <ScrollArea className="max-h-56">
-                      {notificacoes.length === 0 ? (
-                        <p className="text-xs text-muted-foreground text-center py-6">Sem notificações</p>
-                      ) : (
-                        <div className="divide-y divide-border">
-                          {notificacoes.map((n) => (
-                            <button key={n.id} onClick={() => marcarNotifLida(n)} className={`w-full text-left p-3 hover:bg-secondary/40 transition-colors ${!n.lida ? "bg-primary/5" : ""}`}>
-                              <p className={`text-xs font-mono ${!n.lida ? "font-semibold" : "text-muted-foreground"}`}>{n.titulo}</p>
-                              {n.mensagem && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{n.mensagem}</p>}
-                            </button>
-                          ))}
+        <motion.div variants={item}>
+          <div className="relative rounded-2xl bg-card border border-border p-5 overflow-hidden">
+            {/* Decorative glow */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
+
+            <div className="relative flex items-start justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-mono tracking-wider uppercase">{saudacao}</p>
+                <h1 className="text-2xl font-bold font-mono mt-1">
+                  Olá, <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
+                </h1>
+              </div>
+              <div className="relative">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setNotifAberta(!notifAberta)}>
+                  <Bell className="h-4 w-4" />
+                  {notifNaoLidas > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                      {notifNaoLidas}
+                    </span>
+                  )}
+                </Button>
+                <AnimatePresence>
+                  {notifAberta && (
+                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 top-11 w-72 z-50">
+                      <Card className="bg-card border-border shadow-xl">
+                        <div className="flex items-center justify-between p-3 border-b border-border">
+                          <span className="font-mono text-xs font-semibold">Notificações</span>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNotifAberta(false)}><X className="h-3 w-3" /></Button>
                         </div>
-                      )}
-                    </ScrollArea>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                        <ScrollArea className="max-h-56">
+                          {notificacoes.length === 0 ? (
+                            <p className="text-xs text-muted-foreground text-center py-6">Sem notificações</p>
+                          ) : (
+                            <div className="divide-y divide-border">
+                              {notificacoes.map((n) => (
+                                <button key={n.id} onClick={() => marcarNotifLida(n)} className={`w-full text-left p-3 hover:bg-secondary/40 transition-colors ${!n.lida ? "bg-primary/5" : ""}`}>
+                                  <p className={`text-xs font-mono ${!n.lida ? "font-semibold" : "text-muted-foreground"}`}>{n.titulo}</p>
+                                  {n.mensagem && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{n.mensagem}</p>}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </ScrollArea>
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
         </motion.div>
 

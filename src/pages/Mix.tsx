@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PlayCircle, Clock } from "lucide-react";
 import { Layout } from "@/components/Layout";
-import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Video {
@@ -29,11 +28,11 @@ function formatarDuracao(minutos: number): string {
 
 const container = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0 },
 };
 
@@ -52,7 +51,7 @@ const Mix = () => {
 
   return (
     <Layout>
-      <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-6 pb-20">
+      <motion.div variants={container} initial="hidden" animate="show" className="max-w-3xl mx-auto space-y-6 pb-20">
         <motion.div variants={item}>
           <div className="flex items-center gap-2 mb-1">
             <PlayCircle className="h-5 w-5 text-primary" />
@@ -66,38 +65,35 @@ const Mix = () => {
         ) : videos.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-12">Nenhum vídeo disponível ainda.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             {videos.map((video) => {
               const videoId = extrairVideoId(video.url_youtube);
               return (
                 <motion.div key={video.id} variants={item}>
-                  <Link to={`/mix/${video.id}`}>
-                    <Card className="overflow-hidden bg-card border-border cursor-pointer hover:border-primary/30 transition-colors">
+                  <Link to={`/mix/${video.id}`} className="block group">
+                    <div className="rounded-xl overflow-hidden bg-card border border-border hover:border-primary/30 transition-all">
                       {videoId && (
-                        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                        <div className="relative w-full aspect-video">
                           <img
-                            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                            src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
                             alt={video.titulo}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <PlayCircle className="h-14 w-14 text-white/90" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                            <PlayCircle className="h-10 w-10 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" />
                           </div>
-                        </div>
-                      )}
-                      <div className="p-4 space-y-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <h2 className="font-mono font-semibold text-sm">{video.titulo}</h2>
-                          <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
-                            <Clock className="h-3 w-3" />
+                          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 text-[10px] bg-black/70 text-white/90 px-1.5 py-0.5 rounded font-mono">
+                            <Clock className="h-2.5 w-2.5" />
                             {formatarDuracao(video.duracao)}
                           </span>
                         </div>
-                        {video.descricao && (
-                          <p className="text-xs text-muted-foreground">{video.descricao}</p>
-                        )}
+                      )}
+                      <div className="p-3">
+                        <h2 className="font-mono font-medium text-xs leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                          {video.titulo}
+                        </h2>
                       </div>
-                    </Card>
+                    </div>
                   </Link>
                 </motion.div>
               );

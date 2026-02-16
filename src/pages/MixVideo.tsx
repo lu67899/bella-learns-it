@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, PlayCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,7 +48,7 @@ const MixVideo = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl mx-auto space-y-5 pb-20"
+        className="max-w-5xl mx-auto space-y-5 pb-20"
       >
         <button
           onClick={() => navigate("/mix")}
@@ -63,33 +63,40 @@ const MixVideo = () => {
         ) : !video ? (
           <p className="text-sm text-muted-foreground text-center py-12">Vídeo não encontrado.</p>
         ) : (
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <div className="flex items-start justify-between gap-3">
-                <h1 className="text-xl font-bold font-mono">{video.titulo}</h1>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 mt-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {formatarDuracao(video.duracao)}
-                </span>
-              </div>
-              {video.descricao && (
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {video.descricao}
-                </p>
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Video player */}
+            <div className="flex-1 min-w-0">
+              {videoId && (
+                <div className="relative w-full rounded-xl overflow-hidden aspect-video">
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title={video.titulo}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               )}
             </div>
 
-            {videoId && (
-              <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: "56.25%" }}>
-                <iframe
-                  className="absolute inset-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/${videoId}`}
-                  title={video.titulo}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+            {/* Info panel */}
+            <div className="lg:w-72 xl:w-80 shrink-0 space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-lg font-bold font-mono leading-snug">{video.titulo}</h1>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  {formatarDuracao(video.duracao)}
+                </div>
               </div>
-            )}
+
+              {video.descricao && (
+                <div className="rounded-lg bg-secondary/50 border border-border p-4">
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+                    {video.descricao}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </motion.div>

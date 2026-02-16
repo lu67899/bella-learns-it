@@ -225,6 +225,18 @@ const Belinha = () => {
         {/* Messages */}
         <ScrollArea className="flex-1 pr-2">
           <div className="space-y-4 pb-4">
+            {/* Recado inicial - some quando há mensagens */}
+            {messages.length === 0 && recado && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2.5 justify-start">
+                <div className="mt-0.5">
+                  <BelinhaAvatar avatarUrl={avatarUrl} />
+                </div>
+                <Card className="max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed bg-card border-border">
+                  <p className="whitespace-pre-wrap">{recado}</p>
+                </Card>
+              </motion.div>
+            )}
+
             <AnimatePresence>
               {messages.map((msg, i) => (
                 <motion.div

@@ -7,7 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Camera, Mail, Award, Maximize, Minimize, User } from "lucide-react";
+import { Camera, Mail, Award, Maximize, Minimize, User, Coins } from "lucide-react";
 import { usePageSize, type PageSize } from "@/hooks/usePageSize";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -154,6 +154,26 @@ export default function Perfil() {
                   <Maximize className="h-4 w-4" />
                   Grande
                 </Button>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Coins */}
+          <motion.div variants={item}>
+            <Card className="p-6 bg-card border-border">
+              <Label className="text-sm font-mono text-foreground mb-3 block">
+                Minhas Moedas
+              </Label>
+              <div className="flex items-center gap-3">
+                <Coins className="h-10 w-10 text-primary" />
+                <div>
+                  <p className="text-2xl font-mono font-bold text-foreground">
+                    {profile?.coins ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Ganhe 5 moedas ao concluir tópicos ou acertar desafios!
+                  </p>
+                </div>
               </div>
             </Card>
           </motion.div>

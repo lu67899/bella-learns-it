@@ -19,6 +19,13 @@ const jogos = [
     icon: "🪢",
     to: "/forca",
   },
+  {
+    id: "caca-palavras",
+    nome: "Caça-Palavras",
+    descricao: "Encontre as palavras escondidas na grade de letras",
+    icon: "🔍",
+    to: "/caca-palavras",
+  },
 ];
 
 const container = {

@@ -211,7 +211,7 @@ export default function Perfil() {
                         {coins}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Ganhe 5 moedas ao concluir tópicos ou acertar desafios!
+                        Ganhe moedas ao concluir tópicos, acertar desafios e assistir vídeos!
                       </p>
                     </div>
                   </div>

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Profile {
   display_name: string;
   avatar_url: string | null;
+  coins: number;
 }
 
 interface AuthContextType {
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("display_name, avatar_url")
+      .select("display_name, avatar_url, coins")
       .eq("user_id", userId)
       .single();
     
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: newProfile } = await supabase
         .from("profiles")
         .insert({ user_id: userId, display_name: displayName })
-        .select("display_name, avatar_url")
+        .select("display_name, avatar_url, coins")
         .single();
       setProfile(newProfile);
     } else {

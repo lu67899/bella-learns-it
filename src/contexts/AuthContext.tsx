@@ -33,12 +33,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("display_name, avatar_url")
       .eq("user_id", userId)
       .single();
-    setProfile(data);
+    
+    if (error && error.code === "PGRST116") {
+      // Profile doesn't exist, create it
+      const email = session?.user?.email || "";
+      const displayName = email.split("@")[0] || "Usuário";
+      const { data: newProfile } = await supabase
+        .from("profiles")
+        .insert({ user_id: userId, display_name: displayName })
+        .select("display_name, avatar_url")
+        .single();
+      setProfile(newProfile);
+    } else {
+      setProfile(data);
+    }
   };
 
   useEffect(() => {

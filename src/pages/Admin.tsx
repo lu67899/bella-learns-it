@@ -28,7 +28,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
-  | "quiz" | "forca" | "videos" | "desafios" | "frases" 
+  | "quiz" | "forca" | "memoria" | "videos" | "desafios" | "frases" 
   | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates";
 
 const adminSections = [
@@ -47,6 +47,7 @@ const adminSections = [
       { key: "resumos" as AdminSection, label: "Resumos", icon: BookOpen, desc: "Resumos de conteúdo" },
       { key: "quiz" as AdminSection, label: "Quiz", icon: BrainCircuit, desc: "Questões de quiz" },
       { key: "forca" as AdminSection, label: "Forca", icon: Gamepad2, desc: "Palavras do jogo da forca" },
+      { key: "memoria" as AdminSection, label: "Memória", icon: BrainCircuit, desc: "Pares do jogo da memória" },
     ],
   },
   {
@@ -121,6 +122,7 @@ const Admin = () => {
       
       case "quiz": return <QuizTab />;
       case "forca": return <ForcaTab />;
+      case "memoria": return <MemoriaTab />;
       case "videos": return <VideosTab />;
       case "desafios": return <DesafiosTab />;
       case "frases": return <FrasesTab />;
@@ -2014,6 +2016,79 @@ function ForcaTab() {
     </CrudSection>
   );
 }
+// ─── MEMÓRIA TAB ─────────────────────────────────────────
+function MemoriaTab() {
+  const [items, setItems] = useState<{ id: string; termo: string; definicao: string }[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState({ termo: "", definicao: "" });
+
+  const load = async () => {
+    const { data } = await supabase.from("memoria_pares").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.termo.trim() || !form.definicao.trim()) return;
+    const payload = { termo: form.termo.trim(), definicao: form.definicao.trim() };
+    if (editing) {
+      await supabase.from("memoria_pares").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("memoria_pares").insert(payload);
+    }
+    toast.success("Par salvo!"); setDialogOpen(false); setEditing(null); setForm({ termo: "", definicao: "" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("memoria_pares").delete().eq("id", id);
+    toast.success("Par removido!"); load();
+  };
+
+  return (
+    <CrudSection title="Pares da Memória" count={items.length} onAdd={() => { setEditing(null); setForm({ termo: "", definicao: "" }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Termo</TableHead>
+            <TableHead>Definição</TableHead>
+            <TableHead className="w-24">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm font-bold">{item.termo}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.definicao}</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ termo: item.termo, definicao: item.definicao }); setDialogOpen(true); }}>
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {items.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum par cadastrado.</p>}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Par</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Termo (ex: Algoritmo)" value={form.termo} onChange={(e) => setForm({ ...form, termo: e.target.value })} />
+            <Input placeholder="Definição (ex: Sequência lógica de passos)" value={form.definicao} onChange={(e) => setForm({ ...form, definicao: e.target.value })} />
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
+  );
+}
+
 
 
 function CrudSection({ title, count, onAdd, children }: { title: string; count: number; onAdd: () => void; children: React.ReactNode }) {

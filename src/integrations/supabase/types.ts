@@ -417,6 +417,27 @@ export type Database = {
         }
         Relationships: []
       }
+      memoria_pares: {
+        Row: {
+          created_at: string
+          definicao: string
+          id: string
+          termo: string
+        }
+        Insert: {
+          created_at?: string
+          definicao: string
+          id?: string
+          termo: string
+        }
+        Update: {
+          created_at?: string
+          definicao?: string
+          id?: string
+          termo?: string
+        }
+        Relationships: []
+      }
       mensagens: {
         Row: {
           conteudo: string

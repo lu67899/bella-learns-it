@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft, Timer } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface QuizQuestion {
 const TIMER_SECONDS = 30;
 
 const Quiz = () => {
+  const navigate = useNavigate();
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [materias, setMaterias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,6 +152,9 @@ const Quiz = () => {
   return (
     <Layout>
       <div className="max-w-sm mx-auto space-y-5">
+        <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 text-muted-foreground" onClick={() => navigate("/jogos")}>
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </Button>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-mono font-bold flex items-center gap-2">

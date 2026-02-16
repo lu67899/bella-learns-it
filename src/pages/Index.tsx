@@ -451,12 +451,12 @@ const Index = () => {
           {cursos.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
           ) : (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-3">
               {cursos.map((curso) => {
                 const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
                 const isComplete = pct === 100;
                 return (
-                  <Link key={curso.id} to={`/curso/${curso.id}`}>
+                  <Link key={curso.id} to={`/curso/${curso.id}`} className="block">
                     <motion.div
                       whileHover={hoverLift}
                       whileTap={tapDown}

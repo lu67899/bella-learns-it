@@ -56,29 +56,21 @@ const ModuloPage = () => {
     if (id) fetchData();
   }, [id]);
 
-  const toggleComplete = async (topicoId: string) => {
-    if (completedIds.has(topicoId)) {
-      await supabase.from("topico_progresso").delete().eq("topico_id", topicoId);
-      setCompletedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(topicoId);
-        return next;
-      });
-    } else {
-      // Check if this topic was already completed before (to avoid showing coin message on re-completions)
-      const { data: existing } = await supabase
-        .from("topico_progresso")
-        .select("id")
-        .eq("topico_id", topicoId)
-        .eq("user_id", user!.id);
-      const isFirstTime = !existing || existing.length === 0;
+  const markComplete = async (topicoId: string) => {
+    if (completedIds.has(topicoId)) return;
 
-      await supabase.from("topico_progresso").insert({ topico_id: topicoId, user_id: user!.id });
-      setCompletedIds((prev) => new Set(prev).add(topicoId));
+    const { data: existing } = await supabase
+      .from("topico_progresso")
+      .select("id")
+      .eq("topico_id", topicoId)
+      .eq("user_id", user!.id);
+    const isFirstTime = !existing || existing.length === 0;
 
-      if (isFirstTime) {
-        toast({ title: "🪙 +5 moedas!", description: "Você ganhou moedas por concluir este tópico!" });
-      }
+    await supabase.from("topico_progresso").insert({ topico_id: topicoId, user_id: user!.id });
+    setCompletedIds((prev) => new Set(prev).add(topicoId));
+
+    if (isFirstTime) {
+      toast({ title: "🪙 +5 moedas!", description: "Você ganhou moedas por concluir este tópico!" });
     }
   };
 
@@ -200,18 +192,15 @@ const ModuloPage = () => {
                   </div>
                   {selectedTopico && (
                     <div className="mt-6 pt-4 border-t border-border">
-                      <Button
-                        variant={completedIds.has(selectedTopico.id) ? "default" : "outline"}
-                        size="sm"
-                        className="gap-1.5 text-xs w-full"
-                        onClick={() => toggleComplete(selectedTopico.id)}
-                      >
-                        {completedIds.has(selectedTopico.id) ? (
-                          <><CheckCircle2 className="h-3.5 w-3.5" /> Concluído</>
-                        ) : (
-                          <><Circle className="h-3.5 w-3.5" /> Marcar como concluído</>
-                        )}
-                      </Button>
+                      {completedIds.has(selectedTopico.id) ? (
+                        <Button variant="default" size="sm" className="gap-1.5 text-xs w-full" disabled>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Concluído
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full" onClick={() => markComplete(selectedTopico.id)}>
+                          <Circle className="h-3.5 w-3.5" /> Marcar como concluído
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>

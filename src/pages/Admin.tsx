@@ -1836,7 +1836,8 @@ function CertificadosTab() {
       const url = `${urlData.publicUrl}?t=${Date.now()}`;
 
       await supabase.from("certificado_solicitacoes").update({ status: "enviado", certificado_url: url }).eq("id", solicitacaoId);
-      toast.success("Certificado enviado!");
+      await supabase.from("profiles").update({ coins: 0 }).eq("user_id", userId);
+      toast.success("Certificado enviado e moedas zeradas!");
       load();
     } catch (err: any) {
       toast.error("Erro: " + err.message);

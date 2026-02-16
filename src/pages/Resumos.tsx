@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Search, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { BookOpen, Search, Loader2, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ interface Resumo {
 }
 
 const Resumos = () => {
+  const navigate = useNavigate();
   const [resumos, setResumos] = useState<Resumo[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
@@ -49,6 +50,13 @@ const Resumos = () => {
   return (
     <Layout>
       <div className="max-w-5xl mx-auto space-y-6">
+        <button
+          onClick={() => navigate("/")}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </button>
         <div>
           <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" /> Resumos

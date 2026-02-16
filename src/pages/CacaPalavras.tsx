@@ -87,7 +87,6 @@ const CacaPalavras = () => {
   const [placedWords, setPlacedWords] = useState<PlacedWord[]>([]);
   const [selectedCells, setSelectedCells] = useState<[number, number][]>([]);
   const [foundCells, setFoundCells] = useState<Set<string>>(new Set());
-  const [isSelecting, setIsSelecting] = useState(false);
   const [startCell, setStartCell] = useState<[number, number] | null>(null);
   const [wins, setWins] = useState(0);
 
@@ -110,7 +109,6 @@ const CacaPalavras = () => {
     setSelectedCells([]);
     setFoundCells(new Set());
     setStartCell(null);
-    setIsSelecting(false);
   }, [allWords]);
 
   useEffect(() => {
@@ -130,7 +128,6 @@ const CacaPalavras = () => {
     const dc = Math.sign(end[1] - start[1]);
     const len = Math.max(Math.abs(end[0] - start[0]), Math.abs(end[1] - start[1]));
     
-    // Only allow straight lines (horizontal, vertical, diagonal)
     const diffR = Math.abs(end[0] - start[0]);
     const diffC = Math.abs(end[1] - start[1]);
     if (diffR !== 0 && diffC !== 0 && diffR !== diffC) return [start];
@@ -142,21 +139,8 @@ const CacaPalavras = () => {
     return cells;
   };
 
-  const handlePointerDown = (r: number, c: number) => {
-    setIsSelecting(true);
-    setStartCell([r, c]);
-    setSelectedCells([[r, c]]);
-  };
-
-  const handlePointerEnter = (r: number, c: number) => {
-    if (!isSelecting || !startCell) return;
-    setSelectedCells(getCellsInLine(startCell, [r, c]));
-  };
-
-  const handlePointerUp = () => {
-    setIsSelecting(false);
-    
-    const selectedWord = selectedCells.map(([r, c]) => grid[r][c]).join("");
+  const checkWord = (cells: [number, number][]) => {
+    const selectedWord = cells.map(([r, c]) => grid[r][c]).join("");
     const selectedWordReversed = [...selectedWord].reverse().join("");
 
     const newPlaced = [...placedWords];
@@ -167,7 +151,7 @@ const CacaPalavras = () => {
       if (newPlaced[i].word === selectedWord || newPlaced[i].word === selectedWordReversed) {
         newPlaced[i] = { ...newPlaced[i], found: true };
         const newFound = new Set(foundCells);
-        selectedCells.forEach(([r, c]) => newFound.add(cellKey(r, c)));
+        cells.forEach(([r, c]) => newFound.add(cellKey(r, c)));
         setFoundCells(newFound);
         foundAny = true;
         break;
@@ -177,8 +161,24 @@ const CacaPalavras = () => {
     if (foundAny) {
       setPlacedWords(newPlaced);
     }
-    setSelectedCells([]);
-    setStartCell(null);
+  };
+
+  const handleCellTap = (r: number, c: number) => {
+    if (!startCell) {
+      // First tap: set start
+      setStartCell([r, c]);
+      setSelectedCells([[r, c]]);
+    } else {
+      // Second tap: compute line, check word, reset
+      const cells = getCellsInLine(startCell, [r, c]);
+      setSelectedCells(cells);
+      checkWord(cells);
+      // Reset after a brief highlight
+      setTimeout(() => {
+        setSelectedCells([]);
+        setStartCell(null);
+      }, 300);
+    }
   };
 
   if (loading) {
@@ -242,25 +242,28 @@ const CacaPalavras = () => {
         {/* Grid */}
         <Card className="border-border bg-card">
           <CardContent className="p-3">
+            <p className="text-[10px] text-muted-foreground text-center mb-2 font-mono">
+              {startCell ? "Toque na última letra da palavra" : "Toque na primeira letra da palavra"}
+            </p>
             <div
-              className="grid select-none touch-none"
+              className="grid select-none"
               style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gap: "2px" }}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={() => { if (isSelecting) handlePointerUp(); }}
             >
               {grid.map((row, r) =>
                 row.map((letter, c) => {
                   const key = cellKey(r, c);
                   const isFound = foundCells.has(key);
                   const isSelected = selectedSet.has(key);
+                  const isStart = startCell && startCell[0] === r && startCell[1] === c;
                   return (
                     <div
                       key={key}
-                      onPointerDown={(e) => { e.preventDefault(); handlePointerDown(r, c); }}
-                      onPointerEnter={() => handlePointerEnter(r, c)}
+                      onClick={() => handleCellTap(r, c)}
                       className={`aspect-square flex items-center justify-center rounded text-xs font-mono font-bold cursor-pointer transition-colors ${
                         isFound
                           ? "bg-primary/20 text-primary"
+                          : isStart
+                          ? "bg-accent ring-2 ring-primary text-accent-foreground"
                           : isSelected
                           ? "bg-accent text-accent-foreground"
                           : "bg-muted/50 text-foreground hover:bg-muted"

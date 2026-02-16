@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
@@ -551,8 +551,11 @@ function QuizTab() {
         </TableBody>
       </Table>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Questão</DialogTitle></DialogHeader>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Questão</DialogTitle>
+            <DialogDescription>Preencha os campos abaixo para {editing ? "editar a" : "criar uma nova"} questão de quiz.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4">
             <Select value={form.materia} onValueChange={(v) => setForm({ ...form, materia: v })}>
               <SelectTrigger><SelectValue placeholder="Matéria" /></SelectTrigger>

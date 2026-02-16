@@ -212,7 +212,7 @@ const CacaPalavras = () => {
 
   return (
     <Layout>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-sm mx-auto space-y-4 pb-20">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md mx-auto space-y-4 pb-20">
         <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 text-muted-foreground" onClick={() => navigate("/jogos")}>
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Button>
@@ -230,7 +230,7 @@ const CacaPalavras = () => {
             <Badge
               key={pw.word}
               variant={pw.found ? "default" : "outline"}
-              className={`text-xs font-mono transition-all ${
+              className={`text-sm font-mono transition-all py-1 px-2.5 ${
                 pw.found ? "bg-primary/20 text-primary line-through border-primary/30" : "text-muted-foreground"
               }`}
             >
@@ -241,13 +241,13 @@ const CacaPalavras = () => {
 
         {/* Grid */}
         <Card className="border-border bg-card">
-          <CardContent className="p-3">
-            <p className="text-[10px] text-muted-foreground text-center mb-2 font-mono">
+          <CardContent className="p-2 sm:p-3">
+            <p className="text-xs text-muted-foreground text-center mb-2 font-mono">
               {startCell ? "Toque na última letra da palavra" : "Toque na primeira letra da palavra"}
             </p>
             <div
               className="grid select-none"
-              style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gap: "2px" }}
+              style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gap: "3px" }}
             >
               {grid.map((row, r) =>
                 row.map((letter, c) => {
@@ -259,7 +259,7 @@ const CacaPalavras = () => {
                     <div
                       key={key}
                       onClick={() => handleCellTap(r, c)}
-                      className={`aspect-square flex items-center justify-center rounded text-xs font-mono font-bold cursor-pointer transition-colors ${
+                      className={`aspect-square flex items-center justify-center rounded-md text-sm sm:text-base font-mono font-bold cursor-pointer transition-colors ${
                         isFound
                           ? "bg-primary/20 text-primary"
                           : isStart

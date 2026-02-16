@@ -17,6 +17,7 @@ import CursoPage from "./pages/Curso";
 import Progresso from "./pages/Progresso";
 import Desafios from "./pages/Desafios";
 import Mix from "./pages/Mix";
+import MixVideo from "./pages/MixVideo";
 import Noticias from "./pages/Noticias";
 import Perfil from "./pages/Perfil";
 import Belinha from "./pages/Belinha";
@@ -54,6 +55,7 @@ const AppRoutes = () => (
     <Route path="/progresso" element={<ProtectedRoute><Progresso /></ProtectedRoute>} />
     <Route path="/desafios" element={<ProtectedRoute><Desafios /></ProtectedRoute>} />
     <Route path="/mix" element={<ProtectedRoute><Mix /></ProtectedRoute>} />
+    <Route path="/mix/:id" element={<ProtectedRoute><MixVideo /></ProtectedRoute>} />
     <Route path="/noticias" element={<ProtectedRoute><Noticias /></ProtectedRoute>} />
     <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
     <Route path="/belinha" element={<ProtectedRoute><Belinha /></ProtectedRoute>} />

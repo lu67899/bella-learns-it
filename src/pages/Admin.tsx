@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -677,28 +677,119 @@ function DesafiosTab() {
 }
 
 
+interface MensagemFull {
+  id: string;
+  remetente: string;
+  conteudo: string;
+  lida: boolean;
+  created_at: string;
+  reply_to: string | null;
+  editado: boolean;
+}
+
 function MensagensTab() {
-  const [items, setItems] = useState<{ id: string; remetente: string; conteudo: string; lida: boolean; created_at: string }[]>([]);
+  const [items, setItems] = useState<MensagemFull[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
+  const [replyTo, setReplyTo] = useState<MensagemFull | null>(null);
+  const [editingMsg, setEditingMsg] = useState<MensagemFull | null>(null);
+  const [longPressMsg, setLongPressMsg] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data } = await supabase.from("mensagens").select("*").order("created_at", { ascending: true });
     if (data) setItems(data);
   };
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    load();
+
+    const channel = supabase
+      .channel("admin-mensagens-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "mensagens" }, (payload) => {
+        const newMsg = payload.new as MensagemFull;
+        setItems((prev) => prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "mensagens" }, (payload) => {
+        const updated = payload.new as MensagemFull;
+        setItems((prev) => prev.map((m) => m.id === updated.id ? updated : m));
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "mensagens" }, (payload) => {
+        const old = payload.old as { id: string };
+        setItems((prev) => prev.filter((m) => m.id !== old.id));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [items]);
 
   const enviar = async () => {
     if (!novaMensagem.trim()) return;
-    await supabase.from("mensagens").insert({ remetente: "admin", conteudo: novaMensagem.trim() });
+    const texto = novaMensagem.trim();
     setNovaMensagem("");
-    toast.success("Mensagem enviada!");
-    load();
+
+    if (editingMsg) {
+      await supabase.from("mensagens").update({ conteudo: texto, editado: true }).eq("id", editingMsg.id);
+      setEditingMsg(null);
+      return;
+    }
+
+    const payload: any = { remetente: "admin", conteudo: texto };
+    if (replyTo) {
+      payload.reply_to = replyTo.id;
+      setReplyTo(null);
+    }
+    await supabase.from("mensagens").insert(payload);
   };
 
-  const remove = async (id: string) => {
-    await supabase.from("mensagens").delete().eq("id", id);
-    toast.success("Removida!");
-    load();
+  const remove = async (msg: MensagemFull) => {
+    await supabase.from("mensagens").delete().eq("id", msg.id);
+    setItems((prev) => prev.filter((m) => m.id !== msg.id));
+    setLongPressMsg(null);
+  };
+
+  const canEdit = (msg: MensagemFull) => {
+    if (msg.remetente !== "admin") return false;
+    return Date.now() - new Date(msg.created_at).getTime() < 3 * 60 * 1000;
+  };
+
+  const startEdit = (msg: MensagemFull) => {
+    setEditingMsg(msg);
+    setReplyTo(null);
+    setNovaMensagem(msg.conteudo);
+    setLongPressMsg(null);
+    inputRef.current?.focus();
+  };
+
+  const cancelEdit = () => {
+    setEditingMsg(null);
+    setNovaMensagem("");
+  };
+
+  const handleReply = (msg: MensagemFull) => {
+    setReplyTo(msg);
+    setEditingMsg(null);
+    setNovaMensagem("");
+    setLongPressMsg(null);
+    inputRef.current?.focus();
+  };
+
+  const getReplyPreview = (replyId: string | null) => {
+    if (!replyId) return null;
+    return items.find((m) => m.id === replyId);
+  };
+
+  const formatMsgTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffH = (now.getTime() - d.getTime()) / 3600000;
+    if (diffH < 24) return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -709,40 +800,159 @@ function MensagensTab() {
           <Badge variant="secondary">{items.length}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2 max-h-80 overflow-y-auto">
+      <CardContent className="space-y-3">
+        <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1" onClick={() => setLongPressMsg(null)}>
           {items.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">Nenhuma mensagem ainda.</p>
           )}
-          {items.map((msg) => (
-            <div key={msg.id} className={`flex items-start gap-2 ${msg.remetente === "admin" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-                msg.remetente === "admin" ? "bg-primary/20 text-foreground rounded-br-md" : "bg-secondary text-foreground rounded-bl-md"
-              }`}>
-                <p className="text-[10px] font-mono text-muted-foreground mb-1">{msg.remetente === "admin" ? "Você" : "Bella"}</p>
-                <p>{msg.conteudo}</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {new Date(msg.created_at).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
-                </p>
-              </div>
-              {msg.remetente === "admin" && (
-                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => remove(msg.id)}>
-                  <Trash2 className="h-3 w-3 text-destructive" />
-                </Button>
-              )}
-            </div>
-          ))}
+          {items.map((msg) => {
+            const isAdmin = msg.remetente === "admin";
+            const replyMsg = getReplyPreview(msg.reply_to);
+            return (
+              <motion.div
+                key={msg.id}
+                className={`flex flex-col ${isAdmin ? "items-end" : "items-start"} relative group`}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.3}
+                onDragEnd={(_e: any, info: PanInfo) => {
+                  if (Math.abs(info.offset.x) > 50) handleReply(msg);
+                }}
+                style={{ touchAction: "pan-y" }}
+              >
+                {replyMsg && (
+                  <div className={`max-w-[75%] mb-1 px-2.5 py-1 rounded-lg bg-secondary/30 border-l-2 border-primary/30 ${isAdmin ? "mr-1" : "ml-1"}`}>
+                    <p className="text-[9px] font-medium text-primary/60">
+                      {replyMsg.remetente === "admin" ? "Você" : "Bella"}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground/60 truncate">{replyMsg.conteudo}</p>
+                  </div>
+                )}
+
+                <div className="relative max-w-[80%]">
+                  <div
+                    className={`rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed select-none ${
+                      isAdmin
+                        ? "bg-primary/20 text-foreground rounded-br-sm"
+                        : "bg-secondary text-foreground rounded-bl-sm"
+                    } ${longPressMsg === msg.id ? "ring-1 ring-primary/30" : ""}`}
+                    onTouchStart={() => {
+                      longPressTimer.current = setTimeout(() => {
+                        longPressTimer.current = null;
+                        setLongPressMsg(msg.id);
+                      }, 500);
+                    }}
+                    onTouchEnd={(e) => {
+                      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+                      if (longPressMsg === msg.id) e.preventDefault();
+                    }}
+                    onMouseDown={() => {
+                      longPressTimer.current = setTimeout(() => {
+                        longPressTimer.current = null;
+                        setLongPressMsg(msg.id);
+                      }, 500);
+                    }}
+                    onMouseUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    onContextMenu={(e) => { e.preventDefault(); setLongPressMsg(msg.id); }}
+                  >
+                    <p className="text-[10px] font-mono text-muted-foreground mb-0.5">{isAdmin ? "Você" : "Bella"}</p>
+                    <span>{msg.conteudo}</span>
+                    <span className="inline-flex items-center gap-1 ml-2 align-bottom text-[8px] whitespace-nowrap text-muted-foreground/35">
+                      {msg.editado && <span>editado ·</span>}
+                      {formatMsgTime(msg.created_at)}
+                    </span>
+                  </div>
+
+                  <AnimatePresence>
+                    {longPressMsg === msg.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 4 }}
+                        transition={{ duration: 0.15 }}
+                        className={`absolute -top-11 ${isAdmin ? "right-0" : "left-0"} z-10 flex items-center gap-0.5 rounded-xl bg-card/95 backdrop-blur-xl border border-border/30 shadow-lg px-1 py-1`}
+                        onClick={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => handleReply(msg)}
+                          className="h-7 px-2.5 rounded-lg flex items-center gap-1.5 text-[10px] text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                        >
+                          <Reply className="h-3 w-3" />
+                          <span>Responder</span>
+                        </button>
+                        {canEdit(msg) && (
+                          <button
+                            onClick={() => startEdit(msg)}
+                            className="h-7 px-2.5 rounded-lg flex items-center gap-1.5 text-[10px] text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            <span>Editar</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => remove(msg)}
+                          className="h-7 px-2.5 rounded-lg flex items-center gap-1.5 text-[10px] text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Apagar</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            );
+          })}
+          <div ref={bottomRef} />
         </div>
-        <div className="flex gap-2 border-t border-border pt-4">
+
+        {/* Reply / Edit bar */}
+        <AnimatePresence>
+          {(replyTo || editingMsg) && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+              <div className="px-3 py-2 bg-secondary/20 rounded-lg flex items-center gap-2">
+                {replyTo && (
+                  <>
+                    <Reply className="h-3 w-3 text-primary/60 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] font-medium text-primary/70">{replyTo.remetente === "admin" ? "Você" : "Bella"}</p>
+                      <p className="text-[9px] text-muted-foreground/50 truncate">{replyTo.conteudo}</p>
+                    </div>
+                  </>
+                )}
+                {editingMsg && (
+                  <>
+                    <Pencil className="h-3 w-3 text-primary/60 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] font-medium text-primary/70">Editando</p>
+                      <p className="text-[9px] text-muted-foreground/50 truncate">{editingMsg.conteudo}</p>
+                    </div>
+                  </>
+                )}
+                <button onClick={() => { setReplyTo(null); cancelEdit(); }} className="h-5 w-5 rounded-full flex items-center justify-center hover:bg-secondary/50 transition-colors">
+                  <X className="h-2.5 w-2.5 text-muted-foreground/50" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex gap-2 border-t border-border pt-3">
           <Input
-            placeholder="Enviar mensagem para Bella..."
+            ref={inputRef}
+            placeholder={editingMsg ? "Editar mensagem..." : "Enviar mensagem para Bella..."}
             value={novaMensagem}
             onChange={(e) => setNovaMensagem(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && enviar()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") enviar();
+              if (e.key === "Escape") { setReplyTo(null); cancelEdit(); }
+            }}
             className="flex-1"
           />
           <Button onClick={enviar} disabled={!novaMensagem.trim()} className="gap-1">
-            <Send className="h-4 w-4" /> Enviar
+            {editingMsg ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+            {editingMsg ? "Salvar" : "Enviar"}
           </Button>
         </div>
       </CardContent>

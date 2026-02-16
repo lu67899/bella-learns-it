@@ -3,9 +3,13 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { usePageSize } from "@/hooks/usePageSize";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ChevronsRight } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 function MobileTrigger() {
   const { toggleSidebar } = useSidebar();
+  const location = useLocation();
+
+  if (location.pathname !== "/") return null;
 
   return (
     <button

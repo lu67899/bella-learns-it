@@ -15,6 +15,7 @@ interface Modulo {
   id: string;
   nome: string;
   descricao: string | null;
+  curso_id: string | null;
 }
 
 interface Topico {
@@ -113,7 +114,7 @@ const ModuloPage = () => {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link to={modulo.curso_id ? `/curso/${modulo.curso_id}` : "/"} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Link>
           <h1 className="text-2xl font-mono font-bold flex items-center gap-2">

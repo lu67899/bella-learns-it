@@ -296,7 +296,7 @@ const Index = () => {
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-muted-foreground font-mono tracking-wider uppercase">{saudacao}</p>
                 <h1 className="text-2xl font-bold font-mono mt-1 truncate">
-                  Olá, <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
+                  <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
                 </h1>
               </div>
               <div className="relative">

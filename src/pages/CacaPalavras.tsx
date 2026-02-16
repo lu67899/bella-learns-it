@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, Loader2, Trophy } from "lucide-react";
+import { ArrowLeft, RotateCcw, Loader2, Trophy, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
 
 const GRID_SIZE = 10;
 const NUM_WORDS = 5;
@@ -90,6 +91,9 @@ const CacaPalavras = () => {
   const [foundCells, setFoundCells] = useState<Set<string>>(new Set());
   const [startCell, setStartCell] = useState<[number, number] | null>(null);
   const [wins, setWins] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(120);
+  const [lost, setLost] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -113,16 +117,42 @@ const CacaPalavras = () => {
     setSelectedCells([]);
     setFoundCells(new Set());
     setStartCell(null);
+    setTimeLeft(120);
+    setLost(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
   }, [allWords]);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
 
   useEffect(() => {
     if (allWords.length > 0) startGame();
   }, [allWords, startGame]);
 
   const allFound = placedWords.length > 0 && placedWords.every((w) => w.found);
+  const gameOver = allFound || lost;
 
   useEffect(() => {
-    if (allFound && placedWords.length > 0) setWins((v) => v + 1);
+    if (timeLeft === 0 && !allFound) {
+      setLost(true);
+    }
+  }, [timeLeft, allFound]);
+
+  useEffect(() => {
+    if (allFound && placedWords.length > 0) {
+      setWins((v) => v + 1);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
   }, [allFound]);
 
   const cellKey = (r: number, c: number) => `${r},${c}`;
@@ -168,6 +198,7 @@ const CacaPalavras = () => {
   };
 
   const handleCellTap = (r: number, c: number) => {
+    if (gameOver) return;
     if (!startCell) {
       // First tap: set start
       setStartCell([r, c]);
@@ -223,10 +254,19 @@ const CacaPalavras = () => {
 
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-mono font-bold">🔍 Caça-Palavras</h1>
-          <span className="text-xs font-mono text-muted-foreground">
-            <Trophy className="h-3.5 w-3.5 inline mr-1 text-primary" />{wins}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className={`text-sm font-mono font-bold flex items-center gap-1 ${timeLeft <= 30 ? "text-destructive" : timeLeft <= 60 ? "text-amber-500" : "text-muted-foreground"}`}>
+              <Timer className="h-3.5 w-3.5" />
+              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+            </span>
+            <span className="text-xs font-mono text-muted-foreground">
+              <Trophy className="h-3.5 w-3.5 inline mr-1 text-primary" />{wins}
+            </span>
+          </div>
         </div>
+        {!gameOver && (
+          <Progress value={(timeLeft / 120) * 100} className="h-1.5" />
+        )}
 
         {/* Word list */}
         <div className="flex flex-wrap gap-1.5">
@@ -282,14 +322,16 @@ const CacaPalavras = () => {
           </CardContent>
         </Card>
 
-        {allFound && (
+        {gameOver && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-3"
           >
-            <div className="text-center p-4 rounded-lg bg-primary/10">
-              <p className="font-mono font-bold text-sm text-primary">🎉 Parabéns! Encontrou todas!</p>
+            <div className={`text-center p-4 rounded-lg ${allFound ? "bg-primary/10" : "bg-destructive/10"}`}>
+              <p className={`font-mono font-bold text-sm ${allFound ? "text-primary" : "text-destructive"}`}>
+                {allFound ? "🎉 Parabéns! Encontrou todas!" : `⏰ Tempo esgotado! Encontrou ${placedWords.filter(w => w.found).length}/${placedWords.length}`}
+              </p>
               <Button size="sm" variant="ghost" className="mt-2 gap-1.5" onClick={startGame}>
                 <RotateCcw className="h-3.5 w-3.5" /> Novo jogo
               </Button>
@@ -299,8 +341,8 @@ const CacaPalavras = () => {
               <CardContent className="pt-4 pb-3 space-y-2.5">
                 <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">📚 O que cada palavra significa:</p>
                 {placedWords.map((pw) => (
-                  <div key={pw.word} className="flex gap-2 items-start py-1.5 border-b border-border last:border-0">
-                    <Badge variant="secondary" className="text-xs font-mono font-bold shrink-0 mt-0.5">{pw.word}</Badge>
+                  <div key={pw.word} className={`flex gap-2 items-start py-1.5 border-b border-border last:border-0 ${!pw.found && lost ? "opacity-60" : ""}`}>
+                    <Badge variant={pw.found ? "secondary" : "outline"} className={`text-xs font-mono font-bold shrink-0 mt-0.5 ${!pw.found ? "text-destructive border-destructive/30" : ""}`}>{pw.word}</Badge>
                     <p className="text-sm text-muted-foreground">{wordHints[pw.word] || "—"}</p>
                   </div>
                 ))}

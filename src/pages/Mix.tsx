@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { PlayCircle, Clock } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Video {
   id: string;
@@ -12,6 +13,7 @@ interface Video {
   url_youtube: string;
   duracao: number;
   ordem: number;
+  created_at: string;
 }
 
 function extrairVideoId(url: string): string | null {
@@ -37,17 +39,27 @@ const item = {
 };
 
 const Mix = () => {
+  const { session } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
+  const [assistidos, setAssistidos] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("videos").select("*").order("ordem");
-      if (data) setVideos(data);
+      const [videosRes, assistidosRes] = await Promise.all([
+        supabase.from("videos").select("*").order("created_at", { ascending: false }),
+        session?.user?.id
+          ? supabase.from("video_assistido").select("video_id").eq("user_id", session.user.id)
+          : Promise.resolve({ data: [] }),
+      ]);
+      if (videosRes.data) setVideos(videosRes.data);
+      if (assistidosRes.data) {
+        setAssistidos(new Set(assistidosRes.data.map((a: any) => a.video_id)));
+      }
       setLoading(false);
     };
     load();
-  }, []);
+  }, [session?.user?.id]);
 
   return (
     <Layout>
@@ -68,16 +80,17 @@ const Mix = () => {
           <div className="grid grid-cols-2 gap-3">
             {videos.map((video) => {
               const videoId = extrairVideoId(video.url_youtube);
+              const watched = assistidos.has(video.id);
               return (
                 <motion.div key={video.id} variants={item}>
                   <Link to={`/mix/${video.id}`} className="block group">
-                    <div className="rounded-xl overflow-hidden bg-card border border-border hover:border-primary/30 transition-all">
+                    <div className={`rounded-xl overflow-hidden bg-card border transition-all ${watched ? "border-primary/20" : "border-border hover:border-primary/30"}`}>
                       {videoId && (
                         <div className="relative w-full aspect-video">
                           <img
                             src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
                             alt={video.titulo}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-cover ${watched ? "opacity-70" : ""}`}
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
                             <PlayCircle className="h-10 w-10 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" />
@@ -86,6 +99,11 @@ const Mix = () => {
                             <Clock className="h-2.5 w-2.5" />
                             {formatarDuracao(video.duracao)}
                           </span>
+                          {watched && (
+                            <span className="absolute top-1.5 left-1.5">
+                              <CheckCircle2 className="h-5 w-5 text-primary drop-shadow-md" />
+                            </span>
+                          )}
                         </div>
                       )}
                       <div className="p-3">

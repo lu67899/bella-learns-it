@@ -82,6 +82,7 @@ function generateGrid(words: string[]): { grid: string[][]; placed: PlacedWord[]
 const CacaPalavras = () => {
   const navigate = useNavigate();
   const [allWords, setAllWords] = useState<string[]>([]);
+  const [wordHints, setWordHints] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [grid, setGrid] = useState<string[][]>([]);
   const [placedWords, setPlacedWords] = useState<PlacedWord[]>([]);
@@ -92,9 +93,12 @@ const CacaPalavras = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("forca_palavras").select("palavra");
+      const { data } = await supabase.from("forca_palavras").select("palavra, dica");
       if (data && data.length > 0) {
         setAllWords(data.map((d) => d.palavra.toUpperCase()));
+        const hints: Record<string, string> = {};
+        data.forEach((d) => { hints[d.palavra.toUpperCase()] = d.dica; });
+        setWordHints(hints);
       }
       setLoading(false);
     };
@@ -282,12 +286,26 @@ const CacaPalavras = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center p-4 rounded-lg bg-primary/10"
+            className="space-y-3"
           >
-            <p className="font-mono font-bold text-sm text-primary">🎉 Parabéns! Encontrou todas!</p>
-            <Button size="sm" variant="ghost" className="mt-2 gap-1.5" onClick={startGame}>
-              <RotateCcw className="h-3.5 w-3.5" /> Novo jogo
-            </Button>
+            <div className="text-center p-4 rounded-lg bg-primary/10">
+              <p className="font-mono font-bold text-sm text-primary">🎉 Parabéns! Encontrou todas!</p>
+              <Button size="sm" variant="ghost" className="mt-2 gap-1.5" onClick={startGame}>
+                <RotateCcw className="h-3.5 w-3.5" /> Novo jogo
+              </Button>
+            </div>
+
+            <Card className="border-border bg-card">
+              <CardContent className="pt-4 pb-3 space-y-2.5">
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">📚 O que cada palavra significa:</p>
+                {placedWords.map((pw) => (
+                  <div key={pw.word} className="flex gap-2 items-start py-1.5 border-b border-border last:border-0">
+                    <Badge variant="secondary" className="text-xs font-mono font-bold shrink-0 mt-0.5">{pw.word}</Badge>
+                    <p className="text-sm text-muted-foreground">{wordHints[pw.word] || "—"}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </motion.div>
         )}
       </motion.div>

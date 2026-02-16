@@ -576,13 +576,13 @@ function QuizTab() {
 
 
 // ─── DESAFIOS SEMANAIS TAB ──────────────────────────────
-interface DesafioSemanal { id: string; pergunta: string; opcoes: string[]; correta: number; created_at: string; }
+interface DesafioSemanal { id: string; pergunta: string; opcoes: string[]; correta: number; moedas: number; created_at: string; }
 
 function DesafiosTab() {
   const [items, setItems] = useState<DesafioSemanal[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<DesafioSemanal | null>(null);
-  const [form, setForm] = useState({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" });
+  const [form, setForm] = useState({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0", moedas: "5" });
 
   const load = async () => {
     const { data } = await supabase.from("desafios_semanais").select("*").order("created_at", { ascending: false });
@@ -596,6 +596,7 @@ function DesafiosTab() {
       pergunta: form.pergunta,
       opcoes: [form.opcao1, form.opcao2, form.opcao3, form.opcao4],
       correta: parseInt(form.correta),
+      moedas: parseInt(form.moedas) || 5,
     };
     if (editing) {
       await supabase.from("desafios_semanais").update(payload).eq("id", editing.id);
@@ -609,7 +610,7 @@ function DesafiosTab() {
       });
     }
     toast.success("Desafio salvo!"); setDialogOpen(false); setEditing(null);
-    setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" }); load();
+    setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0", moedas: "5" }); load();
   };
 
   const remove = async (id: string) => {
@@ -624,6 +625,7 @@ function DesafiosTab() {
       opcao1: item.opcoes[0] || "", opcao2: item.opcoes[1] || "",
       opcao3: item.opcoes[2] || "", opcao4: item.opcoes[3] || "",
       correta: String(item.correta),
+      moedas: String(item.moedas ?? 5),
     });
     setDialogOpen(true);
   };
@@ -634,7 +636,7 @@ function DesafiosTab() {
   };
 
   return (
-    <CrudSection title="Desafios da Semana" count={items.length} onAdd={() => { setEditing(null); setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0" }); setDialogOpen(true); }}>
+    <CrudSection title="Desafios da Semana" count={items.length} onAdd={() => { setEditing(null); setForm({ pergunta: "", opcao1: "", opcao2: "", opcao3: "", opcao4: "", correta: "0", moedas: "5" }); setDialogOpen(true); }}>
       <Table>
         <TableHeader><TableRow><TableHead>Pergunta</TableHead><TableHead className="w-32">Ações</TableHead></TableRow></TableHeader>
         <TableBody>
@@ -665,6 +667,7 @@ function DesafiosTab() {
                 {[0, 1, 2, 3].map((i) => <SelectItem key={i} value={String(i)}>Opção {i + 1}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Input placeholder="Moedas por acerto (ex: 5)" type="number" value={form.moedas} onChange={(e) => setForm({ ...form, moedas: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>
@@ -751,7 +754,7 @@ function MensagensTab() {
 function ModulosTab() {
   const [cursos, setCursos] = useState<{ id: string; nome: string }[]>([]);
   const [modulos, setModulos] = useState<{ id: string; nome: string; descricao: string | null; ordem: number; curso_id: string | null }[]>([]);
-  const [topicos, setTopicos] = useState<{ id: string; modulo_id: string; titulo: string; conteudo: string; ordem: number }[]>([]);
+  const [topicos, setTopicos] = useState<{ id: string; modulo_id: string; titulo: string; conteudo: string; ordem: number; moedas: number }[]>([]);
   const [moduloDialogOpen, setModuloDialogOpen] = useState(false);
   const [topicoDialogOpen, setTopicoDialogOpen] = useState(false);
   const [editingModulo, setEditingModulo] = useState<any>(null);
@@ -759,7 +762,7 @@ function ModulosTab() {
   const [selectedModuloId, setSelectedModuloId] = useState<string | null>(null);
   const [selectedCursoFilter, setSelectedCursoFilter] = useState<string>("all");
   const [moduloForm, setModuloForm] = useState({ nome: "", descricao: "", curso_id: "" });
-  const [topicoForm, setTopicoForm] = useState({ titulo: "", conteudo: "" });
+  const [topicoForm, setTopicoForm] = useState({ titulo: "", conteudo: "", moedas: "5" });
 
   const loadAll = async () => {
     const [cRes, mRes, tRes] = await Promise.all([
@@ -792,13 +795,13 @@ function ModulosTab() {
   const saveTopico = async () => {
     if (!topicoForm.titulo || !topicoForm.conteudo || !selectedModuloId) return;
     const moduloTopicos = topicos.filter(t => t.modulo_id === selectedModuloId);
-    const payload = { modulo_id: selectedModuloId, titulo: topicoForm.titulo, conteudo: topicoForm.conteudo, ordem: editingTopico ? editingTopico.ordem : moduloTopicos.length };
+    const payload = { modulo_id: selectedModuloId, titulo: topicoForm.titulo, conteudo: topicoForm.conteudo, moedas: parseInt(topicoForm.moedas) || 5, ordem: editingTopico ? editingTopico.ordem : moduloTopicos.length };
     if (editingTopico) {
       await supabase.from("modulo_topicos").update(payload).eq("id", editingTopico.id);
     } else {
       await supabase.from("modulo_topicos").insert(payload);
     }
-    toast.success("Tópico salvo!"); setTopicoDialogOpen(false); setEditingTopico(null); setTopicoForm({ titulo: "", conteudo: "" }); loadAll();
+    toast.success("Tópico salvo!"); setTopicoDialogOpen(false); setEditingTopico(null); setTopicoForm({ titulo: "", conteudo: "", moedas: "5" }); loadAll();
   };
 
   const removeTopico = async (id: string) => {
@@ -873,7 +876,7 @@ function ModulosTab() {
               <CardTitle className="font-mono text-sm">
                 Tópicos de: {modulos.find(m => m.id === selectedModuloId)?.nome}
               </CardTitle>
-              <Button onClick={() => { setEditingTopico(null); setTopicoForm({ titulo: "", conteudo: "" }); setTopicoDialogOpen(true); }} size="sm" variant="outline" className="gap-1">
+              <Button onClick={() => { setEditingTopico(null); setTopicoForm({ titulo: "", conteudo: "", moedas: "5" }); setTopicoDialogOpen(true); }} size="sm" variant="outline" className="gap-1">
                 <Plus className="h-3 w-3" /> Novo Tópico
               </Button>
             </CardHeader>
@@ -898,7 +901,7 @@ function ModulosTab() {
                         <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">{t.conteudo}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => { setEditingTopico(t); setTopicoForm({ titulo: t.titulo, conteudo: t.conteudo }); setTopicoDialogOpen(true); }}>
+                            <Button variant="ghost" size="icon" onClick={() => { setEditingTopico(t); setTopicoForm({ titulo: t.titulo, conteudo: t.conteudo, moedas: String(t.moedas ?? 5) }); setTopicoDialogOpen(true); }}>
                               <Edit2 className="h-3 w-3" />
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => removeTopico(t.id)}>
@@ -939,6 +942,7 @@ function ModulosTab() {
           <div className="space-y-4">
             <Input placeholder="Título do tópico" value={topicoForm.titulo} onChange={(e) => setTopicoForm({ ...topicoForm, titulo: e.target.value })} />
             <Textarea placeholder="Conteúdo do tópico" rows={8} value={topicoForm.conteudo} onChange={(e) => setTopicoForm({ ...topicoForm, conteudo: e.target.value })} />
+            <Input placeholder="Moedas por conclusão (ex: 5)" type="number" value={topicoForm.moedas} onChange={(e) => setTopicoForm({ ...topicoForm, moedas: e.target.value })} />
             <Button onClick={saveTopico} className="w-full">Salvar</Button>
           </div>
         </DialogContent>
@@ -1029,7 +1033,7 @@ function VideosTab() {
   const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [editing, setEditing] = useState<VideoItem | null>(null);
   const [editingCat, setEditingCat] = useState<VideoCategoria | null>(null);
-  const [form, setForm] = useState({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "" });
+  const [form, setForm] = useState({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "", moedas: "0" });
   const [catForm, setCatForm] = useState({ nome: "" });
   const [fetchingDuration, setFetchingDuration] = useState(false);
 
@@ -1072,13 +1076,14 @@ function VideosTab() {
       duracao: parseInt(form.duracao) || 0,
       ordem: editing ? editing.ordem : items.length,
       categoria_id: form.categoria_id || null,
+      moedas: parseInt(form.moedas) || 0,
     };
     if (editing) {
       await supabase.from("videos").update(payload).eq("id", editing.id);
     } else {
       await supabase.from("videos").insert(payload);
     }
-    toast.success("Vídeo salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "" }); load();
+    toast.success("Vídeo salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "", moedas: "0" }); load();
   };
 
   const remove = async (id: string) => {
@@ -1088,7 +1093,7 @@ function VideosTab() {
 
   const edit = (item: VideoItem) => {
     setEditing(item);
-    setForm({ titulo: item.titulo, descricao: item.descricao || "", url_youtube: item.url_youtube, duracao: String(item.duracao), categoria_id: item.categoria_id || "" });
+    setForm({ titulo: item.titulo, descricao: item.descricao || "", url_youtube: item.url_youtube, duracao: String(item.duracao), categoria_id: item.categoria_id || "", moedas: String((item as any).moedas ?? 0) });
     setDialogOpen(true);
   };
 
@@ -1114,7 +1119,7 @@ function VideosTab() {
   };
 
   return (
-    <CrudSection title="Vídeos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "" }); setDialogOpen(true); }}>
+    <CrudSection title="Vídeos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "", moedas: "0" }); setDialogOpen(true); }}>
       {/* Categorias section */}
       <Card className="bg-secondary/30 border-border mb-4">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -1191,6 +1196,7 @@ function VideosTab() {
               <Input placeholder="Duração (min)" type="number" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: e.target.value })} disabled={fetchingDuration} />
               {fetchingDuration && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground animate-pulse">Buscando...</span>}
             </div>
+            <Input placeholder="Moedas ao assistir (0 = sem recompensa)" type="number" value={form.moedas} onChange={(e) => setForm({ ...form, moedas: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

@@ -34,6 +34,7 @@ interface Topico {
   titulo: string;
   conteudo: string;
   ordem: number;
+  moedas: number;
 }
 
 const ModuloPage = () => {
@@ -67,21 +68,21 @@ const ModuloPage = () => {
     if (id) fetchData();
   }, [id]);
 
-  const markComplete = async (topicoId: string) => {
-    if (completedIds.has(topicoId)) return;
+  const markComplete = async (topico: Topico) => {
+    if (completedIds.has(topico.id)) return;
 
     const { data: existing } = await supabase
       .from("topico_progresso")
       .select("id")
-      .eq("topico_id", topicoId)
+      .eq("topico_id", topico.id)
       .eq("user_id", user!.id);
     const isFirstTime = !existing || existing.length === 0;
 
-    await supabase.from("topico_progresso").insert({ topico_id: topicoId, user_id: user!.id });
-    setCompletedIds((prev) => new Set(prev).add(topicoId));
+    await supabase.from("topico_progresso").insert({ topico_id: topico.id, user_id: user!.id });
+    setCompletedIds((prev) => new Set(prev).add(topico.id));
 
-    if (isFirstTime) {
-      toast({ title: "🪙 +5 moedas!", description: "Você ganhou moedas por concluir este tópico!" });
+    if (isFirstTime && topico.moedas > 0) {
+      toast({ title: `🪙 +${topico.moedas} moedas!`, description: "Você ganhou moedas por concluir este tópico!" });
     }
   };
 
@@ -223,7 +224,7 @@ const ModuloPage = () => {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => markComplete(selectedTopico.id)}>
+                              <AlertDialogAction onClick={() => markComplete(selectedTopico)}>
                                 Confirmar
                               </AlertDialogAction>
                             </AlertDialogFooter>

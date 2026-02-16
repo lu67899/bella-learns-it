@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft } from "lucide-react";
+import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft, Timer } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,11 @@ interface QuizQuestion {
   correta: number;
 }
 
+const TIMER_SECONDS = 30;
+
 const Quiz = () => {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [materias, setMaterias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [materiaFiltro, setMateriaFiltro] = useState<string>("todas");
   const { toast } = useToast();
@@ -32,19 +35,72 @@ const Quiz = () => {
   const [quizSelecionada, setQuizSelecionada] = useState<number | null>(null);
   const [quizRespondida, setQuizRespondida] = useState(false);
 
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    clearTimer();
+    setTimeLeft(TIMER_SECONDS);
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          timerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [clearTimer]);
+
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from("quiz_questions").select("*").order("created_at", { ascending: false });
-      if (error) {
+      const [questionsRes, materiasRes] = await Promise.all([
+        supabase.from("quiz_questions").select("*").order("created_at", { ascending: false }),
+        supabase.from("materias").select("nome").order("nome"),
+      ]);
+      if (questionsRes.error) {
         toast({ title: "Erro ao carregar dados", variant: "destructive" });
       }
-      setQuizQuestions(data || []);
+      setQuizQuestions(questionsRes.data || []);
+      setMaterias((materiasRes.data || []).map((m) => m.nome));
       setLoading(false);
     };
     fetchData();
   }, []);
 
-  const materias = [...new Set(quizQuestions.map(q => q.materia))];
+  // Handle timer reaching 0 — auto-submit as wrong (null)
+  useEffect(() => {
+    if (quizAtivo && !quizRespondida && timeLeft === 0) {
+      setQuizRespondida(true);
+      setQuizSelecionada(null);
+      setQuizRespostas((prev) => [...prev, null]);
+    }
+  }, [timeLeft, quizAtivo, quizRespondida]);
+
+  // Start timer when a new question appears
+  useEffect(() => {
+    if (quizAtivo && !quizRespondida && !quizMostrarResultado) {
+      startTimer();
+    }
+    return () => clearTimer();
+  }, [quizIndex, quizAtivo, quizMostrarResultado]);
+
+  // Stop timer when answered
+  useEffect(() => {
+    if (quizRespondida) {
+      clearTimer();
+    }
+  }, [quizRespondida, clearTimer]);
+
   const quizFiltradas = quizQuestions.filter((q) => materiaFiltro === "todas" || q.materia === materiaFiltro);
 
   const iniciarQuiz = () => {
@@ -80,6 +136,9 @@ const Quiz = () => {
 
   const quizPercentual = quizFiltradas.length > 0 ? Math.round((quizAcertos / quizFiltradas.length) * 100) : 0;
 
+  const timerColor = timeLeft <= 5 ? "text-destructive" : timeLeft <= 10 ? "text-amber-500" : "text-muted-foreground";
+  const timerProgress = (timeLeft / TIMER_SECONDS) * 100;
+
   if (loading) {
     return (
       <Layout>
@@ -98,7 +157,7 @@ const Quiz = () => {
             </h1>
             <p className="text-xs text-muted-foreground">Teste seus conhecimentos</p>
           </div>
-          <Select value={materiaFiltro} onValueChange={(v) => { setMateriaFiltro(v); setQuizAtivo(false); }}>
+          <Select value={materiaFiltro} onValueChange={(v) => { setMateriaFiltro(v); setQuizAtivo(false); clearTimer(); }}>
             <SelectTrigger className="w-32 h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas</SelectItem>
@@ -121,6 +180,9 @@ const Quiz = () => {
             <div className="space-y-2">
               <h3 className="font-mono font-semibold text-xl">Pronta para o Quiz?</h3>
               <p className="text-sm text-muted-foreground">{quizFiltradas.length} perguntas disponíveis</p>
+              <p className="text-xs text-muted-foreground/60 flex items-center justify-center gap-1">
+                <Timer className="h-3 w-3" /> {TIMER_SECONDS}s por questão
+              </p>
             </div>
             <Button onClick={iniciarQuiz} size="lg" className="gap-2">
               <BrainCircuit className="h-5 w-5" /> Começar Quiz
@@ -145,6 +207,7 @@ const Quiz = () => {
               <h4 className="font-mono font-semibold text-sm text-muted-foreground">Revisão das respostas</h4>
               {quizFiltradas.map((q, i) => {
                 const acertou = quizRespostas[i] === q.correta;
+                const tempoEsgotado = quizRespostas[i] === null;
                 return (
                   <Card key={q.id} className={`border ${acertou ? "border-neon-green/30" : "border-destructive/30"}`}>
                     <CardContent className="p-4 space-y-2">
@@ -156,7 +219,11 @@ const Quiz = () => {
                       </div>
                       {!acertou && (
                         <p className="text-xs text-muted-foreground ml-8">
-                          Sua resposta: <span className="text-destructive">{q.opcoes[quizRespostas[i] ?? 0]}</span>
+                          {tempoEsgotado ? (
+                            <span className="text-destructive">⏰ Tempo esgotado</span>
+                          ) : (
+                            <>Sua resposta: <span className="text-destructive">{q.opcoes[quizRespostas[i]!]}</span></>
+                          )}
                           {" · "}Correta: <span className="text-neon-green">{q.opcoes[q.correta]}</span>
                         </p>
                       )}
@@ -167,7 +234,7 @@ const Quiz = () => {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => setQuizAtivo(false)} className="gap-2">
+              <Button variant="outline" onClick={() => { setQuizAtivo(false); clearTimer(); }} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Voltar
               </Button>
               <Button onClick={iniciarQuiz} className="gap-2">
@@ -184,6 +251,24 @@ const Quiz = () => {
                 <span className="font-mono">{Math.round(((quizIndex) / quizFiltradas.length) * 100)}%</span>
               </div>
               <Progress value={(quizIndex / quizFiltradas.length) * 100} className="h-2" />
+            </div>
+
+            {/* Timer */}
+            <div className="space-y-1">
+              <div className={`flex items-center justify-center gap-1.5 font-mono text-sm font-bold ${timerColor} transition-colors`}>
+                <Timer className="h-4 w-4" />
+                <span>{timeLeft}s</span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full transition-colors ${
+                    timeLeft <= 5 ? "bg-destructive" : timeLeft <= 10 ? "bg-amber-500" : "bg-primary"
+                  }`}
+                  initial={false}
+                  animate={{ width: `${timerProgress}%` }}
+                  transition={{ duration: 0.3, ease: "linear" }}
+                />
+              </div>
             </div>
 
             <AnimatePresence mode="wait">

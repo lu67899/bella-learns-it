@@ -89,7 +89,13 @@ function VideoSection({ title, videos, assistidos, onVerMais }: { title: string;
   return (
     <motion.div variants={item} className="space-y-2.5">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-base font-bold font-mono">{title}</h2>
+      <h2 className="text-base font-bold font-mono flex items-center gap-1.5">
+          {title.split(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u).map((part, i) =>
+            /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u.test(part)
+              ? <span key={i} className="emoji-fix">{part}</span>
+              : part ? <span key={i}>{part}</span> : null
+          )}
+        </h2>
         {hasMore && (
           <button
             onClick={onVerMais}

@@ -446,8 +446,8 @@ const Index = () => {
         </motion.div>
 
         {/* Cursos */}
-        <motion.div variants={item} className="space-y-3">
-          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Cursos</p>
+        <motion.div variants={item} className="space-y-4">
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">Cursos</p>
           {cursos.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
           ) : (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,9 +26,50 @@ interface Anotacao { id: string; titulo: string; conteudo: string; materia: stri
 
 const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
+type AdminSection = 
+  | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
+  | "flashcards" | "quiz" | "videos" | "desafios" | "frases" 
+  | "mensagens" | "perfil" | "belinha";
+
+const adminSections = [
+  {
+    group: "📂 Conteúdo",
+    items: [
+      { key: "cursos" as AdminSection, label: "Cursos", icon: Library, desc: "Gerenciar cursos" },
+      { key: "modulos" as AdminSection, label: "Módulos", icon: GraduationCap, desc: "Módulos e tópicos" },
+      { key: "videos" as AdminSection, label: "Vídeos", icon: PlayCircle, desc: "Videoaulas e mix" },
+    ],
+  },
+  {
+    group: "📚 Estudo",
+    items: [
+      { key: "materias" as AdminSection, label: "Matérias", icon: Tag, desc: "Categorias de matérias" },
+      { key: "resumos" as AdminSection, label: "Resumos", icon: BookOpen, desc: "Resumos de conteúdo" },
+      { key: "flashcards" as AdminSection, label: "Flashcards", icon: BrainCircuit, desc: "Cartões de estudo" },
+      { key: "quiz" as AdminSection, label: "Quiz", icon: BrainCircuit, desc: "Questões de quiz" },
+    ],
+  },
+  {
+    group: "💬 Engajamento",
+    items: [
+      { key: "desafios" as AdminSection, label: "Desafios", icon: Trophy, desc: "Desafios semanais" },
+      { key: "frases" as AdminSection, label: "Frases", icon: Sparkles, desc: "Frases motivacionais" },
+      { key: "mensagens" as AdminSection, label: "Chat", icon: MessageCircle, desc: "Mensagens com aluna" },
+    ],
+  },
+  {
+    group: "⚙️ Configurações",
+    items: [
+      { key: "perfil" as AdminSection, label: "Perfil Admin", icon: User, desc: "Nome e foto do admin" },
+      { key: "belinha" as AdminSection, label: "Belinha IA", icon: Bot, desc: "Assistente e stories" },
+    ],
+  },
+];
+
 const Admin = () => {
   const [autenticado, setAutenticado] = useState(false);
   const [senha, setSenha] = useState("");
+  const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
 
   const handleLogin = () => {
     if (senha === ADMIN_PASSWORD) {
@@ -44,13 +85,13 @@ const Admin = () => {
       <Layout>
         <div className="max-w-sm mx-auto mt-20 space-y-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-            <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-primary/20 glow-purple">
+            <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-primary/20">
               <Lock className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-2xl font-mono font-bold">Painel Admin</h1>
             <p className="text-sm text-muted-foreground">Digite a senha para acessar</p>
           </motion.div>
-          <Card className="bg-card border-glow">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4">
               <Input
                 type="password"
@@ -69,78 +110,96 @@ const Admin = () => {
     );
   }
 
+  const renderContent = () => {
+    switch (activeSection) {
+      case "cursos": return <CursosTab />;
+      case "modulos": return <ModulosTab />;
+      case "materias": return <MateriasTab />;
+      case "resumos": return <ResumosTab />;
+      case "flashcards": return <FlashcardsTab />;
+      case "quiz": return <QuizTab />;
+      case "videos": return <VideosTab />;
+      case "desafios": return <DesafiosTab />;
+      case "frases": return <FrasesTab />;
+      case "mensagens": return <MensagensTab />;
+      case "perfil": return <AdminConfigTab />;
+      case "belinha": return <BelinhaConfigTab />;
+      default: return null;
+    }
+  };
+
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-5 pb-20">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" /> Painel Admin
-            </h1>
-            <p className="text-sm text-muted-foreground">Gerencie todo o conteúdo do app</p>
+          <div className="flex items-center gap-3">
+            {activeSection !== "dashboard" && (
+              <Button variant="ghost" size="icon" onClick={() => setActiveSection("dashboard")} className="shrink-0">
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+            )}
+            <div>
+              <h1 className="text-xl font-mono font-bold flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                {activeSection === "dashboard" ? "Painel Admin" : adminSections.flatMap(g => g.items).find(i => i.key === activeSection)?.label}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {activeSection === "dashboard" ? "Gerencie todo o conteúdo do app" : adminSections.flatMap(g => g.items).find(i => i.key === activeSection)?.desc}
+              </p>
+            </div>
           </div>
-          <Button variant="ghost" onClick={() => setAutenticado(false)} className="gap-2">
-            <LogOut className="h-4 w-4" /> Sair
+          <Button variant="ghost" size="sm" onClick={() => setAutenticado(false)} className="gap-1.5 text-xs">
+            <LogOut className="h-3.5 w-3.5" /> Sair
           </Button>
         </div>
 
-        <Tabs defaultValue="cursos">
-          {/* Grouped navigation */}
-          <div className="space-y-3">
-            {/* Group 1: Estrutura do Conteúdo */}
-            <div>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">📂 Estrutura do Conteúdo</p>
-              <TabsList className="inline-flex h-auto gap-1 p-1">
-                <TabsTrigger value="cursos" className="gap-2 px-4 py-2 text-sm"><Library className="h-4 w-4" /> Cursos</TabsTrigger>
-                <TabsTrigger value="modulos" className="gap-2 px-4 py-2 text-sm"><GraduationCap className="h-4 w-4" /> Módulos & Tópicos</TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Group 2: Material de Estudo */}
-            <div>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">📚 Material de Estudo</p>
-              <TabsList className="inline-flex h-auto gap-1 p-1">
-                <TabsTrigger value="materias" className="gap-2 px-4 py-2 text-sm"><Tag className="h-4 w-4" /> Matérias</TabsTrigger>
-                <TabsTrigger value="resumos" className="gap-2 px-4 py-2 text-sm"><BookOpen className="h-4 w-4" /> Resumos</TabsTrigger>
-                <TabsTrigger value="flashcards" className="gap-2 px-4 py-2 text-sm"><BrainCircuit className="h-4 w-4" /> Flashcards</TabsTrigger>
-                <TabsTrigger value="quiz" className="gap-2 px-4 py-2 text-sm"><BrainCircuit className="h-4 w-4" /> Quiz</TabsTrigger>
-                <TabsTrigger value="videos" className="gap-2 px-4 py-2 text-sm"><PlayCircle className="h-4 w-4" /> Vídeos</TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Group 3: Engajamento & Comunicação */}
-            <div>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">💬 Engajamento</p>
-              <TabsList className="inline-flex h-auto gap-1 p-1">
-                <TabsTrigger value="desafios" className="gap-2 px-4 py-2 text-sm"><Trophy className="h-4 w-4" /> Desafios</TabsTrigger>
-                <TabsTrigger value="frases" className="gap-2 px-4 py-2 text-sm"><Sparkles className="h-4 w-4" /> Frases</TabsTrigger>
-                <TabsTrigger value="mensagens" className="gap-2 px-4 py-2 text-sm"><MessageCircle className="h-4 w-4" /> Chat</TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Group 4: Configurações */}
-            <div>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5 px-1">⚙️ Configurações</p>
-              <TabsList className="inline-flex h-auto gap-1 p-1">
-                <TabsTrigger value="perfil" className="gap-2 px-4 py-2 text-sm"><User className="h-4 w-4" /> Perfil Admin</TabsTrigger>
-                <TabsTrigger value="belinha" className="gap-2 px-4 py-2 text-sm"><Bot className="h-4 w-4" /> Belinha IA</TabsTrigger>
-              </TabsList>
-            </div>
-          </div>
-
-          <TabsContent value="cursos"><CursosTab /></TabsContent>
-          <TabsContent value="materias"><MateriasTab /></TabsContent>
-          <TabsContent value="modulos"><ModulosTab /></TabsContent>
-          <TabsContent value="resumos"><ResumosTab /></TabsContent>
-          <TabsContent value="flashcards"><FlashcardsTab /></TabsContent>
-          <TabsContent value="quiz"><QuizTab /></TabsContent>
-          <TabsContent value="videos"><VideosTab /></TabsContent>
-          <TabsContent value="desafios"><DesafiosTab /></TabsContent>
-          <TabsContent value="frases"><FrasesTab /></TabsContent>
-          <TabsContent value="mensagens"><MensagensTab /></TabsContent>
-          <TabsContent value="perfil"><AdminConfigTab /></TabsContent>
-          <TabsContent value="belinha"><BelinhaConfigTab /></TabsContent>
-        </Tabs>
+        <AnimatePresence mode="wait">
+          {activeSection === "dashboard" ? (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-6"
+            >
+              {adminSections.map((group) => (
+                <div key={group.group} className="space-y-2.5">
+                  <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider px-1">{group.group}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => setActiveSection(item.key)}
+                          className="flex flex-col items-start gap-2 p-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all text-left group"
+                        >
+                          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                            <Icon className="h-4.5 w-4.5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium font-mono">{item.label}</p>
+                            <p className="text-[11px] text-muted-foreground leading-tight">{item.desc}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={activeSection}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+            >
+              {renderContent()}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </Layout>
   );

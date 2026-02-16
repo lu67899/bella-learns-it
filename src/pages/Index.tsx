@@ -451,7 +451,7 @@ const Index = () => {
           {cursos.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-3">
               {cursos.map((curso) => {
                 const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
                 const isComplete = pct === 100;

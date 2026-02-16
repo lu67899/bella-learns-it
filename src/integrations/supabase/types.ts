@@ -152,6 +152,54 @@ export type Database = {
         }
         Relationships: []
       }
+      certificado_config: {
+        Row: {
+          created_at: string
+          creditos_minimos: number
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creditos_minimos?: number
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creditos_minimos?: number
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      certificado_solicitacoes: {
+        Row: {
+          certificado_url: string | null
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certificado_url?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certificado_url?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cronograma: {
         Row: {
           concluida: boolean

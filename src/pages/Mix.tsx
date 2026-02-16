@@ -49,30 +49,30 @@ function VideoCard({ video, watched }: { video: Video; watched: boolean }) {
   const videoId = extrairVideoId(video.url_youtube);
   return (
     <Link to={`/mix/${video.id}`} className="block group">
-      <div className={`rounded-lg overflow-hidden bg-card border transition-all ${watched ? "border-primary/20" : "border-border hover:border-primary/30"}`}>
+      <div className={`rounded-lg overflow-hidden bg-card border transition-all shadow-sm ${watched ? "border-primary/30" : "border-border hover:border-primary/40 hover:shadow-md"}`}>
         {videoId && (
-          <div className="relative w-full aspect-video">
+            <div className="relative w-full aspect-video">
             <img
               src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
               alt={video.titulo}
-              className={`w-full h-full object-cover ${watched ? "opacity-60" : ""}`}
+              className={`w-full h-full object-cover ${watched ? "opacity-70" : ""}`}
             />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/30 transition-colors">
-              <PlayCircle className="h-8 w-8 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/5 group-hover:bg-black/20 transition-colors">
+              <PlayCircle className="h-9 w-9 text-white/80 group-hover:text-white group-hover:scale-110 transition-all drop-shadow-lg" />
             </div>
-            <span className="absolute bottom-1 right-1 flex items-center gap-0.5 text-[9px] bg-black/70 text-white/90 px-1 py-0.5 rounded font-mono">
-              <Clock className="h-2 w-2" />
+            <span className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded font-mono">
+              <Clock className="h-2.5 w-2.5" />
               {formatarDuracao(video.duracao)}
             </span>
             {watched && (
-              <span className="absolute top-1 left-1">
+              <span className="absolute top-1.5 left-1.5">
                 <CheckCircle2 className="h-4 w-4 text-primary drop-shadow-md" />
               </span>
             )}
           </div>
         )}
-        <div className="p-2">
-          <h3 className="font-mono font-medium text-[11px] leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+        <div className="p-2.5">
+          <h3 className="font-mono font-medium text-xs leading-snug line-clamp-2 group-hover:text-primary transition-colors">
             {video.titulo}
           </h3>
         </div>
@@ -89,7 +89,7 @@ function VideoSection({ title, videos, assistidos, onVerMais }: { title: string;
   return (
     <motion.div variants={item} className="space-y-2.5">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-sm font-bold font-mono">{title}</h2>
+        <h2 className="text-base font-bold font-mono">{title}</h2>
         {hasMore && (
           <button
             onClick={onVerMais}

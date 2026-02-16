@@ -43,7 +43,7 @@ const MixVideo = () => {
       const { data } = await supabase.from("videos").select("*").eq("id", id).single();
       if (data) {
         setVideo(data as Video);
-        // Load sibling videos from same category
+        // Load sibling videos from same category (or all uncategorized)
         if (data.categoria_id) {
           const { data: siblings } = await supabase
             .from("videos")
@@ -52,7 +52,12 @@ const MixVideo = () => {
             .order("created_at", { ascending: false });
           if (siblings) setCategoryVideos(siblings as Video[]);
         } else {
-          setCategoryVideos([]);
+          const { data: siblings } = await supabase
+            .from("videos")
+            .select("*")
+            .is("categoria_id", null)
+            .order("created_at", { ascending: false });
+          if (siblings) setCategoryVideos(siblings as Video[]);
         }
       }
       setLoading(false);

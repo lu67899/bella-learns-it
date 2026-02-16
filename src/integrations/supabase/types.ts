@@ -635,8 +635,30 @@ export type Database = {
           },
         ]
       }
+      video_categorias: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
+          categoria_id: string | null
           created_at: string
           descricao: string | null
           duracao: number
@@ -647,6 +669,7 @@ export type Database = {
           url_youtube: string
         }
         Insert: {
+          categoria_id?: string | null
           created_at?: string
           descricao?: string | null
           duracao: number
@@ -657,6 +680,7 @@ export type Database = {
           url_youtube: string
         }
         Update: {
+          categoria_id?: string | null
           created_at?: string
           descricao?: string | null
           duracao?: number
@@ -666,7 +690,15 @@ export type Database = {
           updated_at?: string
           url_youtube?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "videos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "video_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

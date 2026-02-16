@@ -46,23 +46,39 @@ const CursoPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [cursoRes, modRes, topRes, progRes] = await Promise.all([
+      const [cursoRes, modRes] = await Promise.all([
         supabase.from("cursos").select("*").eq("id", id!).single(),
         supabase.from("modulos").select("*").eq("curso_id", id!).order("ordem"),
-        supabase.from("modulo_topicos").select("modulo_id, id"),
-        supabase.from("topico_progresso").select("topico_id"),
       ]);
 
       if (cursoRes.data) setCurso(cursoRes.data);
 
+      const moduleIds = (modRes.data || []).map((m: any) => m.id);
+
+      // Only fetch topics for THIS course's modules
+      const [topRes, progRes] = moduleIds.length > 0
+        ? await Promise.all([
+            supabase.from("modulo_topicos").select("modulo_id, id").in("modulo_id", moduleIds),
+            supabase.from("topico_progresso").select("topico_id"),
+          ])
+        : [{ data: [] }, { data: [] }];
+
       const topicosByModule = new Map<string, string[]>();
-      (topRes.data || []).forEach((t: any) => {
+      ((topRes as any).data || []).forEach((t: any) => {
         const arr = topicosByModule.get(t.modulo_id) || [];
         arr.push(t.id);
         topicosByModule.set(t.modulo_id, arr);
       });
 
-      const completedSet = new Set((progRes.data || []).map((p: any) => p.topico_id));
+      // Get all topic IDs for this course to filter progress
+      const allTopicIds = new Set<string>();
+      topicosByModule.forEach((ids) => ids.forEach((tid) => allTopicIds.add(tid)));
+
+      const completedSet = new Set(
+        ((progRes as any).data || [])
+          .filter((p: any) => allTopicIds.has(p.topico_id))
+          .map((p: any) => p.topico_id)
+      );
 
       const mods = (modRes.data || []).map((m: any) => {
         const topicIds = topicosByModule.get(m.id) || [];

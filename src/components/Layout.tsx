@@ -31,7 +31,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <main className="flex-1 overflow-auto">
           <MobileTrigger />
-          <div className={`px-5 py-4 md:px-6 md:py-5 lg:py-6 ${pageSize === "large" ? "lg:px-12" : "lg:px-8"}`}>
+          <div className={`py-4 md:py-5 lg:py-6 ${pageSize === "large" ? "px-3 md:px-8 lg:px-12" : "px-5 md:px-6 lg:px-8"}`}>
             {children}
           </div>
         </main>

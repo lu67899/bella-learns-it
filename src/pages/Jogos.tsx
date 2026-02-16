@@ -26,6 +26,13 @@ const jogos = [
     icon: "🔍",
     to: "/caca-palavras",
   },
+  {
+    id: "jogo-da-memoria",
+    nome: "Jogo da Memória",
+    descricao: "Encontre os pares de termo e definição virando as cartas",
+    icon: "🧠",
+    to: "/jogo-da-memoria",
+  },
 ];
 
 const container = {

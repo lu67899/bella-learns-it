@@ -158,7 +158,7 @@ const JogoDaMemoria = () => {
           Encontre os pares: <Badge variant="outline" className="text-[10px] mx-0.5">TERMO</Badge> ↔ <Badge variant="secondary" className="text-[10px] mx-0.5">DEFINIÇÃO</Badge>
         </p>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {cards.map((card, i) => {
             const isFlipped = flipped.includes(i) || matched.has(card.pairId);
             const isMatched = matched.has(card.pairId);
@@ -167,7 +167,7 @@ const JogoDaMemoria = () => {
                 key={card.id}
                 whileTap={!isFlipped ? { scale: 0.95 } : {}}
                 onClick={() => handleFlip(i)}
-                className={`relative cursor-pointer select-none aspect-[3/4] rounded-xl border-2 transition-colors duration-300 ${
+                className={`relative cursor-pointer select-none aspect-square rounded-lg border-2 transition-colors duration-300 ${
                   isMatched
                     ? "border-primary/40 bg-primary/5"
                     : isFlipped

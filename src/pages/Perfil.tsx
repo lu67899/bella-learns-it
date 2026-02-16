@@ -7,9 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Camera, Mail, Award, Maximize, Minimize, User, Coins, Settings, Loader2, CheckCircle2, Clock, Download, ArrowLeft } from "lucide-react";
+import { Camera, Mail, Award, Maximize, Minimize, User, Coins, Settings, Loader2, CheckCircle2, Clock, Download, ArrowLeft, Banknote, Send } from "lucide-react";
 import { usePageSize } from "@/hooks/usePageSize";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -24,10 +25,12 @@ export default function Perfil() {
   const [certificados, setCertificados] = useState<{ id: string; status: string; certificado_url: string | null; created_at: string }[]>([]);
   const [requesting, setRequesting] = useState(false);
   const [viewingCert, setViewingCert] = useState<string | null>(null);
+  const [chavePix, setChavePix] = useState("");
+  const [resgates, setResgates] = useState<{ id: string; status: string; valor_moedas: number; chave_pix: string; created_at: string }[]>([]);
+  const [requestingResgate, setRequestingResgate] = useState(false);
 
   useEffect(() => {
-    // Load certificate config and user's request
-    const loadCert = async () => {
+    const loadData = async () => {
       const { data: config } = await supabase.from("certificado_config").select("creditos_minimos").eq("id", 1).single();
       if (config) setCertConfig(config);
 
@@ -38,27 +41,43 @@ export default function Perfil() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         if (sols) setCertificados(sols);
+
+        const { data: resgateData } = await supabase
+          .from("resgate_solicitacoes")
+          .select("id, status, valor_moedas, chave_pix, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (resgateData) setResgates(resgateData);
       }
     };
-    loadCert();
+    loadData();
   }, [user]);
 
-  const requestCertificate = async () => {
-    if (!user) return;
-    setRequesting(true);
-    const { error } = await supabase.from("certificado_solicitacoes").insert({ user_id: user.id });
+  const requestResgate = async () => {
+    if (!user || !chavePix.trim()) return;
+    setRequestingResgate(true);
+    const { error } = await supabase.from("resgate_solicitacoes").insert({
+      user_id: user.id,
+      chave_pix: chavePix.trim(),
+      valor_moedas: minCoins,
+    });
     if (error) {
-      toast.error("Erro ao solicitar certificado");
+      toast.error("Erro ao solicitar resgate");
     } else {
-      toast.success("Certificado solicitado! O administrador será notificado.");
-      const { data: sols } = await supabase
-        .from("certificado_solicitacoes")
-        .select("id, status, certificado_url, created_at")
+      // Deduct coins
+      const newCoins = Math.max(coins - minCoins, 0);
+      await supabase.from("profiles").update({ coins: newCoins }).eq("user_id", user.id);
+      await refreshProfile();
+      toast.success("Resgate solicitado! O administrador será notificado.");
+      setChavePix("");
+      const { data: resgateData } = await supabase
+        .from("resgate_solicitacoes")
+        .select("id, status, valor_moedas, chave_pix, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (sols) setCertificados(sols);
+      if (resgateData) setResgates(resgateData);
     }
-    setRequesting(false);
+    setRequestingResgate(false);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,9 +128,9 @@ export default function Perfil() {
 
   const coins = profile?.coins ?? 0;
   const minCoins = certConfig?.creditos_minimos ?? 100;
-  const hasPending = certificados.some((c) => c.status === "pendente");
   const enviados = certificados.filter((c) => c.status === "enviado" && c.certificado_url);
-  const canRequest = coins >= minCoins && !hasPending;
+  const hasPendingResgate = resgates.some((r) => r.status === "pendente");
+  const canRequestResgate = coins >= minCoins && !hasPendingResgate;
   const progressPercent = Math.min((coins / minCoins) * 100, 100);
 
   return (
@@ -217,15 +236,13 @@ export default function Perfil() {
               </motion.div>
 
               {/* Certificate Gallery */}
-              <motion.div variants={item}>
-                <Card className="p-6 bg-card border-border">
-                  <Label className="text-sm font-mono text-foreground mb-3 block">
-                    Certificados
-                  </Label>
-
-                  {/* Gallery of received certificates */}
-                  {enviados.length > 0 && (
-                    <div className="space-y-3 mb-4">
+              {enviados.length > 0 && (
+                <motion.div variants={item}>
+                  <Card className="p-6 bg-card border-border">
+                    <Label className="text-sm font-mono text-foreground mb-3 block">
+                      Certificados
+                    </Label>
+                    <div className="space-y-3">
                       <div className="flex items-center gap-2 text-primary mb-2">
                         <CheckCircle2 className="h-4 w-4" />
                         <span className="text-sm font-medium">{enviados.length} certificado{enviados.length > 1 ? "s" : ""} disponíve{enviados.length > 1 ? "is" : "l"}</span>
@@ -233,65 +250,91 @@ export default function Perfil() {
                       <div className="grid grid-cols-2 gap-3">
                         {enviados.map((cert) => (
                           <div key={cert.id} className="group relative rounded-lg border border-border overflow-hidden cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setViewingCert(cert.certificado_url)}>
-                            <img
-                              src={cert.certificado_url!}
-                              alt="Certificado"
-                              className="w-full aspect-[4/3] object-cover"
-                            />
+                            <img src={cert.certificado_url!} alt="Certificado" className="w-full aspect-[4/3] object-cover" />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                               <Maximize className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                             </div>
                             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
-                              <p className="text-[9px] text-white/80 font-mono">
-                                {new Date(cert.created_at).toLocaleDateString("pt-BR")}
-                              </p>
+                              <p className="text-[9px] text-white/80 font-mono">{new Date(cert.created_at).toLocaleDateString("pt-BR")}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
-                  )}
+                  </Card>
+                </motion.div>
+              )}
 
-                  {/* Pending request */}
-                  {hasPending && (
+              {/* Resgate de Valor */}
+              <motion.div variants={item}>
+                <Card className="p-6 bg-card border-border">
+                  <Label className="text-sm font-mono text-foreground mb-3 block flex items-center gap-2">
+                    <Banknote className="h-4 w-4 text-primary" />
+                    Resgatar Valor
+                  </Label>
+
+                  {/* Progress */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{coins} / {minCoins} moedas</span>
+                      <span>{Math.round(progressPercent)}%</span>
+                    </div>
+                    <Progress value={progressPercent} className="h-2" />
+                  </div>
+
+                  {/* Pending resgate */}
+                  {hasPendingResgate && (
                     <div className="flex items-center gap-3 text-muted-foreground">
                       <Clock className="h-10 w-10 text-primary/40 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Solicitação enviada!</p>
-                        <p className="text-xs">Aguardando o administrador enviar seu certificado.</p>
+                        <p className="text-sm font-medium text-foreground">Resgate solicitado!</p>
+                        <p className="text-xs">Aguardando o administrador processar seu resgate.</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Request new certificate */}
-                  {!hasPending && (
-                    <div className="space-y-4">
-                      {enviados.length > 0 && (
-                        <div className="border-t border-border pt-4">
-                          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Novo certificado</p>
-                        </div>
-                      )}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{coins} / {minCoins} créditos</span>
-                          <span>{Math.round(progressPercent)}%</span>
-                        </div>
-                        <Progress value={progressPercent} className="h-2" />
-                      </div>
-
-                      {canRequest ? (
-                        <div className="space-y-2">
-                          <p className="text-sm text-primary font-medium">🎉 Parabéns! Você atingiu os créditos necessários!</p>
-                          <Button onClick={requestCertificate} disabled={requesting} className="gap-1.5">
-                            {requesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Award className="h-4 w-4" />}
-                            Solicitar Certificado
+                  {/* Request resgate */}
+                  {!hasPendingResgate && (
+                    <>
+                      {canRequestResgate ? (
+                        <div className="space-y-3">
+                          <p className="text-sm text-primary font-medium">🎉 Você pode resgatar {minCoins} moedas!</p>
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">Chave PIX</label>
+                            <Input
+                              placeholder="CPF, email, telefone ou chave aleatória"
+                              value={chavePix}
+                              onChange={(e) => setChavePix(e.target.value)}
+                              maxLength={100}
+                            />
+                          </div>
+                          <Button onClick={requestResgate} disabled={requestingResgate || !chavePix.trim()} className="gap-1.5">
+                            {requestingResgate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                            Solicitar Resgate
                           </Button>
                         </div>
                       ) : (
                         <p className="text-xs text-muted-foreground">
-                          Alcance {minCoins} créditos para solicitar seu certificado. Continue estudando!
+                          Alcance {minCoins} moedas para solicitar um resgate. Continue estudando!
                         </p>
                       )}
+                    </>
+                  )}
+
+                  {/* History */}
+                  {resgates.length > 0 && (
+                    <div className="mt-4 border-t border-border pt-4">
+                      <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Histórico</p>
+                      <div className="space-y-2">
+                        {resgates.map((r) => (
+                          <div key={r.id} className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")} • {r.valor_moedas} moedas</span>
+                            <span className={r.status === "pago" ? "text-primary font-medium" : "text-muted-foreground"}>
+                              {r.status === "pago" ? "✓ Pago" : "Pendente"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </Card>

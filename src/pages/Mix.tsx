@@ -39,6 +39,7 @@ const item = {
 const Mix = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -48,6 +49,10 @@ const Mix = () => {
     };
     load();
   }, []);
+
+  const handleToggleVideo = (id: string) => {
+    setActiveVideoId(prev => prev === id ? null : id);
+  };
 
   return (
     <Layout>
@@ -68,20 +73,36 @@ const Mix = () => {
           <div className="space-y-4">
             {videos.map((video) => {
               const videoId = extrairVideoId(video.url_youtube);
+              const isActive = activeVideoId === video.id;
               return (
                 <motion.div key={video.id} variants={item}>
-                  <Card className="overflow-hidden bg-card border-border">
-                    {videoId && (
+                  <Card
+                    className="overflow-hidden bg-card border-border cursor-pointer"
+                    onClick={() => handleToggleVideo(video.id)}
+                  >
+                    {videoId && isActive ? (
                       <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                         <iframe
                           className="absolute inset-0 w-full h-full"
-                          src={`https://www.youtube.com/embed/${videoId}`}
+                          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
                           title={video.titulo}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </div>
-                    )}
+                    ) : videoId ? (
+                      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                        <img
+                          src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                          alt={video.titulo}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <PlayCircle className="h-14 w-14 text-white/90" />
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="p-4 space-y-1">
                       <div className="flex items-start justify-between gap-2">
                         <h2 className="font-mono font-semibold text-sm">{video.titulo}</h2>

@@ -24,6 +24,7 @@ import Belinha from "./pages/Belinha";
 import Jogos from "./pages/Jogos";
 import Forca from "./pages/Forca";
 import CacaPalavras from "./pages/CacaPalavras";
+import JogoDaMemoria from "./pages/JogoDaMemoria";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,7 @@ const AppRoutes = () => (
     <Route path="/jogos" element={<ProtectedRoute><Jogos /></ProtectedRoute>} />
     <Route path="/forca" element={<ProtectedRoute><Forca /></ProtectedRoute>} />
     <Route path="/caca-palavras" element={<ProtectedRoute><CacaPalavras /></ProtectedRoute>} />
+    <Route path="/jogo-da-memoria" element={<ProtectedRoute><JogoDaMemoria /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

@@ -177,6 +177,8 @@ export type Database = {
         Row: {
           certificado_url: string | null
           created_at: string
+          curso_id: string | null
+          curso_nome: string | null
           id: string
           status: string
           updated_at: string
@@ -185,6 +187,8 @@ export type Database = {
         Insert: {
           certificado_url?: string | null
           created_at?: string
+          curso_id?: string | null
+          curso_nome?: string | null
           id?: string
           status?: string
           updated_at?: string
@@ -193,12 +197,22 @@ export type Database = {
         Update: {
           certificado_url?: string | null
           created_at?: string
+          curso_id?: string | null
+          curso_nome?: string | null
           id?: string
           status?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "certificado_solicitacoes_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cronograma: {
         Row: {

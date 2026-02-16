@@ -1897,25 +1897,27 @@ function CertificadosTab() {
     toast.success("Configuração atualizada!");
   };
 
-  const handleUploadCertificado = async (solicitacaoId: string, userId: string, file: File) => {
+  const handleUploadCertificado = async (solicitacaoId: string, userId: string, cursoNome: string | null, file: File) => {
     setUploading(solicitacaoId);
     try {
       const ext = file.name.split(".").pop();
-      const path = `${userId}/certificado.${ext}`;
+      const path = `${userId}/certificado-${solicitacaoId}.${ext}`;
       await supabase.storage.from("avatars").upload(path, file, { upsert: true });
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
       const url = `${urlData.publicUrl}?t=${Date.now()}`;
 
       await supabase.from("certificado_solicitacoes").update({ status: "enviado", certificado_url: url }).eq("id", solicitacaoId);
-      
-      // Subtract the certificate cost instead of zeroing
-      const { data: config } = await supabase.from("certificado_config").select("creditos_minimos").eq("id", 1).single();
-      const cost = config?.creditos_minimos ?? 100;
-      const { data: profile } = await supabase.from("profiles").select("coins").eq("user_id", userId).single();
-      const currentCoins = profile?.coins ?? 0;
-      const newCoins = Math.max(currentCoins - cost, 0);
-      await supabase.from("profiles").update({ coins: newCoins }).eq("user_id", userId);
-      toast.success(`Certificado enviado! ${cost} moedas descontadas.`);
+
+      // Send notification to user
+      const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", userId).single();
+      await supabase.from("notificacoes").insert({
+        tipo: "certificado_pronto",
+        titulo: "Seu certificado está pronto! 🎉",
+        mensagem: `O certificado${cursoNome ? ` do curso "${cursoNome}"` : ""} está disponível no seu perfil.`,
+        link: "/perfil",
+      });
+
+      toast.success("Certificado enviado e usuário notificado!");
       load();
     } catch (err: any) {
       toast.error("Erro: " + err.message);
@@ -1962,7 +1964,9 @@ function CertificadosTab() {
                 <div key={s.id} className={`flex items-center justify-between gap-3 p-3 rounded-lg border ${s.status === "pendente" ? "border-primary/30 bg-primary/5" : "border-border"}`}>
                   <div>
                     <p className="text-sm font-mono font-medium">{s.profile?.display_name || "Desconhecido"}</p>
-                    <p className="text-[10px] text-muted-foreground">{s.profile?.coins ?? 0} créditos • {new Date(s.created_at).toLocaleDateString("pt-BR")}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {s.curso_nome ? `Curso: ${s.curso_nome} • ` : ""}{new Date(s.created_at).toLocaleDateString("pt-BR")}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     {s.status === "enviado" ? (
@@ -1981,7 +1985,7 @@ function CertificadosTab() {
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleUploadCertificado(s.id, s.user_id, file);
+                            if (file) handleUploadCertificado(s.id, s.user_id, s.curso_nome, file);
                           }}
                         />
                       </label>

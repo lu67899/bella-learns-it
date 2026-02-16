@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2, Award, Clock } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface CursoDB {
   id: string;
@@ -35,9 +37,12 @@ const item = {
 
 const CursoPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [curso, setCurso] = useState<CursoDB | null>(null);
   const [modulos, setModulos] = useState<ModuloDB[]>([]);
   const [loading, setLoading] = useState(true);
+  const [certStatus, setCertStatus] = useState<string | null>(null); // null = no request, "pendente", "enviado"
+  const [requesting, setRequesting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,11 +73,46 @@ const CursoPage = () => {
         };
       });
       setModulos(mods);
+
+      // Check if user already requested certificate for this course
+      if (user) {
+        const { data: certSol } = await supabase
+          .from("certificado_solicitacoes")
+          .select("status")
+          .eq("user_id", user.id)
+          .eq("curso_id", id!)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (certSol && certSol.length > 0) {
+          setCertStatus(certSol[0].status);
+        }
+      }
+
       setLoading(false);
     };
     if (id) fetchData();
-  }, [id]);
+  }, [id, user]);
 
+  const totalTopics = modulos.reduce((sum, m) => sum + m.topicos_count, 0);
+  const completedTopics = modulos.reduce((sum, m) => sum + m.completed_count, 0);
+  const isCourseComplete = totalTopics > 0 && completedTopics === totalTopics;
+
+  const requestCertificate = async () => {
+    if (!user || !curso) return;
+    setRequesting(true);
+    const { error } = await supabase.from("certificado_solicitacoes").insert({
+      user_id: user.id,
+      curso_id: curso.id,
+      curso_nome: curso.nome,
+    });
+    if (error) {
+      toast.error("Erro ao solicitar certificado");
+    } else {
+      toast.success("Certificado solicitado! Você será notificado quando estiver pronto.");
+      setCertStatus("pendente");
+    }
+    setRequesting(false);
+  };
   if (loading) {
     return (
       <Layout>
@@ -141,6 +181,47 @@ const CursoPage = () => {
             </div>
           )}
         </motion.div>
+
+        {/* Certificate section */}
+        {isCourseComplete && (
+          <motion.div variants={item}>
+            <Card className="bg-card border-border">
+              <CardContent className="p-5">
+                {certStatus === "enviado" ? (
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-8 w-8 text-primary shrink-0" />
+                    <div>
+                      <p className="text-sm font-mono font-medium text-foreground">Certificado disponível!</p>
+                      <p className="text-xs text-muted-foreground">Confira na galeria do seu perfil.</p>
+                    </div>
+                  </div>
+                ) : certStatus === "pendente" ? (
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-8 w-8 text-primary/40 shrink-0" />
+                    <div>
+                      <p className="text-sm font-mono font-medium text-foreground">Certificado solicitado!</p>
+                      <p className="text-xs text-muted-foreground">Aguardando o administrador gerar seu certificado. Você será notificado.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Award className="h-8 w-8 text-primary shrink-0" />
+                      <div>
+                        <p className="text-sm font-mono font-medium text-foreground">🎉 Curso concluído!</p>
+                        <p className="text-xs text-muted-foreground">Solicite seu certificado de conclusão.</p>
+                      </div>
+                    </div>
+                    <Button onClick={requestCertificate} disabled={requesting} size="sm" className="gap-1.5 shrink-0">
+                      {requesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Award className="h-4 w-4" />}
+                      Gerar Certificado
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </motion.div>
     </Layout>
   );

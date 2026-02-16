@@ -958,18 +958,27 @@ function FrasesTab() {
 }
 
 // ─── VIDEOS TAB ──────────────────────────────────────────
-interface VideoItem { id: string; titulo: string; descricao: string | null; url_youtube: string; duracao: number; ordem: number; }
+interface VideoItem { id: string; titulo: string; descricao: string | null; url_youtube: string; duracao: number; ordem: number; categoria_id: string | null; }
+interface VideoCategoria { id: string; nome: string; ordem: number; }
 
 function VideosTab() {
   const [items, setItems] = useState<VideoItem[]>([]);
+  const [categorias, setCategorias] = useState<VideoCategoria[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [editing, setEditing] = useState<VideoItem | null>(null);
-  const [form, setForm] = useState({ titulo: "", descricao: "", url_youtube: "", duracao: "" });
+  const [editingCat, setEditingCat] = useState<VideoCategoria | null>(null);
+  const [form, setForm] = useState({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "" });
+  const [catForm, setCatForm] = useState({ nome: "" });
   const [fetchingDuration, setFetchingDuration] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase.from("videos").select("*").order("ordem");
-    if (data) setItems(data);
+    const [videosRes, catsRes] = await Promise.all([
+      supabase.from("videos").select("*").order("ordem"),
+      supabase.from("video_categorias").select("*").order("ordem"),
+    ]);
+    if (videosRes.data) setItems(videosRes.data as VideoItem[]);
+    if (catsRes.data) setCategorias(catsRes.data);
   };
   useEffect(() => { load(); }, []);
 
@@ -1001,13 +1010,14 @@ function VideosTab() {
       url_youtube: form.url_youtube,
       duracao: parseInt(form.duracao) || 0,
       ordem: editing ? editing.ordem : items.length,
+      categoria_id: form.categoria_id || null,
     };
     if (editing) {
       await supabase.from("videos").update(payload).eq("id", editing.id);
     } else {
       await supabase.from("videos").insert(payload);
     }
-    toast.success("Vídeo salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "" }); load();
+    toast.success("Vídeo salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "" }); load();
   };
 
   const remove = async (id: string) => {
@@ -1017,17 +1027,69 @@ function VideosTab() {
 
   const edit = (item: VideoItem) => {
     setEditing(item);
-    setForm({ titulo: item.titulo, descricao: item.descricao || "", url_youtube: item.url_youtube, duracao: String(item.duracao) });
+    setForm({ titulo: item.titulo, descricao: item.descricao || "", url_youtube: item.url_youtube, duracao: String(item.duracao), categoria_id: item.categoria_id || "" });
     setDialogOpen(true);
   };
 
+  // Category CRUD
+  const saveCat = async () => {
+    if (!catForm.nome) return;
+    if (editingCat) {
+      await supabase.from("video_categorias").update({ nome: catForm.nome }).eq("id", editingCat.id);
+    } else {
+      await supabase.from("video_categorias").insert({ nome: catForm.nome, ordem: categorias.length });
+    }
+    toast.success("Categoria salva!"); setCatDialogOpen(false); setEditingCat(null); setCatForm({ nome: "" }); load();
+  };
+
+  const removeCat = async (id: string) => {
+    await supabase.from("video_categorias").delete().eq("id", id);
+    toast.success("Categoria removida!"); load();
+  };
+
+  const getCatName = (id: string | null) => {
+    if (!id) return "Sem categoria";
+    return categorias.find(c => c.id === id)?.nome || "—";
+  };
+
   return (
-    <CrudSection title="Vídeos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "" }); setDialogOpen(true); }}>
+    <CrudSection title="Vídeos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", descricao: "", url_youtube: "", duracao: "", categoria_id: "" }); setDialogOpen(true); }}>
+      {/* Categorias section */}
+      <Card className="bg-secondary/30 border-border mb-4">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="font-mono text-sm">Categorias</CardTitle>
+          <Button onClick={() => { setEditingCat(null); setCatForm({ nome: "" }); setCatDialogOpen(true); }} size="sm" variant="outline" className="gap-1">
+            <Plus className="h-3 w-3" /> Nova Categoria
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {categorias.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-2">Nenhuma categoria criada</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {categorias.map((cat) => (
+                <Badge key={cat.id} variant="secondary" className="text-sm py-1.5 px-3 gap-2">
+                  {cat.nome}
+                  <button onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome }); setCatDialogOpen(true); }} className="text-muted-foreground hover:text-foreground transition-colors">
+                    <Edit2 className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => removeCat(cat.id)} className="text-destructive hover:text-destructive/80 transition-colors">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Videos table */}
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-16">#</TableHead>
             <TableHead>Título</TableHead>
+            <TableHead>Categoria</TableHead>
             <TableHead>Duração</TableHead>
             <TableHead className="w-24">Ações</TableHead>
           </TableRow>
@@ -1037,6 +1099,7 @@ function VideosTab() {
             <TableRow key={item.id}>
               <TableCell className="font-mono text-sm">{item.ordem + 1}</TableCell>
               <TableCell className="font-mono text-sm">{item.titulo}</TableCell>
+              <TableCell><Badge variant="outline" className="text-xs">{getCatName(item.categoria_id)}</Badge></TableCell>
               <TableCell className="text-sm text-muted-foreground">{item.duracao}min</TableCell>
               <TableCell>
                 <div className="flex gap-1">
@@ -1048,6 +1111,8 @@ function VideosTab() {
           ))}
         </TableBody>
       </Table>
+
+      {/* Video Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Vídeo</DialogTitle></DialogHeader>
@@ -1055,6 +1120,12 @@ function VideosTab() {
             <Input placeholder="Título do vídeo" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
             <Input placeholder="URL do YouTube (ex: https://youtube.com/watch?v=...)" value={form.url_youtube} onChange={(e) => handleUrlChange(e.target.value)} />
             <Input placeholder="Descrição (opcional)" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+            <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Categoria (opcional)" /></SelectTrigger>
+              <SelectContent>
+                {categorias.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <div className="relative">
               <Input placeholder="Duração (min)" type="number" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: e.target.value })} disabled={fetchingDuration} />
               {fetchingDuration && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground animate-pulse">Buscando...</span>}
@@ -1063,10 +1134,20 @@ function VideosTab() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Category Dialog */}
+      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editingCat ? "Editar" : "Nova"} Categoria</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Nome da categoria (ex: Aulas, Dicas, Revisão)" value={catForm.nome} onChange={(e) => setCatForm({ nome: e.target.value })} />
+            <Button onClick={saveCat} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </CrudSection>
   );
 }
-
 // ─── ADMIN CONFIG TAB ────────────────────────────────────
 function AdminConfigTab() {
   const [nome, setNome] = useState("");

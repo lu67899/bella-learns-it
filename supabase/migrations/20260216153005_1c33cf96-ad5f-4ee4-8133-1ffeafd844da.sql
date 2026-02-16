@@ -1,0 +1,16 @@
+INSERT INTO public.forca_palavras (palavra, dica) VALUES
+('ALGORITMO', 'Sequência de passos para resolver um problema'),
+('VARIAVEL', 'Espaço na memória para armazenar dados'),
+('FUNCAO', 'Bloco de código reutilizável'),
+('RECURSAO', 'Técnica onde uma função chama a si mesma'),
+('COMPILADOR', 'Traduz código fonte para linguagem de máquina'),
+('SERVIDOR', 'Computador que fornece serviços a outros'),
+('PROTOCOLO', 'Conjunto de regras para comunicação em rede'),
+('FIREWALL', 'Barreira de segurança de rede'),
+('HERANCA', 'Mecanismo de reuso em orientação a objetos'),
+('PILHA', 'Estrutura de dados LIFO'),
+('ARVORE', 'Estrutura de dados hierárquica'),
+('GRAFO', 'Estrutura com vértices e arestas'),
+('KERNEL', 'Núcleo do sistema operacional'),
+('DEPLOY', 'Processo de disponibilizar uma aplicação'),
+('BINARIO', 'Sistema numérico de base dois');

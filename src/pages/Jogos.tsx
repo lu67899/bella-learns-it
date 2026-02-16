@@ -12,6 +12,13 @@ const jogos = [
     icon: "🧠",
     to: "/quiz",
   },
+  {
+    id: "forca",
+    nome: "Forca",
+    descricao: "Adivinhe a palavra antes que o boneco seja enforcado",
+    icon: "🪢",
+    to: "/forca",
+  },
 ];
 
 const container = {

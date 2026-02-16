@@ -152,14 +152,12 @@ const Forca = () => {
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
                   className={`w-8 h-10 flex items-center justify-center border-b-2 font-mono font-bold text-lg ${
-                    fimDeJogo && !letrasUsadas.has(letra)
-                      ? "text-destructive border-destructive/50"
-                      : letrasUsadas.has(letra)
+                    letrasUsadas.has(letra)
                       ? "text-foreground border-primary"
                       : "border-muted-foreground/30"
                   }`}
                 >
-                  {letrasUsadas.has(letra) || fimDeJogo ? letra : ""}
+                  {letrasUsadas.has(letra) ? letra : ""}
                 </motion.div>
               ))}
             </div>

@@ -26,6 +26,7 @@ import Forca from "./pages/Forca";
 import CacaPalavras from "./pages/CacaPalavras";
 import JogoDaMemoria from "./pages/JogoDaMemoria";
 import PalavrasCruzadas from "./pages/PalavrasCruzadas";
+import OrdenarPassos from "./pages/OrdenarPassos";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -69,6 +70,7 @@ const AppRoutes = () => (
     <Route path="/caca-palavras" element={<ProtectedRoute><CacaPalavras /></ProtectedRoute>} />
     <Route path="/jogo-da-memoria" element={<ProtectedRoute><JogoDaMemoria /></ProtectedRoute>} />
     <Route path="/palavras-cruzadas" element={<ProtectedRoute><PalavrasCruzadas /></ProtectedRoute>} />
+    <Route path="/ordenar-passos" element={<ProtectedRoute><OrdenarPassos /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

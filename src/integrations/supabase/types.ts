@@ -603,6 +603,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ordenar_passos: {
+        Row: {
+          created_at: string
+          id: string
+          passos: string[]
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          passos: string[]
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          passos?: string[]
+          titulo?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

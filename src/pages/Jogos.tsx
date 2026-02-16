@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Gamepad2, BrainCircuit, ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Gamepad2, ChevronRight, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { Button } from "@/components/ui/button";
 
 const jogos = [
   {
@@ -24,6 +25,7 @@ const item = {
 };
 
 const Jogos = () => {
+  const navigate = useNavigate();
   return (
     <Layout>
       <motion.div
@@ -33,6 +35,9 @@ const Jogos = () => {
         className="max-w-2xl mx-auto space-y-6 pb-20"
       >
         <motion.div variants={item}>
+          <Button variant="ghost" size="sm" className="gap-1.5 mb-4 -ml-2 text-muted-foreground" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Gamepad2 className="h-5 w-5 text-primary" />

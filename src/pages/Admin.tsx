@@ -28,7 +28,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
-  | "quiz" | "forca" | "memoria" | "cruzadas" | "videos" | "desafios" | "frases" 
+  | "quiz" | "forca" | "memoria" | "cruzadas" | "ordenar" | "videos" | "desafios" | "frases" 
   | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates";
 
 const adminSections = [
@@ -49,6 +49,7 @@ const adminSections = [
       { key: "forca" as AdminSection, label: "Forca", icon: Gamepad2, desc: "Palavras do jogo da forca" },
       { key: "memoria" as AdminSection, label: "Memória", icon: BrainCircuit, desc: "Pares do jogo da memória" },
       { key: "cruzadas" as AdminSection, label: "Cruzadas", icon: Gamepad2, desc: "Palavras cruzadas" },
+      { key: "ordenar" as AdminSection, label: "Ordenar", icon: Gamepad2, desc: "Ordene os passos" },
     ],
   },
   {
@@ -125,6 +126,7 @@ const Admin = () => {
       case "forca": return <ForcaTab />;
       case "memoria": return <MemoriaTab />;
       case "cruzadas": return <CruzadasTab />;
+      case "ordenar": return <OrdenarTab />;
       case "videos": return <VideosTab />;
       case "desafios": return <DesafiosTab />;
       case "frases": return <FrasesTab />;
@@ -2156,6 +2158,116 @@ function CruzadasTab() {
           <div className="space-y-4">
             <Input placeholder="Palavra (ex: ALGORITMO)" value={form.palavra} onChange={(e) => setForm({ ...form, palavra: e.target.value })} />
             <Input placeholder="Dica (ex: Sequência de passos para resolver um problema)" value={form.dica} onChange={(e) => setForm({ ...form, dica: e.target.value })} />
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
+  );
+}
+
+// ─── ORDENAR TAB ─────────────────────────────────────────
+function OrdenarTab() {
+  const [items, setItems] = useState<{ id: string; titulo: string; passos: string[] }[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState({ titulo: "", passos: ["", "", ""] });
+
+  const load = async () => {
+    const { data } = await supabase.from("ordenar_passos").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    const passosLimpos = form.passos.filter(p => p.trim() !== "");
+    if (!form.titulo.trim() || passosLimpos.length < 2) { toast.error("Título e pelo menos 2 passos são necessários."); return; }
+    const payload = { titulo: form.titulo.trim(), passos: passosLimpos.map(p => p.trim()) };
+    if (editing) {
+      await supabase.from("ordenar_passos").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("ordenar_passos").insert(payload);
+    }
+    toast.success("Desafio salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", passos: ["", "", ""] }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("ordenar_passos").delete().eq("id", id);
+    toast.success("Desafio removido!"); load();
+  };
+
+  const updatePasso = (index: number, value: string) => {
+    const newPassos = [...form.passos];
+    newPassos[index] = value;
+    setForm({ ...form, passos: newPassos });
+  };
+
+  const addPasso = () => setForm({ ...form, passos: [...form.passos, ""] });
+  const removePasso = (index: number) => {
+    if (form.passos.length <= 2) return;
+    setForm({ ...form, passos: form.passos.filter((_, i) => i !== index) });
+  };
+
+  return (
+    <CrudSection title="Ordene os Passos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", passos: ["", "", ""] }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Título</TableHead>
+            <TableHead>Passos</TableHead>
+            <TableHead className="w-24">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm font-bold">{item.titulo}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.passos.length} etapas</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ titulo: item.titulo, passos: [...item.passos] }); setDialogOpen(true); }}>
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {items.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum desafio cadastrado.</p>}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Desafio</DialogTitle></DialogHeader>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Cadastre os passos na ordem correta. O jogo vai embaralhar automaticamente.
+          </DialogDescription>
+          <div className="space-y-3">
+            <Input placeholder="Título (ex: Ciclo de Vida do Software)" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+            <div className="space-y-2">
+              <p className="text-xs font-mono text-muted-foreground">Passos (na ordem correta):</p>
+              {form.passos.map((passo, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <span className="text-xs font-mono text-muted-foreground w-5 shrink-0">{i + 1}.</span>
+                  <Input
+                    placeholder={`Passo ${i + 1}`}
+                    value={passo}
+                    onChange={(e) => updatePasso(i, e.target.value)}
+                    className="flex-1"
+                  />
+                  {form.passos.length > 2 && (
+                    <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => removePasso(i)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" size="sm" className="w-full gap-1" onClick={addPasso}>
+                <Plus className="h-3 w-3" /> Adicionar passo
+              </Button>
+            </div>
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

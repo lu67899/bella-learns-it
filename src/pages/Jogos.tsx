@@ -40,6 +40,13 @@ const jogos = [
     icon: "✏️",
     to: "/palavras-cruzadas",
   },
+  {
+    id: "ordenar-passos",
+    nome: "Ordene os Passos",
+    descricao: "Coloque as etapas de processos de SI na ordem correta",
+    icon: "📋",
+    to: "/ordenar-passos",
+  },
 ];
 
 const container = {

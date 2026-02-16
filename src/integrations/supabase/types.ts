@@ -357,6 +357,27 @@ export type Database = {
         }
         Relationships: []
       }
+      forca_palavras: {
+        Row: {
+          created_at: string
+          dica: string
+          id: string
+          palavra: string
+        }
+        Insert: {
+          created_at?: string
+          dica: string
+          id?: string
+          palavra: string
+        }
+        Update: {
+          created_at?: string
+          dica?: string
+          id?: string
+          palavra?: string
+        }
+        Relationships: []
+      }
       frases_motivacionais: {
         Row: {
           ativa: boolean

@@ -606,18 +606,21 @@ export type Database = {
       ordenar_passos: {
         Row: {
           created_at: string
+          explicacao: string | null
           id: string
           passos: string[]
           titulo: string
         }
         Insert: {
           created_at?: string
+          explicacao?: string | null
           id?: string
           passos: string[]
           titulo: string
         }
         Update: {
           created_at?: string
+          explicacao?: string | null
           id?: string
           passos?: string[]
           titulo?: string

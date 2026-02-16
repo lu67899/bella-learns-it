@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { PageContainer } from "@/components/PageContainer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,15 +8,60 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Camera, Mail, Award, Maximize, Minimize, User, Coins, Settings } from "lucide-react";
+import { Camera, Mail, Award, Maximize, Minimize, User, Coins, Settings, Loader2, CheckCircle2, Clock, Download } from "lucide-react";
 import { usePageSize } from "@/hooks/usePageSize";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { Progress } from "@/components/ui/progress";
 
 export default function Perfil() {
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { pageSize, setPageSize } = usePageSize();
   const [uploading, setUploading] = useState(false);
+  const [certConfig, setCertConfig] = useState<{ creditos_minimos: number } | null>(null);
+  const [solicitacao, setSolicitacao] = useState<{ id: string; status: string; certificado_url: string | null } | null>(null);
+  const [requesting, setRequesting] = useState(false);
+
+  useEffect(() => {
+    // Load certificate config and user's request
+    const loadCert = async () => {
+      const { data: config } = await supabase.from("certificado_config").select("creditos_minimos").eq("id", 1).single();
+      if (config) setCertConfig(config);
+
+      if (user) {
+        const { data: sol } = await supabase
+          .from("certificado_solicitacoes")
+          .select("id, status, certificado_url")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (sol) setSolicitacao(sol);
+      }
+    };
+    loadCert();
+  }, [user]);
+
+  const requestCertificate = async () => {
+    if (!user) return;
+    setRequesting(true);
+    const { error } = await supabase.from("certificado_solicitacoes").insert({ user_id: user.id });
+    if (error) {
+      toast.error("Erro ao solicitar certificado");
+    } else {
+      toast.success("Certificado solicitado! O administrador será notificado.");
+      // Reload
+      const { data: sol } = await supabase
+        .from("certificado_solicitacoes")
+        .select("id, status, certificado_url")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (sol) setSolicitacao(sol);
+    }
+    setRequesting(false);
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,6 +108,11 @@ export default function Perfil() {
     hidden: { opacity: 0, y: 12 },
     show: { opacity: 1, y: 0 },
   };
+
+  const coins = profile?.coins ?? 0;
+  const minCoins = certConfig?.creditos_minimos ?? 100;
+  const canRequest = coins >= minCoins && !solicitacao;
+  const progressPercent = Math.min((coins / minCoins) * 100, 100);
 
   return (
     <Layout>
@@ -149,7 +199,7 @@ export default function Perfil() {
                     <Coins className="h-10 w-10 text-primary" />
                     <div>
                       <p className="text-2xl font-mono font-bold text-foreground">
-                        {profile?.coins ?? 0}
+                        {coins}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Ganhe 5 moedas ao concluir tópicos ou acertar desafios!
@@ -159,18 +209,63 @@ export default function Perfil() {
                 </Card>
               </motion.div>
 
-              {/* Certificates */}
+              {/* Certificate Section */}
               <motion.div variants={item}>
                 <Card className="p-6 bg-card border-border">
                   <Label className="text-sm font-mono text-foreground mb-3 block">
-                    Certificados conquistados
+                    Certificado
                   </Label>
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Award className="h-10 w-10 text-primary/40" />
-                    <p className="text-sm">
-                      Nenhum certificado conquistado ainda. Complete cursos para ganhar certificados!
-                    </p>
-                  </div>
+
+                  {solicitacao?.status === "enviado" && solicitacao.certificado_url ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-primary">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <span className="text-sm font-medium">Certificado disponível!</span>
+                      </div>
+                      <img
+                        src={solicitacao.certificado_url}
+                        alt="Certificado"
+                        className="w-full rounded-lg border border-border"
+                      />
+                      <a href={solicitacao.certificado_url} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Download className="h-4 w-4" /> Baixar certificado
+                        </Button>
+                      </a>
+                    </div>
+                  ) : solicitacao?.status === "pendente" ? (
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <Clock className="h-10 w-10 text-primary/40" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Solicitação enviada!</p>
+                        <p className="text-xs">Aguardando o administrador enviar seu certificado.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{coins} / {minCoins} créditos</span>
+                          <span>{Math.round(progressPercent)}%</span>
+                        </div>
+                        <Progress value={progressPercent} className="h-2" />
+                      </div>
+
+                      {canRequest ? (
+                        <div className="space-y-2">
+                          <p className="text-sm text-primary font-medium">🎉 Parabéns! Você atingiu os créditos necessários!</p>
+                          <Button onClick={requestCertificate} disabled={requesting} className="gap-1.5">
+                            {requesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Award className="h-4 w-4" />}
+                            Solicitar Certificado
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Alcance {minCoins} créditos para solicitar seu certificado. Continue estudando!
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </Card>
               </motion.div>
             </motion.div>

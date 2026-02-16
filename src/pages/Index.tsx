@@ -287,7 +287,7 @@ const Index = () => {
 
         {/* Header */}
         <motion.div variants={item}>
-          <div className="relative rounded-2xl bg-card border border-border p-5 overflow-hidden">
+          <div className="relative rounded-2xl bg-card border border-border p-5">
             {/* Decorative glow */}
             <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
             <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-accent/10 blur-2xl pointer-events-none" />

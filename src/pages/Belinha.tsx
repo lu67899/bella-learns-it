@@ -181,7 +181,7 @@ const Belinha = () => {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
+      <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-2rem)]">
         {/* Header */}
         <div className="flex items-center justify-between pb-4">
           <div className="flex items-center gap-3">

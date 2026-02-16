@@ -212,9 +212,16 @@ const OrdenarPassos = () => {
                 </div>
 
                 {hasNext ? (
-                  <Button onClick={handleNext} className="w-full gap-1.5" size="sm" variant="outline">
-                    <ChevronRight className="h-3.5 w-3.5" /> Próximo desafio
-                  </Button>
+                  <div className="flex gap-2">
+                    {!isCorrect && (
+                      <Button onClick={() => { setUserOrder(shuffle([...current.passos])); setSubmitted(false); }} className="flex-1 gap-1.5" size="sm" variant="ghost">
+                        <RotateCcw className="h-3.5 w-3.5" /> Tentar de novo
+                      </Button>
+                    )}
+                    <Button onClick={handleNext} className="flex-1 gap-1.5" size="sm" variant="outline">
+                      <ChevronRight className="h-3.5 w-3.5" /> Próximo
+                    </Button>
+                  </div>
                 ) : (
                   <div className="text-center space-y-2">
                     <Card className="border-primary/30 bg-primary/5">

@@ -297,6 +297,7 @@ export type Database = {
           correta: number
           created_at: string
           id: string
+          moedas: number
           opcoes: string[]
           pergunta: string
         }
@@ -304,6 +305,7 @@ export type Database = {
           correta: number
           created_at?: string
           id?: string
+          moedas?: number
           opcoes: string[]
           pergunta: string
         }
@@ -311,6 +313,7 @@ export type Database = {
           correta?: number
           created_at?: string
           id?: string
+          moedas?: number
           opcoes?: string[]
           pergunta?: string
         }
@@ -423,6 +426,7 @@ export type Database = {
           created_at: string
           id: string
           modulo_id: string
+          moedas: number
           ordem: number
           titulo: string
         }
@@ -431,6 +435,7 @@ export type Database = {
           created_at?: string
           id?: string
           modulo_id: string
+          moedas?: number
           ordem?: number
           titulo: string
         }
@@ -439,6 +444,7 @@ export type Database = {
           created_at?: string
           id?: string
           modulo_id?: string
+          moedas?: number
           ordem?: number
           titulo?: string
         }
@@ -711,6 +717,7 @@ export type Database = {
           descricao: string | null
           duracao: number
           id: string
+          moedas: number
           ordem: number
           titulo: string
           updated_at: string
@@ -722,6 +729,7 @@ export type Database = {
           descricao?: string | null
           duracao: number
           id?: string
+          moedas?: number
           ordem?: number
           titulo: string
           updated_at?: string
@@ -733,6 +741,7 @@ export type Database = {
           descricao?: string | null
           duracao?: number
           id?: string
+          moedas?: number
           ordem?: number
           titulo?: string
           updated_at?: string

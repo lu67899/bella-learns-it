@@ -88,10 +88,10 @@ const MixVideo = () => {
       >
         <button
           onClick={() => navigate("/mix")}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Voltar
+          Voltar para Mix
         </button>
 
         {loading ? (

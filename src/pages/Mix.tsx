@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { PlayCircle, Clock, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle2, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -138,6 +138,7 @@ function VideoRow({ title, videos, assistidos }: { title: string; videos: Video[
 }
 
 const Mix = () => {
+  const navigate = useNavigate();
   const { session } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [categorias, setCategorias] = useState<VideoCategoria[]>([]);
@@ -176,6 +177,13 @@ const Mix = () => {
     <Layout>
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-4xl mx-auto space-y-6 pb-20">
         <motion.div variants={item}>
+          <button
+            onClick={() => navigate("/")}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors mb-3"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </button>
           <div className="flex items-center gap-2 mb-1">
             <PlayCircle className="h-5 w-5 text-primary" />
             <h1 className="text-2xl font-bold font-mono">Mix</h1>

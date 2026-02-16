@@ -454,26 +454,41 @@ const Index = () => {
             <div className="space-y-2">
               {cursos.map((curso) => {
                 const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
+                const isComplete = pct === 100;
                 return (
                   <Link key={curso.id} to={`/curso/${curso.id}`}>
-                    <motion.div whileHover={hoverLift} whileTap={tapDown} className="group flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/30 transition-all cursor-pointer">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-mono font-semibold text-muted-foreground group-hover:text-primary transition-colors">
-                        {pct === 100 ? <CheckCircle2 className="h-4 w-4 text-primary" /> : "📚"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-mono text-sm truncate">{curso.nome}</p>
-                        {curso.descricao && <p className="text-xs text-muted-foreground truncate">{curso.descricao}</p>}
-                        <div className="flex items-center gap-2 mt-1">
-                          <SegmentProgress value={pct} segments={5} className="flex-1" />
-                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                            {Math.round(pct)}%
-                          </span>
+                    <motion.div
+                      whileHover={hoverLift}
+                      whileTap={tapDown}
+                      className="group p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isComplete ? "bg-primary/15" : "bg-secondary"} transition-colors`}>
+                          {isComplete ? (
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                          ) : (
+                            <span className="text-base">📚</span>
+                          )}
                         </div>
-                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">
-                          {curso.modulos_count || 0} módulos · {curso.completed_topicos || 0}/{curso.total_topicos || 0} tópicos
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-mono text-sm font-medium truncate">{curso.nome}</p>
+                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          {curso.descricao && (
+                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{curso.descricao}</p>
+                          )}
+                        </div>
                       </div>
-                      <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="mt-3 flex items-center gap-3">
+                        <SegmentProgress value={pct} segments={5} className="flex-1" />
+                        <span className="text-[10px] font-mono text-muted-foreground shrink-0 tabular-nums">
+                          {Math.round(pct)}%
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground/60 font-mono mt-1.5">
+                        {curso.modulos_count || 0} módulos · {curso.completed_topicos || 0}/{curso.total_topicos || 0} tópicos
+                      </p>
                     </motion.div>
                   </Link>
                 );

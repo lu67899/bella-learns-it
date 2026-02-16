@@ -254,8 +254,8 @@ export default function Perfil() {
 
                   {/* Pending request */}
                   {hasPending && (
-                    <div className="flex items-center gap-3 text-muted-foreground mb-4">
-                      <Clock className="h-10 w-10 text-primary/40" />
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <Clock className="h-10 w-10 text-primary/40 shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-foreground">Solicitação enviada!</p>
                         <p className="text-xs">Aguardando o administrador enviar seu certificado.</p>
@@ -266,6 +266,11 @@ export default function Perfil() {
                   {/* Request new certificate */}
                   {!hasPending && (
                     <div className="space-y-4">
+                      {enviados.length > 0 && (
+                        <div className="border-t border-border pt-4">
+                          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Novo certificado</p>
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{coins} / {minCoins} créditos</span>
@@ -291,37 +296,37 @@ export default function Perfil() {
                   )}
                 </Card>
               </motion.div>
-
-              {/* Lightbox */}
-              {viewingCert && (
-                <div
-                  className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-                  onClick={() => setViewingCert(null)}
-                >
-                  <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-10" onClick={() => setViewingCert(null)}>
-                    <Minimize className="h-6 w-6" />
-                  </button>
-                  <img
-                    src={viewingCert}
-                    alt="Certificado"
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <a
-                    href={viewingCert}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute bottom-6 left-1/2 -translate-x-1/2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Button variant="secondary" size="sm" className="gap-1.5">
-                      <Download className="h-4 w-4" /> Baixar
-                    </Button>
-                  </a>
-                </div>
-              )}
             </motion.div>
           </TabsContent>
+
+          {/* Lightbox - rendered outside TabsContent to avoid layout issues */}
+          {viewingCert && (
+            <div
+              className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+              onClick={() => setViewingCert(null)}
+            >
+              <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-10" onClick={() => setViewingCert(null)}>
+                <Minimize className="h-6 w-6" />
+              </button>
+              <img
+                src={viewingCert}
+                alt="Certificado"
+                className="max-w-full max-h-full object-contain rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <a
+                href={viewingCert}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-6 left-1/2 -translate-x-1/2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button variant="secondary" size="sm" className="gap-1.5">
+                  <Download className="h-4 w-4" /> Baixar
+                </Button>
+              </a>
+            </div>
+          )}
 
           <TabsContent value="config">
             <motion.div

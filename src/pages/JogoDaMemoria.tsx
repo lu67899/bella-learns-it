@@ -25,7 +25,7 @@ const JogoDaMemoria = () => {
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [moves, setMoves] = useState(0);
   const [locked, setLocked] = useState(false);
-  const [allWords, setAllWords] = useState<{ palavra: string; dica: string; id: string }[]>([]);
+  const [allPairs, setAllPairs] = useState<{ termo: string; definicao: string; id: string }[]>([]);
   const [gameWon, setGameWon] = useState(false);
   const [seconds, setSeconds] = useState(0);
 
@@ -39,12 +39,12 @@ const JogoDaMemoria = () => {
   };
 
   const buildCards = useCallback(
-    (words: { palavra: string; dica: string; id: string }[]) => {
-      const selected = shuffle(words).slice(0, TOTAL_PAIRS);
+    (pairs: { termo: string; definicao: string; id: string }[]) => {
+      const selected = shuffle(pairs).slice(0, TOTAL_PAIRS);
       const deck: MemoryCard[] = [];
-      selected.forEach((w) => {
-        deck.push({ id: `t-${w.id}`, content: w.palavra, type: "termo", pairId: w.id });
-        deck.push({ id: `d-${w.id}`, content: w.dica, type: "definicao", pairId: w.id });
+      selected.forEach((p) => {
+        deck.push({ id: `t-${p.id}`, content: p.termo, type: "termo", pairId: p.id });
+        deck.push({ id: `d-${p.id}`, content: p.definicao, type: "definicao", pairId: p.id });
       });
       return shuffle(deck);
     },
@@ -53,9 +53,9 @@ const JogoDaMemoria = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("forca_palavras").select("id, palavra, dica");
+      const { data } = await supabase.from("memoria_pares").select("id, termo, definicao");
       if (data && data.length > 0) {
-        setAllWords(data);
+        setAllPairs(data);
         setCards(buildCards(data));
       }
       setLoading(false);
@@ -101,7 +101,7 @@ const JogoDaMemoria = () => {
   };
 
   const restart = () => {
-    setCards(buildCards(allWords));
+    setCards(buildCards(allPairs));
     setFlipped([]);
     setMatched(new Set());
     setMoves(0);
@@ -123,7 +123,7 @@ const JogoDaMemoria = () => {
     );
   }
 
-  if (allWords.length < TOTAL_PAIRS) {
+  if (allPairs.length < TOTAL_PAIRS) {
     return (
       <Layout>
         <div className="max-w-md mx-auto space-y-4 pb-20">

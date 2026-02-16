@@ -1,1 +1,0 @@
-ALTER TABLE public.ordenar_passos ADD COLUMN moedas integer NOT NULL DEFAULT 5;

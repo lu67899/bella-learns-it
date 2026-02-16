@@ -2168,10 +2168,10 @@ function CruzadasTab() {
 
 // ─── ORDENAR TAB ─────────────────────────────────────────
 function OrdenarTab() {
-  const [items, setItems] = useState<{ id: string; titulo: string; passos: string[]; moedas: number }[]>([]);
+  const [items, setItems] = useState<{ id: string; titulo: string; passos: string[] }[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ titulo: "", passos: ["", "", ""], moedas: "5" });
+  const [form, setForm] = useState({ titulo: "", passos: ["", "", ""] });
 
   const load = async () => {
     const { data } = await supabase.from("ordenar_passos").select("*").order("created_at", { ascending: false });
@@ -2182,13 +2182,13 @@ function OrdenarTab() {
   const save = async () => {
     const passosLimpos = form.passos.filter(p => p.trim() !== "");
     if (!form.titulo.trim() || passosLimpos.length < 2) { toast.error("Título e pelo menos 2 passos são necessários."); return; }
-    const payload = { titulo: form.titulo.trim(), passos: passosLimpos.map(p => p.trim()), moedas: parseInt(form.moedas) || 5 };
+    const payload = { titulo: form.titulo.trim(), passos: passosLimpos.map(p => p.trim()) };
     if (editing) {
       await supabase.from("ordenar_passos").update(payload).eq("id", editing.id);
     } else {
       await supabase.from("ordenar_passos").insert(payload);
     }
-    toast.success("Desafio salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", passos: ["", "", ""], moedas: "5" }); load();
+    toast.success("Desafio salvo!"); setDialogOpen(false); setEditing(null); setForm({ titulo: "", passos: ["", "", ""] }); load();
   };
 
   const remove = async (id: string) => {
@@ -2209,13 +2209,12 @@ function OrdenarTab() {
   };
 
   return (
-    <CrudSection title="Ordene os Passos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", passos: ["", "", ""], moedas: "5" }); setDialogOpen(true); }}>
+    <CrudSection title="Ordene os Passos" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", passos: ["", "", ""] }); setDialogOpen(true); }}>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Título</TableHead>
             <TableHead>Passos</TableHead>
-            <TableHead>Moedas</TableHead>
             <TableHead className="w-24">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -2224,10 +2223,9 @@ function OrdenarTab() {
             <TableRow key={item.id}>
               <TableCell className="font-mono text-sm font-bold">{item.titulo}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{item.passos.length} etapas</TableCell>
-              <TableCell className="font-mono text-sm">{item.moedas}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ titulo: item.titulo, passos: [...item.passos], moedas: String(item.moedas ?? 5) }); setDialogOpen(true); }}>
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ titulo: item.titulo, passos: [...item.passos] }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
@@ -2270,7 +2268,6 @@ function OrdenarTab() {
                 <Plus className="h-3 w-3" /> Adicionar passo
               </Button>
             </div>
-            <Input placeholder="Moedas por acerto (ex: 5)" type="number" value={form.moedas} onChange={(e) => setForm({ ...form, moedas: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

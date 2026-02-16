@@ -1,26 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
-import { ArrowLeft, RotateCcw, Loader2, Trophy, ArrowUp, ArrowDown, Check, ChevronRight, Coins } from "lucide-react";
+import { ArrowLeft, RotateCcw, Loader2, Trophy, ArrowUp, ArrowDown, Check, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface Challenge {
   id: string;
   titulo: string;
   passos: string[];
   explicacao: string | null;
-  moedas: number;
 }
 
 const OrdenarPassos = () => {
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -28,7 +24,6 @@ const OrdenarPassos = () => {
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
-  const [coinsEarned, setCoinsEarned] = useState(0);
 
   const shuffle = <T,>(arr: T[]): T[] => {
     const a = [...arr];
@@ -41,7 +36,7 @@ const OrdenarPassos = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("ordenar_passos").select("id, titulo, passos, explicacao, moedas");
+      const { data } = await supabase.from("ordenar_passos").select("id, titulo, passos, explicacao");
       if (data && data.length > 0) {
         const shuffled = shuffle(data);
         setChallenges(shuffled);
@@ -66,22 +61,10 @@ const OrdenarPassos = () => {
     setUserOrder(newOrder);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setSubmitted(true);
     setTotal((t) => t + 1);
-    if (isCorrect) {
-      setScore((s) => s + 1);
-      const reward = current.moedas ?? 5;
-      if (user && reward > 0) {
-        const { data: profile } = await supabase.from("profiles").select("coins").eq("user_id", user.id).single();
-        if (profile) {
-          await supabase.from("profiles").update({ coins: profile.coins + reward }).eq("user_id", user.id);
-        }
-        setCoinsEarned((c) => c + reward);
-        refreshProfile();
-        toast.success(`+${reward} moedas! 🪙`);
-      }
-    }
+    if (isCorrect) setScore((s) => s + 1);
   };
 
   const handleNext = () => {
@@ -100,7 +83,6 @@ const OrdenarPassos = () => {
     setSubmitted(false);
     setScore(0);
     setTotal(0);
-    setCoinsEarned(0);
   };
 
   const getStepStatus = (step: string, index: number): "correct" | "wrong" | "neutral" => {
@@ -251,11 +233,6 @@ const OrdenarPassos = () => {
                         <p className="text-xs text-muted-foreground">
                           Você acertou <strong>{score}</strong> de <strong>{total}</strong> desafios
                         </p>
-                        {coinsEarned > 0 && (
-                          <p className="text-xs text-primary flex items-center justify-center gap-1">
-                            <Coins className="h-3 w-3" /> +{coinsEarned} moedas ganhas!
-                          </p>
-                        )}
                       </CardContent>
                     </Card>
                     <Button size="sm" variant="ghost" className="gap-1.5" onClick={restart}>

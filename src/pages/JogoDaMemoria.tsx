@@ -163,50 +163,33 @@ const JogoDaMemoria = () => {
             const isFlipped = flipped.includes(i) || matched.has(card.pairId);
             const isMatched = matched.has(card.pairId);
             return (
-              <motion.div
+              <div
                 key={card.id}
-                whileTap={!isFlipped ? { scale: 0.95 } : {}}
                 onClick={() => handleFlip(i)}
-                className={`relative cursor-pointer select-none aspect-square rounded-lg border-2 transition-colors duration-300 ${
+                className={`relative cursor-pointer select-none aspect-[3/4] rounded-lg border transition-colors duration-300 overflow-hidden ${
                   isMatched
                     ? "border-primary/40 bg-primary/5"
                     : isFlipped
                     ? "border-accent bg-card"
-                    : "border-border bg-muted hover:border-primary/30"
-                }`}
+                    : "border-border bg-muted hover:border-primary/30 active:scale-95"
+                } transition-transform`}
               >
-                <AnimatePresence mode="wait">
-                  {isFlipped ? (
-                    <motion.div
-                      key="front"
-                      initial={{ rotateY: 90, opacity: 0 }}
-                      animate={{ rotateY: 0, opacity: 1 }}
-                      exit={{ rotateY: 90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute inset-0 flex items-center justify-center p-2"
-                    >
-                      <p className={`text-center font-mono leading-tight ${
-                        card.type === "termo"
-                          ? "text-xs sm:text-sm font-bold text-foreground"
-                          : "text-[10px] sm:text-xs text-muted-foreground italic"
-                      }`}>
-                        {card.content}
-                      </p>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="back"
-                      initial={{ rotateY: -90, opacity: 0 }}
-                      animate={{ rotateY: 0, opacity: 1 }}
-                      exit={{ rotateY: -90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span className="text-2xl">❓</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                {isFlipped ? (
+                  <div className="absolute inset-0 flex items-center justify-center p-1.5">
+                    <p className={`text-center leading-tight break-words ${
+                      card.type === "termo"
+                        ? "text-[10px] sm:text-xs font-bold text-foreground font-mono"
+                        : "text-[9px] sm:text-[10px] text-muted-foreground italic"
+                    }`}>
+                      {card.content}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg">❓</span>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

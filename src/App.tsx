@@ -8,7 +8,7 @@ import { AppFeaturesProvider } from "@/contexts/AppFeaturesContext";
 import Index from "./pages/Index";
 import Resumos from "./pages/Resumos";
 import ResumoDetalhe from "./pages/ResumoDetalhe";
-import Flashcards from "./pages/Flashcards";
+import Quiz from "./pages/Flashcards";
 import Cronograma from "./pages/Cronograma";
 import Anotacoes from "./pages/Anotacoes";
 import Admin from "./pages/Admin";
@@ -46,7 +46,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
     <Route path="/resumos" element={<ProtectedRoute><Resumos /></ProtectedRoute>} />
     <Route path="/resumos/:id" element={<ProtectedRoute><ResumoDetalhe /></ProtectedRoute>} />
-    <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
+    <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
     <Route path="/cronograma" element={<ProtectedRoute><Cronograma /></ProtectedRoute>} />
     <Route path="/anotacoes" element={<ProtectedRoute><Anotacoes /></ProtectedRoute>} />
     <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />

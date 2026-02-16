@@ -19,7 +19,7 @@ const ADMIN_PASSWORD = "bella2024";
 
 // Types
 interface Resumo { id: string; materia: string; titulo: string; conteudo: string; created_at: string; }
-interface Flashcard { id: string; materia: string; pergunta: string; resposta: string; created_at: string; }
+
 interface QuizQuestion { id: string; materia: string; pergunta: string; opcoes: string[]; correta: number; created_at: string; }
 interface CronogramaItem { id: string; titulo: string; materia: string; dia_semana: number; horario: string; concluida: boolean; created_at: string; }
 interface Anotacao { id: string; titulo: string; conteudo: string; materia: string | null; tags: string[] | null; created_at: string; }
@@ -28,7 +28,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
-  | "flashcards" | "quiz" | "videos" | "desafios" | "frases" 
+  | "quiz" | "videos" | "desafios" | "frases" 
   | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates";
 
 const adminSections = [
@@ -45,7 +45,6 @@ const adminSections = [
     items: [
       { key: "materias" as AdminSection, label: "Matérias", icon: Tag, desc: "Categorias de matérias" },
       { key: "resumos" as AdminSection, label: "Resumos", icon: BookOpen, desc: "Resumos de conteúdo" },
-      { key: "flashcards" as AdminSection, label: "Flashcards", icon: BrainCircuit, desc: "Cartões de estudo" },
       { key: "quiz" as AdminSection, label: "Quiz", icon: BrainCircuit, desc: "Questões de quiz" },
     ],
   },
@@ -118,7 +117,7 @@ const Admin = () => {
       case "modulos": return <ModulosTab />;
       case "materias": return <MateriasTab />;
       case "resumos": return <ResumosTab />;
-      case "flashcards": return <FlashcardsTab />;
+      
       case "quiz": return <QuizTab />;
       case "videos": return <VideosTab />;
       case "desafios": return <DesafiosTab />;
@@ -417,70 +416,7 @@ function ResumosTab() {
   );
 }
 
-// ─── FLASHCARDS TAB ──────────────────────────────────────
-function FlashcardsTab() {
-  const [items, setItems] = useState<Flashcard[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Flashcard | null>(null);
-  const [form, setForm] = useState({ materia: "", pergunta: "", resposta: "" });
-  const { materias } = useMaterias();
 
-  const load = async () => {
-    const { data } = await supabase.from("flashcards").select("*").order("created_at", { ascending: false });
-    if (data) setItems(data);
-  };
-  useEffect(() => { load(); }, []);
-
-  const save = async () => {
-    if (!form.materia || !form.pergunta || !form.resposta) return;
-    if (editing) {
-      await supabase.from("flashcards").update(form).eq("id", editing.id);
-    } else {
-      await supabase.from("flashcards").insert(form);
-    }
-    toast.success("Flashcard salvo!"); setDialogOpen(false); setEditing(null); setForm({ materia: "", pergunta: "", resposta: "" }); load();
-  };
-
-  const remove = async (id: string) => {
-    await supabase.from("flashcards").delete().eq("id", id);
-    toast.success("Removido!"); load();
-  };
-
-  const edit = (item: Flashcard) => {
-    setEditing(item); setForm({ materia: item.materia, pergunta: item.pergunta, resposta: item.resposta }); setDialogOpen(true);
-  };
-
-  return (
-    <CrudSection title="Flashcards" count={items.length} onAdd={() => { setEditing(null); setForm({ materia: "", pergunta: "", resposta: "" }); setDialogOpen(true); }}>
-      <Table>
-        <TableHeader><TableRow><TableHead>Matéria</TableHead><TableHead>Pergunta</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell><Badge variant="outline" className="text-primary border-primary/30">{item.materia}</Badge></TableCell>
-              <TableCell className="font-mono text-sm">{item.pergunta}</TableCell>
-              <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Flashcard</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <Select value={form.materia} onValueChange={(v) => setForm({ ...form, materia: v })}>
-              <SelectTrigger><SelectValue placeholder="Matéria" /></SelectTrigger>
-              <SelectContent>{materias.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-            <Input placeholder="Pergunta" value={form.pergunta} onChange={(e) => setForm({ ...form, pergunta: e.target.value })} />
-            <Textarea placeholder="Resposta" rows={4} value={form.resposta} onChange={(e) => setForm({ ...form, resposta: e.target.value })} />
-            <Button onClick={save} className="w-full">Salvar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </CrudSection>
-  );
-}
 
 // ─── QUIZ TAB ────────────────────────────────────────────
 function QuizTab() {
@@ -513,7 +449,7 @@ function QuizTab() {
         titulo: "Novo Quiz disponível! 🎯",
         mensagem: `Nova questão de ${form.materia} foi adicionada. Teste seus conhecimentos!`,
         tipo: "novo_conteudo",
-        link: "/flashcards",
+        link: "/quiz",
       });
     }
     toast.success("Questão salva!"); setDialogOpen(false); setEditing(null);

@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function Perfil() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const { pageSize, setPageSize } = usePageSize();
   const [uploading, setUploading] = useState(false);
 
@@ -45,7 +45,7 @@ export default function Perfil() {
       if (updateError) throw updateError;
 
       toast.success("Foto atualizada com sucesso!");
-      window.location.reload();
+      await refreshProfile();
     } catch (err: any) {
       toast.error("Erro ao enviar foto: " + err.message);
     } finally {

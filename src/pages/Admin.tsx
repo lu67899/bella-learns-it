@@ -1836,8 +1836,15 @@ function CertificadosTab() {
       const url = `${urlData.publicUrl}?t=${Date.now()}`;
 
       await supabase.from("certificado_solicitacoes").update({ status: "enviado", certificado_url: url }).eq("id", solicitacaoId);
-      await supabase.from("profiles").update({ coins: 0 }).eq("user_id", userId);
-      toast.success("Certificado enviado e moedas zeradas!");
+      
+      // Subtract the certificate cost instead of zeroing
+      const { data: config } = await supabase.from("certificado_config").select("creditos_minimos").eq("id", 1).single();
+      const cost = config?.creditos_minimos ?? 100;
+      const { data: profile } = await supabase.from("profiles").select("coins").eq("user_id", userId).single();
+      const currentCoins = profile?.coins ?? 0;
+      const newCoins = Math.max(currentCoins - cost, 0);
+      await supabase.from("profiles").update({ coins: newCoins }).eq("user_id", userId);
+      toast.success(`Certificado enviado! ${cost} moedas descontadas.`);
       load();
     } catch (err: any) {
       toast.error("Erro: " + err.message);

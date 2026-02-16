@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Moon, Sparkles, Wand2, Coins, ChevronDown } from "lucide-react";
+import { User, LogOut, Moon, Sparkles, Wand2, Coins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const themeConfig = {
@@ -32,25 +32,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b border-border bg-background/80 backdrop-blur-sm px-4">
-            <SidebarTrigger />
+          <header className="sticky top-0 z-10 flex h-11 items-center justify-end border-b border-border bg-background/80 backdrop-blur-sm px-4">
             <DropdownMenu>
-              <DropdownMenuTrigger className="outline-none focus:outline-none">
-                <div className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 hover:bg-secondary/60 transition-colors cursor-pointer">
-                  <Avatar className="h-7 w-7 ring-2 ring-primary/20">
+              <DropdownMenuTrigger asChild>
+                <button className="outline-none focus:outline-none rounded-full">
+                  <Avatar className="h-8 w-8 ring-2 ring-primary/30 hover:ring-primary/60 transition-all cursor-pointer">
                     <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/15 text-primary text-[11px] font-mono font-bold">
+                    <AvatarFallback className="bg-primary/15 text-primary text-xs font-mono font-bold">
                       {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-mono text-muted-foreground hidden sm:inline">
-                    {profile?.display_name || "Usuário"}
-                  </span>
-                  <ChevronDown className="h-3 w-3 text-muted-foreground/60" />
-                </div>
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 p-1.5">
-                <div className="px-2 py-2 mb-1">
+              <DropdownMenuContent align="end" sideOffset={8} className="w-52 p-1.5 z-50 bg-popover border border-border shadow-lg">
+                <div className="px-2 py-2.5 mb-1">
                   <p className="text-sm font-mono font-semibold text-foreground truncate">
                     {profile?.display_name || "Usuário"}
                   </p>

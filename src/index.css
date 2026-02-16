@@ -170,3 +170,8 @@
     border: 1px solid hsl(270 70% 60% / 0.3);
   }
 }
+
+@keyframes slide-nudge {
+  0%, 100% { transform: translateX(0); opacity: 0.5; }
+  50% { transform: translateX(3px); opacity: 1; }
+}

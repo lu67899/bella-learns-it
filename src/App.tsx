@@ -21,6 +21,7 @@ import MixVideo from "./pages/MixVideo";
 import Noticias from "./pages/Noticias";
 import Perfil from "./pages/Perfil";
 import Belinha from "./pages/Belinha";
+import Jogos from "./pages/Jogos";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -59,6 +60,7 @@ const AppRoutes = () => (
     <Route path="/noticias" element={<ProtectedRoute><Noticias /></ProtectedRoute>} />
     <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
     <Route path="/belinha" element={<ProtectedRoute><Belinha /></ProtectedRoute>} />
+    <Route path="/jogos" element={<ProtectedRoute><Jogos /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

@@ -422,7 +422,7 @@ const Index = () => {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Resumos", to: "/resumos", icon: "📖", type: "emoji" as const },
-              { label: "Quiz", to: "/quiz", icon: "🧠", type: "emoji" as const },
+              { label: "Jogos", to: "/jogos", icon: "🎮", type: "emoji" as const },
               { label: "Mix", to: "/mix", icon: PlayCircle, type: "icon" as const },
               { label: "Belinha", to: "/belinha", icon: Bot, type: "icon" as const },
             ].map((a) => {

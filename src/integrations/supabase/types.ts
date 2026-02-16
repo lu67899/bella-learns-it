@@ -583,6 +583,36 @@ export type Database = {
         }
         Relationships: []
       }
+      resgate_solicitacoes: {
+        Row: {
+          chave_pix: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+          valor_moedas: number
+        }
+        Insert: {
+          chave_pix: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor_moedas: number
+        }
+        Update: {
+          chave_pix?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor_moedas?: number
+        }
+        Relationships: []
+      }
       resumos: {
         Row: {
           conteudo: string

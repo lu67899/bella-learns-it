@@ -29,7 +29,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
   | "flashcards" | "quiz" | "videos" | "desafios" | "frases" 
-  | "mensagens" | "perfil" | "belinha" | "certificados";
+  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates";
 
 const adminSections = [
   {
@@ -61,6 +61,7 @@ const adminSections = [
     group: "⚙️ Configurações",
     items: [
       { key: "certificados" as AdminSection, label: "Certificados", icon: Award, desc: "Solicitações e config" },
+      { key: "resgates" as AdminSection, label: "Resgates", icon: Award, desc: "Solicitações de resgate PIX" },
       { key: "perfil" as AdminSection, label: "Perfil Admin", icon: User, desc: "Nome e foto do admin" },
       { key: "belinha" as AdminSection, label: "Belinha IA", icon: Bot, desc: "Assistente e stories" },
     ],
@@ -126,6 +127,7 @@ const Admin = () => {
       case "perfil": return <AdminConfigTab />;
       case "belinha": return <BelinhaConfigTab />;
       case "certificados": return <CertificadosTab />;
+      case "resgates": return <ResgatesTab />;
       default: return null;
     }
   };
@@ -673,6 +675,75 @@ function DesafiosTab() {
         </DialogContent>
       </Dialog>
     </CrudSection>
+  );
+}
+// ─── RESGATES TAB ──────────────────────────────────
+function ResgatesTab() {
+  const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    const { data: sols } = await supabase
+      .from("resgate_solicitacoes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (sols) {
+      const userIds = [...new Set(sols.map((s: any) => s.user_id))];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      setSolicitacoes(sols.map((s: any) => ({ ...s, profile: profileMap.get(s.user_id) })));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const markAsPaid = async (id: string) => {
+    await supabase.from("resgate_solicitacoes").update({ status: "pago" }).eq("id", id);
+    toast.success("Resgate marcado como pago!");
+    load();
+  };
+
+  return (
+    <div className="space-y-6 mt-4">
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="font-mono text-base flex items-center gap-2">
+            Solicitações de Resgate <Badge variant="secondary">{solicitacoes.filter((s: any) => s.status === "pendente").length} pendentes</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : solicitacoes.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Nenhuma solicitação ainda.</p>
+          ) : (
+            <div className="space-y-3">
+              {solicitacoes.map((s: any) => (
+                <div key={s.id} className={`flex items-center justify-between gap-3 p-3 rounded-lg border ${s.status === "pendente" ? "border-primary/30 bg-primary/5" : "border-border"}`}>
+                  <div>
+                    <p className="text-sm font-mono font-medium">{s.profile?.display_name || "Desconhecido"}</p>
+                    <p className="text-[10px] text-muted-foreground">{s.valor_moedas} moedas • {new Date(s.created_at).toLocaleDateString("pt-BR")}</p>
+                    <p className="text-xs text-foreground mt-1">PIX: <span className="font-mono">{s.chave_pix}</span></p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {s.status === "pago" ? (
+                      <Badge className="bg-primary/20 text-primary border-0">Pago ✓</Badge>
+                    ) : (
+                      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => markAsPaid(s.id)}>
+                        <Check className="h-3.5 w-3.5" />
+                        Marcar como pago
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PlayCircle, Clock } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -39,7 +40,6 @@ const item = {
 const Mix = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -49,10 +49,6 @@ const Mix = () => {
     };
     load();
   }, []);
-
-  const handleToggleVideo = (id: string) => {
-    setActiveVideoId(prev => prev === id ? null : id);
-  };
 
   return (
     <Layout>
@@ -73,49 +69,36 @@ const Mix = () => {
           <div className="space-y-4">
             {videos.map((video) => {
               const videoId = extrairVideoId(video.url_youtube);
-              const isActive = activeVideoId === video.id;
               return (
                 <motion.div key={video.id} variants={item}>
-                  <Card
-                    className="overflow-hidden bg-card border-border cursor-pointer"
-                    onClick={() => handleToggleVideo(video.id)}
-                  >
-                    {videoId && isActive ? (
-                      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                        <iframe
-                          className="absolute inset-0 w-full h-full"
-                          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                          title={video.titulo}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </div>
-                    ) : videoId ? (
-                      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                        <img
-                          src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                          alt={video.titulo}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <PlayCircle className="h-14 w-14 text-white/90" />
+                  <Link to={`/mix/${video.id}`}>
+                    <Card className="overflow-hidden bg-card border-border cursor-pointer hover:border-primary/30 transition-colors">
+                      {videoId && (
+                        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                          <img
+                            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                            alt={video.titulo}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <PlayCircle className="h-14 w-14 text-white/90" />
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
-                    <div className="p-4 space-y-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <h2 className="font-mono font-semibold text-sm">{video.titulo}</h2>
-                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
-                          <Clock className="h-3 w-3" />
-                          {formatarDuracao(video.duracao)}
-                        </span>
-                      </div>
-                      {video.descricao && (
-                        <p className="text-xs text-muted-foreground">{video.descricao}</p>
                       )}
-                    </div>
-                  </Card>
+                      <div className="p-4 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h2 className="font-mono font-semibold text-sm">{video.titulo}</h2>
+                          <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
+                            <Clock className="h-3 w-3" />
+                            {formatarDuracao(video.duracao)}
+                          </span>
+                        </div>
+                        {video.descricao && (
+                          <p className="text-xs text-muted-foreground">{video.descricao}</p>
+                        )}
+                      </div>
+                    </Card>
+                  </Link>
                 </motion.div>
               );
             })}

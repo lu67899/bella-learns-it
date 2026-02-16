@@ -293,9 +293,9 @@ const Index = () => {
             <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
 
             <div className="relative flex items-start justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-xs text-muted-foreground font-mono tracking-wider uppercase">{saudacao}</p>
-                <h1 className="text-2xl font-bold font-mono mt-1">
+                <h1 className="text-2xl font-bold font-mono mt-1 truncate">
                   Olá, <span className="text-gradient">{profile?.display_name || "Estudante"}</span>
                 </h1>
               </div>

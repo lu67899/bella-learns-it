@@ -3,6 +3,17 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2, Circle } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -197,9 +208,27 @@ const ModuloPage = () => {
                           <CheckCircle2 className="h-3.5 w-3.5" /> Concluído
                         </Button>
                       ) : (
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full" onClick={() => markComplete(selectedTopico.id)}>
-                          <Circle className="h-3.5 w-3.5" /> Marcar como concluído
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full">
+                              <Circle className="h-3.5 w-3.5" /> Marcar como concluído
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar conclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja marcar este tópico como concluído? Essa ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => markComplete(selectedTopico.id)}>
+                                Confirmar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
                     </div>
                   )}

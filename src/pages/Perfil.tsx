@@ -21,8 +21,9 @@ export default function Perfil() {
   const { pageSize, setPageSize } = usePageSize();
   const [uploading, setUploading] = useState(false);
   const [certConfig, setCertConfig] = useState<{ creditos_minimos: number } | null>(null);
-  const [solicitacao, setSolicitacao] = useState<{ id: string; status: string; certificado_url: string | null } | null>(null);
+  const [certificados, setCertificados] = useState<{ id: string; status: string; certificado_url: string | null; created_at: string }[]>([]);
   const [requesting, setRequesting] = useState(false);
+  const [viewingCert, setViewingCert] = useState<string | null>(null);
 
   useEffect(() => {
     // Load certificate config and user's request
@@ -31,14 +32,12 @@ export default function Perfil() {
       if (config) setCertConfig(config);
 
       if (user) {
-        const { data: sol } = await supabase
+        const { data: sols } = await supabase
           .from("certificado_solicitacoes")
-          .select("id, status, certificado_url")
+          .select("id, status, certificado_url, created_at")
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (sol) setSolicitacao(sol);
+          .order("created_at", { ascending: false });
+        if (sols) setCertificados(sols);
       }
     };
     loadCert();
@@ -52,15 +51,12 @@ export default function Perfil() {
       toast.error("Erro ao solicitar certificado");
     } else {
       toast.success("Certificado solicitado! O administrador será notificado.");
-      // Reload
-      const { data: sol } = await supabase
+      const { data: sols } = await supabase
         .from("certificado_solicitacoes")
-        .select("id, status, certificado_url")
+        .select("id, status, certificado_url, created_at")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (sol) setSolicitacao(sol);
+        .order("created_at", { ascending: false });
+      if (sols) setCertificados(sols);
     }
     setRequesting(false);
   };
@@ -113,7 +109,9 @@ export default function Perfil() {
 
   const coins = profile?.coins ?? 0;
   const minCoins = certConfig?.creditos_minimos ?? 100;
-  const canRequest = coins >= minCoins && !solicitacao;
+  const hasPending = certificados.some((c) => c.status === "pendente");
+  const enviados = certificados.filter((c) => c.status === "enviado" && c.certificado_url);
+  const canRequest = coins >= minCoins && !hasPending;
   const progressPercent = Math.min((coins / minCoins) * 100, 100);
 
   return (
@@ -218,39 +216,55 @@ export default function Perfil() {
                 </Card>
               </motion.div>
 
-              {/* Certificate Section */}
+              {/* Certificate Gallery */}
               <motion.div variants={item}>
                 <Card className="p-6 bg-card border-border">
                   <Label className="text-sm font-mono text-foreground mb-3 block">
-                    Certificado
+                    Certificados
                   </Label>
 
-                  {solicitacao?.status === "enviado" && solicitacao.certificado_url ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-primary">
-                        <CheckCircle2 className="h-5 w-5" />
-                        <span className="text-sm font-medium">Certificado disponível!</span>
+                  {/* Gallery of received certificates */}
+                  {enviados.length > 0 && (
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2 text-primary mb-2">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="text-sm font-medium">{enviados.length} certificado{enviados.length > 1 ? "s" : ""} disponíve{enviados.length > 1 ? "is" : "l"}</span>
                       </div>
-                      <img
-                        src={solicitacao.certificado_url}
-                        alt="Certificado"
-                        className="w-full rounded-lg border border-border"
-                      />
-                      <a href={solicitacao.certificado_url} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <Download className="h-4 w-4" /> Baixar certificado
-                        </Button>
-                      </a>
+                      <div className="grid grid-cols-2 gap-3">
+                        {enviados.map((cert) => (
+                          <div key={cert.id} className="group relative rounded-lg border border-border overflow-hidden cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setViewingCert(cert.certificado_url)}>
+                            <img
+                              src={cert.certificado_url!}
+                              alt="Certificado"
+                              className="w-full aspect-[4/3] object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <Maximize className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                            </div>
+                            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
+                              <p className="text-[9px] text-white/80 font-mono">
+                                {new Date(cert.created_at).toLocaleDateString("pt-BR")}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ) : solicitacao?.status === "pendente" ? (
-                    <div className="flex items-center gap-3 text-muted-foreground">
+                  )}
+
+                  {/* Pending request */}
+                  {hasPending && (
+                    <div className="flex items-center gap-3 text-muted-foreground mb-4">
                       <Clock className="h-10 w-10 text-primary/40" />
                       <div>
                         <p className="text-sm font-medium text-foreground">Solicitação enviada!</p>
                         <p className="text-xs">Aguardando o administrador enviar seu certificado.</p>
                       </div>
                     </div>
-                  ) : (
+                  )}
+
+                  {/* Request new certificate */}
+                  {!hasPending && (
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs text-muted-foreground">
@@ -277,6 +291,35 @@ export default function Perfil() {
                   )}
                 </Card>
               </motion.div>
+
+              {/* Lightbox */}
+              {viewingCert && (
+                <div
+                  className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                  onClick={() => setViewingCert(null)}
+                >
+                  <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-10" onClick={() => setViewingCert(null)}>
+                    <Minimize className="h-6 w-6" />
+                  </button>
+                  <img
+                    src={viewingCert}
+                    alt="Certificado"
+                    className="max-w-full max-h-full object-contain rounded-lg"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <a
+                    href={viewingCert}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute bottom-6 left-1/2 -translate-x-1/2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button variant="secondary" size="sm" className="gap-1.5">
+                      <Download className="h-4 w-4" /> Baixar
+                    </Button>
+                  </a>
+                </div>
+              )}
             </motion.div>
           </TabsContent>
 

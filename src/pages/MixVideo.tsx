@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Clock, PlayCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Video {
   id: string;
@@ -28,6 +29,7 @@ function formatarDuracao(minutos: number): string {
 const MixVideo = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { session } = useAuth();
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,9 +39,17 @@ const MixVideo = () => {
       const { data } = await supabase.from("videos").select("*").eq("id", id).single();
       if (data) setVideo(data);
       setLoading(false);
+
+      // Mark as watched
+      if (session?.user?.id && id) {
+        await supabase.from("video_assistido").upsert(
+          { user_id: session.user.id, video_id: id },
+          { onConflict: "user_id,video_id" }
+        );
+      }
     };
     load();
-  }, [id]);
+  }, [id, session?.user?.id]);
 
   const videoId = video ? extrairVideoId(video.url_youtube) : null;
 

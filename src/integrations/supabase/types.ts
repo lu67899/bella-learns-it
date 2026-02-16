@@ -606,6 +606,35 @@ export type Database = {
         }
         Relationships: []
       }
+      video_assistido: {
+        Row: {
+          assistido_em: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          assistido_em?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          assistido_em?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_assistido_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           created_at: string

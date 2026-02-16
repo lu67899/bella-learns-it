@@ -12,6 +12,7 @@ interface Challenge {
   id: string;
   titulo: string;
   passos: string[];
+  explicacao: string | null;
 }
 
 const OrdenarPassos = () => {
@@ -35,7 +36,7 @@ const OrdenarPassos = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("ordenar_passos").select("id, titulo, passos");
+      const { data } = await supabase.from("ordenar_passos").select("id, titulo, passos, explicacao");
       if (data && data.length > 0) {
         const shuffled = shuffle(data);
         setChallenges(shuffled);
@@ -202,14 +203,10 @@ const OrdenarPassos = () => {
                   <p className="font-mono font-bold text-sm">
                     {isCorrect ? "🎉 Ordem correta!" : "❌ Ordem incorreta"}
                   </p>
-                  {!isCorrect && (
-                    <div className="mt-2 text-left space-y-1">
-                      <p className="text-[10px] font-mono opacity-70">Ordem correta:</p>
-                      {current.passos.map((step, i) => (
-                        <p key={i} className="text-[10px] leading-tight">
-                          <span className="font-bold">{i + 1}.</span> {step}
-                        </p>
-                      ))}
+                  {!isCorrect && current.explicacao && (
+                    <div className="mt-2 text-left">
+                      <p className="text-[10px] font-mono opacity-70 mb-1">💡 Dica para entender:</p>
+                      <p className="text-xs leading-relaxed opacity-90">{current.explicacao}</p>
                     </div>
                   )}
                 </div>

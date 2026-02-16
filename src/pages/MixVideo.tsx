@@ -63,19 +63,7 @@ const MixVideo = () => {
         ) : !video ? (
           <p className="text-sm text-muted-foreground text-center py-12">Vídeo não encontrado.</p>
         ) : (
-          <div className="space-y-4">
-            {videoId && (
-              <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: "56.25%" }}>
-                <iframe
-                  className="absolute inset-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                  title={video.titulo}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            )}
-
+          <div className="space-y-5">
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <h1 className="text-xl font-bold font-mono">{video.titulo}</h1>
@@ -90,6 +78,18 @@ const MixVideo = () => {
                 </p>
               )}
             </div>
+
+            {videoId && (
+              <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title={video.titulo}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
           </div>
         )}
       </motion.div>

@@ -3,8 +3,6 @@ import {
   CalendarDays,
   StickyNote,
   Shield,
-  LogOut,
-  User,
   Newspaper,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -19,11 +17,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const items = [
-  { title: "Perfil", url: "/perfil", icon: User },
   { title: "Notícias", url: "/noticias", icon: Newspaper },
   { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
@@ -33,7 +28,6 @@ const items = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { profile, signOut } = useAuth();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -76,32 +70,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      {/* User footer */}
-      <div className="mt-auto border-t border-border p-3">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/20 text-primary text-xs font-mono">
-              {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-mono truncate">{profile?.display_name || "Usuário"}</p>
-            </div>
-          )}
-          {!collapsed && (
-            <button
-              onClick={signOut}
-              className="text-muted-foreground hover:text-destructive transition-colors"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
     </Sidebar>
   );
 }

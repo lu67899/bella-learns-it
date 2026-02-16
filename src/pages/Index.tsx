@@ -87,7 +87,7 @@ const Index = () => {
         supabase.from("modulo_topicos").select("modulo_id, id"),
         supabase.from("mensagens").select("*").gte("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()).order("created_at", { ascending: true }),
         supabase.from("topico_progresso").select("topico_id"),
-        supabase.from("notificacoes").select("*").order("created_at", { ascending: false }).limit(20),
+        supabase.from("notificacoes").select("*").neq("tipo", "certificado").order("created_at", { ascending: false }).limit(20),
         supabase.from("desafios_semanais").select("id"),
         supabase.from("desafio_respostas").select("desafio_id"),
         supabase.from("frases_motivacionais").select("texto").eq("ativa", true),

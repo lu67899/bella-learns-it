@@ -28,7 +28,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
-  | "quiz" | "forca" | "memoria" | "videos" | "desafios" | "frases" 
+  | "quiz" | "forca" | "memoria" | "cruzadas" | "videos" | "desafios" | "frases" 
   | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates";
 
 const adminSections = [
@@ -48,6 +48,7 @@ const adminSections = [
       { key: "quiz" as AdminSection, label: "Quiz", icon: BrainCircuit, desc: "Questões de quiz" },
       { key: "forca" as AdminSection, label: "Forca", icon: Gamepad2, desc: "Palavras do jogo da forca" },
       { key: "memoria" as AdminSection, label: "Memória", icon: BrainCircuit, desc: "Pares do jogo da memória" },
+      { key: "cruzadas" as AdminSection, label: "Cruzadas", icon: Gamepad2, desc: "Palavras cruzadas" },
     ],
   },
   {
@@ -123,6 +124,7 @@ const Admin = () => {
       case "quiz": return <QuizTab />;
       case "forca": return <ForcaTab />;
       case "memoria": return <MemoriaTab />;
+      case "cruzadas": return <CruzadasTab />;
       case "videos": return <VideosTab />;
       case "desafios": return <DesafiosTab />;
       case "frases": return <FrasesTab />;
@@ -2081,6 +2083,79 @@ function MemoriaTab() {
           <div className="space-y-4">
             <Input placeholder="Termo (ex: Algoritmo)" value={form.termo} onChange={(e) => setForm({ ...form, termo: e.target.value })} />
             <Input placeholder="Definição (ex: Sequência lógica de passos)" value={form.definicao} onChange={(e) => setForm({ ...form, definicao: e.target.value })} />
+            <Button onClick={save} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
+  );
+}
+
+// ─── CRUZADAS TAB ─────────────────────────────────────────
+function CruzadasTab() {
+  const [items, setItems] = useState<{ id: string; palavra: string; dica: string }[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState({ palavra: "", dica: "" });
+
+  const load = async () => {
+    const { data } = await supabase.from("cruzadas_palavras").select("*").order("created_at", { ascending: false });
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.palavra.trim() || !form.dica.trim()) return;
+    const payload = { palavra: form.palavra.trim().toUpperCase(), dica: form.dica.trim() };
+    if (editing) {
+      await supabase.from("cruzadas_palavras").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("cruzadas_palavras").insert(payload);
+    }
+    toast.success("Palavra salva!"); setDialogOpen(false); setEditing(null); setForm({ palavra: "", dica: "" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("cruzadas_palavras").delete().eq("id", id);
+    toast.success("Palavra removida!"); load();
+  };
+
+  return (
+    <CrudSection title="Palavras Cruzadas" count={items.length} onAdd={() => { setEditing(null); setForm({ palavra: "", dica: "" }); setDialogOpen(true); }}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Palavra</TableHead>
+            <TableHead>Dica</TableHead>
+            <TableHead className="w-24">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm font-bold">{item.palavra}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.dica}</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ palavra: item.palavra, dica: item.dica }); setDialogOpen(true); }}>
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {items.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhuma palavra cadastrada.</p>}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Palavra</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Palavra (ex: ALGORITMO)" value={form.palavra} onChange={(e) => setForm({ ...form, palavra: e.target.value })} />
+            <Input placeholder="Dica (ex: Sequência de passos para resolver um problema)" value={form.dica} onChange={(e) => setForm({ ...form, dica: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

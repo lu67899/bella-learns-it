@@ -33,6 +33,13 @@ const jogos = [
     icon: "🧠",
     to: "/jogo-da-memoria",
   },
+  {
+    id: "palavras-cruzadas",
+    nome: "Palavras Cruzadas",
+    descricao: "Preencha a grade com as palavras a partir das dicas",
+    icon: "✏️",
+    to: "/palavras-cruzadas",
+  },
 ];
 
 const container = {

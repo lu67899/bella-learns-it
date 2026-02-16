@@ -247,6 +247,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cruzadas_palavras: {
+        Row: {
+          created_at: string
+          dica: string
+          id: string
+          palavra: string
+        }
+        Insert: {
+          created_at?: string
+          dica: string
+          id?: string
+          palavra: string
+        }
+        Update: {
+          created_at?: string
+          dica?: string
+          id?: string
+          palavra?: string
+        }
+        Relationships: []
+      }
       cursos: {
         Row: {
           created_at: string

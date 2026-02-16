@@ -53,7 +53,7 @@ const Resumos = () => {
           <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" /> Resumos
           </h1>
-          <p className="text-sm text-muted-foreground">Matérias do curso de SI</p>
+          <p className="text-sm text-muted-foreground">Seus resumos de estudo</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">

@@ -263,9 +263,23 @@ const Belinha = () => {
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="max-w-none text-sm leading-relaxed [&_p]:my-1.5 [&_h1]:text-base [&_h1]:font-bold [&_h1]:my-2 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:my-2 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:my-1.5 [&_ul]:my-1.5 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:my-1.5 [&_ol]:pl-4 [&_ol]:list-decimal [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:bg-secondary [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_pre]:bg-secondary [&_pre]:p-3 [&_pre]:rounded-md [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_hr]:my-3 [&_hr]:border-border [&_table]:w-full [&_table]:my-2 [&_th]:text-left [&_th]:p-1.5 [&_th]:border-b [&_th]:border-border [&_th]:text-xs [&_th]:font-semibold [&_td]:p-1.5 [&_td]:border-b [&_td]:border-border/50 [&_td]:text-xs">
+                      <article className="prose prose-sm dark:prose-invert max-w-none
+                        prose-headings:font-mono prose-headings:text-foreground prose-headings:font-bold
+                        prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-b prose-h2:border-border prose-h2:pb-1
+                        prose-h3:text-sm prose-h3:mt-2 prose-h3:mb-1
+                        prose-p:text-foreground/85 prose-p:leading-relaxed prose-p:mb-2
+                        prose-li:text-foreground/85 prose-li:leading-relaxed
+                        prose-strong:text-primary prose-strong:font-semibold
+                        prose-ul:my-2 prose-ol:my-2
+                        prose-table:border-collapse prose-table:w-full prose-table:my-3
+                        prose-th:bg-secondary/50 prose-th:text-foreground prose-th:text-left prose-th:px-2 prose-th:py-1.5 prose-th:border prose-th:border-border prose-th:text-xs prose-th:font-mono
+                        prose-td:px-2 prose-td:py-1.5 prose-td:border prose-td:border-border prose-td:text-xs
+                        prose-code:bg-secondary/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-primary prose-code:text-xs prose-code:font-mono
+                        prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-3
+                        prose-hr:border-border
+                      ">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
+                      </article>
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                     )}

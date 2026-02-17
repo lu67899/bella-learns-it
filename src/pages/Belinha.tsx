@@ -256,14 +256,14 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed overflow-hidden break-words ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <article className="prose prose-sm dark:prose-invert max-w-none
+                      <article className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto
                         prose-headings:font-mono prose-headings:text-foreground prose-headings:font-bold
                         prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-b prose-h2:border-border prose-h2:pb-1
                         prose-h3:text-sm prose-h3:mt-2 prose-h3:mb-1
@@ -274,9 +274,11 @@ const Belinha = () => {
                         prose-table:border-collapse prose-table:w-full prose-table:my-3
                         prose-th:bg-secondary/50 prose-th:text-foreground prose-th:text-left prose-th:px-2 prose-th:py-1.5 prose-th:border prose-th:border-border prose-th:text-xs prose-th:font-mono
                         prose-td:px-2 prose-td:py-1.5 prose-td:border prose-td:border-border prose-td:text-xs
-                        prose-code:bg-secondary/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-primary prose-code:text-xs prose-code:font-mono
+                        prose-code:bg-secondary/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-primary prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                        prose-pre:bg-secondary prose-pre:rounded-md prose-pre:p-3 prose-pre:my-2 prose-pre:overflow-x-auto
                         prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-3
                         prose-hr:border-border
+                        prose-a:text-primary prose-a:underline
                       ">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </article>

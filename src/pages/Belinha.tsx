@@ -256,32 +256,40 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed overflow-hidden break-words ${
+                    className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <article className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto
-                        prose-headings:font-mono prose-headings:text-foreground prose-headings:font-bold
-                        prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-b prose-h2:border-border prose-h2:pb-1
-                        prose-h3:text-sm prose-h3:mt-2 prose-h3:mb-1
-                        prose-p:text-foreground/85 prose-p:leading-relaxed prose-p:mb-2
-                        prose-li:text-foreground/85 prose-li:leading-relaxed
-                        prose-strong:text-primary prose-strong:font-semibold
-                        prose-ul:my-2 prose-ol:my-2
-                        prose-table:border-collapse prose-table:w-full prose-table:my-3
-                        prose-th:bg-secondary/50 prose-th:text-foreground prose-th:text-left prose-th:px-2 prose-th:py-1.5 prose-th:border prose-th:border-border prose-th:text-xs prose-th:font-mono
-                        prose-td:px-2 prose-td:py-1.5 prose-td:border prose-td:border-border prose-td:text-xs
-                        prose-code:bg-secondary/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-primary prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-                        prose-pre:bg-secondary prose-pre:rounded-md prose-pre:p-3 prose-pre:my-2 prose-pre:overflow-x-auto
-                        prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-3
-                        prose-hr:border-border
-                        prose-a:text-primary prose-a:underline
-                      ">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </article>
+                      <div className="break-words [&_strong]:font-semibold [&_strong]:text-primary">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                            h1: ({ children }) => <h1 className="font-mono font-bold text-base mt-3 mb-2">{children}</h1>,
+                            h2: ({ children }) => <h2 className="font-mono font-bold text-base mt-3 mb-2 border-b border-border pb-1">{children}</h2>,
+                            h3: ({ children }) => <h3 className="font-mono font-bold text-sm mt-2 mb-1">{children}</h3>,
+                            ul: ({ children }) => <ul className="list-disc pl-4 my-2 space-y-0.5">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal pl-4 my-2 space-y-0.5">{children}</ol>,
+                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                            code: ({ children, className }) => {
+                              const isBlock = className?.includes("language-");
+                              if (isBlock) {
+                                return <pre className="bg-secondary rounded-md p-3 my-2 overflow-x-auto text-xs font-mono whitespace-pre"><code>{children}</code></pre>;
+                              }
+                              return <code className="bg-secondary/60 px-1.5 py-0.5 rounded text-primary text-xs font-mono">{children}</code>;
+                            },
+                            pre: ({ children }) => <>{children}</>,
+                            blockquote: ({ children }) => <blockquote className="border-l-2 border-primary bg-primary/5 rounded-r-lg pl-3 pr-2 py-1 my-2">{children}</blockquote>,
+                            table: ({ children }) => <div className="overflow-x-auto my-3"><table className="w-full border-collapse">{children}</table></div>,
+                            th: ({ children }) => <th className="bg-secondary/50 text-left px-2 py-1.5 border border-border text-xs font-mono">{children}</th>,
+                            td: ({ children }) => <td className="px-2 py-1.5 border border-border text-xs">{children}</td>,
+                            a: ({ href, children }) => <a href={href} className="text-primary underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                            hr: () => <hr className="my-3 border-border" />,
+                          }}
+                        >{msg.content}</ReactMarkdown>
+                      </div>
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                     )}

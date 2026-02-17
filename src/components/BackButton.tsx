@@ -29,7 +29,7 @@ const BackButton = ({ to, label = "Voltar", onClick }: BackButtonProps) => {
       <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-secondary/80 group-hover:bg-primary/15 group-hover:text-primary transition-all duration-200">
         <ArrowLeft className="h-3.5 w-3.5" />
       </span>
-      <span className="text-xs tracking-wide">{label}</span>
+      {label && <span className="text-xs tracking-wide">{label}</span>}
     </button>
   );
 };

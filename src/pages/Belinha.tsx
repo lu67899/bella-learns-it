@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Trash2, ArrowLeft } from "lucide-react";
+import { Send, Bot, User, Trash2 } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -187,13 +188,7 @@ const Belinha = () => {
         {/* Header */}
         <div className="flex items-center justify-between pb-4">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center justify-center h-8 w-8 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-              aria-label="Voltar"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
+            <BackButton to="/" label="" />
             <StoryRing
               avatarUrl={avatarUrl}
               hasStories={hasStories}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { StickyNote, Search, Loader2, Plus, Edit2, Trash2 } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -152,6 +153,7 @@ const Anotacoes = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-6">
+        <BackButton to="/" />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { ArrowLeft as ArrowLeftIcon } from "lucide-react";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones, Bell, Copy } from "lucide-react";
+import BackButton from "@/components/BackButton";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones, Bell, Copy, ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -146,7 +146,7 @@ const Admin = () => {
           </motion.div>
           <div className="flex justify-center">
             <Button variant="outline" onClick={() => navigate("/")} className="gap-2">
-              <ArrowLeftIcon className="h-4 w-4" /> Voltar ao início
+              <ArrowLeft className="h-4 w-4" /> Voltar ao início
             </Button>
           </div>
         </div>
@@ -184,15 +184,11 @@ const Admin = () => {
       <div className="max-w-5xl mx-auto space-y-5 pb-20">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="space-y-2">
             {activeSection !== "dashboard" ? (
-              <Button variant="ghost" size="icon" onClick={() => setActiveSection("dashboard")} className="shrink-0">
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+              <BackButton onClick={() => setActiveSection("dashboard")} label="Dashboard" />
             ) : (
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
-                <ArrowLeftIcon className="h-5 w-5" />
-              </Button>
+              <BackButton to="/" />
             )}
             <div>
               <h1 className="text-xl font-mono font-bold flex items-center gap-2">
@@ -2796,7 +2792,7 @@ function AudiobooksTab() {
     return (
       <div className="space-y-4 mt-4">
         <Button variant="ghost" size="sm" className="gap-1.5 -ml-2" onClick={() => setCapListBookId(null)}>
-          <ArrowLeftIcon className="h-4 w-4" /> Voltar para audiobooks
+          <ArrowLeft className="h-4 w-4" /> Voltar para audiobooks
         </Button>
         <CrudSection
           title={`Capítulos — ${bookBeingViewed.titulo}`}

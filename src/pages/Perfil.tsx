@@ -10,7 +10,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Camera, Mail, Award, Maximize, Minimize, User, Coins, Settings, Loader2, CheckCircle2, Clock, Download, ArrowLeft, Banknote, Send } from "lucide-react";
+import { Camera, Mail, Award, Maximize, Minimize, User, Coins, Settings, Loader2, CheckCircle2, Clock, Download, Banknote, Send } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { usePageSize } from "@/hooks/usePageSize";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -136,13 +137,9 @@ export default function Perfil() {
   return (
     <Layout>
       <PageContainer>
-        <button
-          onClick={() => navigate("/")}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </button>
+        <div className="mb-4">
+          <BackButton to="/" />
+        </div>
         <div className="mb-6">
           <h1 className="text-2xl font-mono font-bold text-foreground flex items-center gap-2">
             <User className="h-6 w-6 text-primary" />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Headphones, ArrowLeft, Play, Pause, ChevronRight, Clock, User, BookOpen, Heart, RotateCcw } from "lucide-react";
+import { Headphones, Play, Pause, ChevronRight, Clock, User, BookOpen, Heart, RotateCcw } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -155,9 +156,9 @@ const Audiobooks = () => {
       <motion.div variants={container} initial="hidden" animate="show" className={`max-w-2xl mx-auto space-y-6 ${hasPlayer ? "pb-32" : ""}`}>
         {/* Header */}
         <motion.div variants={item}>
-          <Button variant="ghost" size="sm" className="gap-1.5 mb-4 -ml-2 text-muted-foreground" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4" /> {backLabel}
-          </Button>
+          <div className="mb-4">
+            <BackButton onClick={handleBack} label={backLabel} />
+          </div>
 
           {view === "categories" && (
             <div className="flex items-center gap-3 mb-2">

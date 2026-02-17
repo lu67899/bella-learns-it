@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, ArrowLeft, CheckCircle2, Flame, Calendar, ChevronDown, ChevronUp, Coins } from "lucide-react";
+import { Trophy, CheckCircle2, Flame, Calendar, ChevronDown, ChevronUp, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
+import BackButton from "@/components/BackButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -196,10 +197,8 @@ const Desafios = () => {
     <Layout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
-          </Link>
+        <div className="space-y-3">
+          <BackButton to="/" />
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
               <Trophy className="h-6 w-6 text-primary" /> Desafio Diário

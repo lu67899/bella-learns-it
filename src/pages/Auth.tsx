@@ -95,61 +95,52 @@ const Auth = () => {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-[340px] relative z-10"
       >
-        {/* Logo + branding above card */}
-        <motion.div
-          className="flex flex-col items-center gap-2.5 mb-6"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-        >
-          <div className="relative">
-            {logoUrl ? (
-              <div className="h-14 w-14 rounded-2xl overflow-hidden ring-1 ring-primary/20 shadow-lg shadow-primary/15">
-                <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
-              </div>
-            ) : (
-              <div className="h-14 w-14 rounded-2xl bg-primary/10 ring-1 ring-primary/20 shadow-lg shadow-primary/15 flex items-center justify-center">
-                <BrainCircuit className="h-7 w-7 text-primary" />
-              </div>
-            )}
-            <motion.div
-              className="absolute -top-0.5 -right-0.5"
-              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <div className="h-4 w-4 rounded-full bg-accent/20 ring-1 ring-accent/30 flex items-center justify-center">
-                <Sparkles className="h-2 w-2 text-accent" />
-              </div>
-            </motion.div>
-          </div>
-          <div className="text-center">
-            <h1 className="font-mono text-lg font-bold tracking-tight text-foreground">
-              {nomeApp}
-            </h1>
-            <p className="text-[9px] text-muted-foreground/40 font-mono tracking-[0.2em] uppercase">
-              {subtituloApp}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Auth Card */}
+        {/* Auth Card with integrated branding */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
         >
           <Card className="p-0 bg-card/60 backdrop-blur-2xl border-border/20 shadow-2xl shadow-black/40 overflow-hidden rounded-2xl">
             {/* Top accent line */}
             <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-            <div className="px-5 pt-5 pb-2">
-              <h2 className="text-base font-mono font-bold text-foreground tracking-tight">
-                {isSignUp ? "Criar conta" : "Bem-vinda de volta"}
-              </h2>
-              <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-mono">
-                {isSignUp ? "Comece sua jornada de estudos ✨" : "Continue de onde parou 💜"}
-              </p>
+            {/* Logo + Title inside card */}
+            <div className="flex items-center gap-4 px-5 pt-6 pb-4">
+              <div className="relative shrink-0">
+                {logoUrl ? (
+                  <div className="h-16 w-16 rounded-2xl overflow-hidden ring-1 ring-primary/25 shadow-lg shadow-primary/20">
+                    <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 rounded-2xl bg-primary/10 ring-1 ring-primary/25 shadow-lg shadow-primary/20 flex items-center justify-center">
+                    <BrainCircuit className="h-8 w-8 text-primary" />
+                  </div>
+                )}
+                <motion.div
+                  className="absolute -top-1 -right-1"
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <div className="h-4 w-4 rounded-full bg-accent/20 ring-1 ring-accent/30 flex items-center justify-center">
+                    <Sparkles className="h-2 w-2 text-accent" />
+                  </div>
+                </motion.div>
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-mono text-xl font-bold tracking-tight text-foreground leading-tight">
+                  {nomeApp}
+                </h1>
+                <p className="text-[9px] text-muted-foreground/40 font-mono tracking-[0.2em] uppercase mt-0.5">
+                  {subtituloApp}
+                </p>
+                <p className="text-xs text-muted-foreground/50 mt-1.5 font-mono">
+                  {isSignUp ? "Comece sua jornada ✨" : "Continue de onde parou 💜"}
+                </p>
+              </div>
             </div>
+
+            <div className="mx-5 h-px bg-border/20" />
 
             <form onSubmit={handleSubmit} className="px-5 pb-5 pt-3 space-y-3">
               {isSignUp && (

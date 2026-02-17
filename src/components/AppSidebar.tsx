@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   BrainCircuit,
   CalendarDays,
@@ -27,6 +28,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/hooks/useTheme";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -55,6 +57,18 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { icon: ThemeIcon, label: themeLabel } = themeConfig[theme];
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("admin_config")
+      .select("logo_url")
+      .eq("id", 1)
+      .single()
+      .then(({ data }) => {
+        if (data?.logo_url) setLogoUrl(data.logo_url);
+      });
+  }, []);
 
   const handleNav = (url: string) => {
     navigate(url);
@@ -71,9 +85,15 @@ export function AppSidebar() {
               onClick={() => handleNav("/")}
               className="flex items-center gap-3"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-                <BrainCircuit className="h-5 w-5 text-primary" />
-              </div>
+              {logoUrl ? (
+                <div className="h-10 w-10 shrink-0 rounded-xl overflow-hidden ring-1 ring-primary/20">
+                  <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+                  <BrainCircuit className="h-5 w-5 text-primary" />
+                </div>
+              )}
               {!collapsed && (
                 <div>
                   <h1 className="font-mono text-base font-bold text-foreground">

@@ -263,32 +263,8 @@ const Belinha = () => {
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="break-words [&_strong]:font-semibold [&_strong]:text-primary">
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
-                            h1: ({ children }) => <h1 className="font-mono font-bold text-base mt-3 mb-2">{children}</h1>,
-                            h2: ({ children }) => <h2 className="font-mono font-bold text-base mt-3 mb-2 border-b border-border pb-1">{children}</h2>,
-                            h3: ({ children }) => <h3 className="font-mono font-bold text-sm mt-2 mb-1">{children}</h3>,
-                            ul: ({ children }) => <ul className="list-disc pl-4 my-2 space-y-0.5">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal pl-4 my-2 space-y-0.5">{children}</ol>,
-                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                            code: ({ children, className }) => {
-                              const isBlock = className?.includes("language-");
-                              if (isBlock) {
-                                return <pre className="bg-secondary rounded-md p-3 my-2 overflow-x-auto text-xs font-mono whitespace-pre"><code>{children}</code></pre>;
-                              }
-                              return <code className="bg-secondary/60 px-1.5 py-0.5 rounded text-primary text-xs font-mono">{children}</code>;
-                            },
-                            pre: ({ children }) => <>{children}</>,
-                            blockquote: ({ children }) => <blockquote className="border-l-2 border-primary bg-primary/5 rounded-r-lg pl-3 pr-2 py-1 my-2">{children}</blockquote>,
-                            table: ({ children }) => <div className="overflow-x-auto my-3"><table className="w-full border-collapse">{children}</table></div>,
-                            th: ({ children }) => <th className="bg-secondary/50 text-left px-2 py-1.5 border border-border text-xs font-mono">{children}</th>,
-                            td: ({ children }) => <td className="px-2 py-1.5 border border-border text-xs">{children}</td>,
-                            a: ({ href, children }) => <a href={href} className="text-primary underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-                            hr: () => <hr className="my-3 border-border" />,
-                          }}
-                        >{msg.content}</ReactMarkdown>
+                      <div className="whitespace-pre-wrap">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.content}</p>

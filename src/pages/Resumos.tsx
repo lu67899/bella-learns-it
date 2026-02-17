@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Search, Loader2, ChevronDown, FileText } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,9 +71,7 @@ const Resumos = () => {
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="space-y-4">
-          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
+          <BackButton to="/" />
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-primary" /> Resumos

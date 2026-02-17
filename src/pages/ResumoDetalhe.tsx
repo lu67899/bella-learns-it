@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,9 +33,7 @@ const ResumoDetalhe = () => {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto space-y-6">
-        <Button variant="ghost" onClick={() => navigate("/resumos")} className="gap-2 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Voltar aos resumos
-        </Button>
+        <BackButton to="/resumos" label="Voltar aos resumos" />
 
         {loading ? (
           <div className="flex justify-center py-16">

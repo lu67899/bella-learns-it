@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, RotateCcw, Loader2, Trophy, HelpCircle } from "lucide-react";
+import { RotateCcw, Loader2, Trophy, HelpCircle } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -251,9 +252,7 @@ const PalavrasCruzadas = () => {
     return (
       <Layout>
         <div className="max-w-md mx-auto space-y-4 pb-20">
-          <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 text-muted-foreground" onClick={() => navigate("/jogos")}>
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
+          <BackButton to="/jogos" />
           <div className="text-center py-12 text-muted-foreground">
             <p className="text-lg font-mono">✏️ Palavras Cruzadas</p>
             <p className="text-sm mt-2">São necessárias pelo menos 3 palavras cadastradas.</p>
@@ -267,9 +266,7 @@ const PalavrasCruzadas = () => {
     return (
       <Layout>
         <div className="max-w-md mx-auto space-y-4 pb-20">
-          <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 text-muted-foreground" onClick={() => navigate("/jogos")}>
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
+          <BackButton to="/jogos" />
           <div className="text-center py-12 text-muted-foreground">
             <p className="text-lg font-mono">✏️ Palavras Cruzadas</p>
             <p className="text-sm mt-2">Não foi possível gerar a grade. Tente novamente.</p>
@@ -285,9 +282,7 @@ const PalavrasCruzadas = () => {
   return (
     <Layout>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg mx-auto space-y-3 pb-20">
-        <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 text-muted-foreground" onClick={() => navigate("/jogos")}>
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Button>
+        <BackButton to="/jogos" />
 
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-mono font-bold">✏️ Palavras Cruzadas</h1>

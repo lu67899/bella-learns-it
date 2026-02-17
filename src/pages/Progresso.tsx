@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, CircleDot, ArrowLeft, BookOpen, ChevronDown } from "lucide-react";
+import { CheckCircle2, CircleDot, BookOpen, ChevronDown } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -100,11 +101,7 @@ const Progresso = () => {
     <Layout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto space-y-6">
         <div className="space-y-4">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
-              <ArrowLeft className="h-4 w-4" /> Voltar
-            </Button>
-          </Link>
+          <BackButton to="/" />
           <div>
             <h1 className="text-2xl font-mono font-bold">Progresso Geral</h1>
             <p className="text-sm text-muted-foreground">Acompanhe sua evolução por curso</p>

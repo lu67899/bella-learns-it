@@ -253,10 +253,10 @@ const Admin = () => {
 
 // ─── CURSOS TAB ─────────────────────────────────────────
 function CursosTab() {
-  const [items, setItems] = useState<{ id: string; nome: string; descricao: string | null; assunto: string | null; tempo_estimado: string | null; ordem: number }[]>([]);
+  const [items, setItems] = useState<{ id: string; nome: string; descricao: string | null; assunto: string | null; tempo_estimado: string | null; moedas_total: number; ordem: number }[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: "", descricao: "", assunto: "", tempo_estimado: "" });
+  const [form, setForm] = useState({ nome: "", descricao: "", assunto: "", tempo_estimado: "", moedas_total: "0" });
 
   const load = async () => {
     const { data } = await supabase.from("cursos").select("*").order("ordem");
@@ -266,13 +266,13 @@ function CursosTab() {
 
   const save = async () => {
     if (!form.nome) return;
-    const payload = { nome: form.nome, descricao: form.descricao || null, assunto: form.assunto || null, tempo_estimado: form.tempo_estimado || null, ordem: editing ? editing.ordem : items.length };
+    const payload = { nome: form.nome, descricao: form.descricao || null, assunto: form.assunto || null, tempo_estimado: form.tempo_estimado || null, moedas_total: parseInt(form.moedas_total) || 0, ordem: editing ? editing.ordem : items.length };
     if (editing) {
       await supabase.from("cursos").update(payload).eq("id", editing.id);
     } else {
       await supabase.from("cursos").insert(payload);
     }
-    toast.success("Curso salvo!"); setDialogOpen(false); setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "" }); load();
+    toast.success("Curso salvo!"); setDialogOpen(false); setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "", moedas_total: "0" }); load();
   };
 
   const remove = async (id: string) => {
@@ -281,7 +281,7 @@ function CursosTab() {
   };
 
   return (
-    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "" }); setDialogOpen(true); }}>
+    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "", moedas_total: "0" }); setDialogOpen(true); }}>
       <Table>
         <TableHeader>
           <TableRow>
@@ -289,6 +289,7 @@ function CursosTab() {
             <TableHead>Nome</TableHead>
             <TableHead>Assunto</TableHead>
             <TableHead>Tempo</TableHead>
+            <TableHead>Moedas</TableHead>
             <TableHead className="w-24">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -299,9 +300,10 @@ function CursosTab() {
               <TableCell className="font-mono text-sm">{item.nome}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{item.assunto || "—"}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{item.tempo_estimado || "—"}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.moedas_total || "—"}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "", assunto: item.assunto || "", tempo_estimado: item.tempo_estimado || "" }); setDialogOpen(true); }}>
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "", assunto: item.assunto || "", tempo_estimado: item.tempo_estimado || "", moedas_total: String(item.moedas_total || 0) }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
                    <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
@@ -319,6 +321,7 @@ function CursosTab() {
             <Input placeholder="Descrição (opcional)" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
             <Input placeholder="Assunto abordado (ex: Programação Web)" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} />
             <Input placeholder="Tempo estimado (ex: 40 horas)" value={form.tempo_estimado} onChange={(e) => setForm({ ...form, tempo_estimado: e.target.value })} />
+            <Input type="number" placeholder="Total de moedas do curso (ex: 100)" value={form.moedas_total} onChange={(e) => setForm({ ...form, moedas_total: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

@@ -140,47 +140,47 @@
   }
 
   [data-theme="sky"] {
-    --background: 205 25% 94%;
-    --foreground: 210 25% 12%;
+    --background: 215 30% 10%;
+    --foreground: 205 40% 92%;
 
-    --card: 205 20% 90%;
-    --card-foreground: 210 25% 12%;
+    --card: 215 25% 14%;
+    --card-foreground: 205 40% 92%;
 
-    --popover: 205 20% 90%;
-    --popover-foreground: 210 25% 12%;
+    --popover: 215 25% 14%;
+    --popover-foreground: 205 40% 92%;
 
-    --primary: 205 75% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 200 85% 58%;
+    --primary-foreground: 215 30% 8%;
 
-    --secondary: 205 18% 85%;
-    --secondary-foreground: 210 25% 15%;
+    --secondary: 215 22% 20%;
+    --secondary-foreground: 205 40% 92%;
 
-    --muted: 205 12% 88%;
-    --muted-foreground: 210 10% 42%;
+    --muted: 215 18% 17%;
+    --muted-foreground: 210 15% 55%;
 
-    --accent: 195 65% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 190 90% 48%;
+    --accent-foreground: 215 30% 8%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 205 15% 82%;
-    --input: 205 15% 82%;
-    --ring: 205 75% 50%;
+    --border: 215 18% 22%;
+    --input: 215 18% 22%;
+    --ring: 200 85% 58%;
 
-    --sidebar-background: 205 22% 92%;
-    --sidebar-foreground: 210 10% 38%;
-    --sidebar-primary: 205 75% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 205 18% 88%;
-    --sidebar-accent-foreground: 210 25% 12%;
-    --sidebar-border: 205 15% 84%;
-    --sidebar-ring: 205 75% 50%;
+    --sidebar-background: 215 32% 8%;
+    --sidebar-foreground: 210 12% 62%;
+    --sidebar-primary: 200 85% 58%;
+    --sidebar-primary-foreground: 215 30% 8%;
+    --sidebar-accent: 215 22% 16%;
+    --sidebar-accent-foreground: 205 40% 92%;
+    --sidebar-border: 215 18% 18%;
+    --sidebar-ring: 200 85% 58%;
 
-    --neon-purple: 205 75% 50%;
-    --neon-cyan: 195 65% 45%;
-    --neon-pink: 215 60% 55%;
-    --neon-green: 170 50% 45%;
+    --neon-purple: 200 85% 58%;
+    --neon-cyan: 190 90% 48%;
+    --neon-pink: 220 70% 62%;
+    --neon-green: 165 60% 48%;
   }
 }
 

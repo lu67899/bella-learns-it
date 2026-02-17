@@ -58,15 +58,19 @@ export function AppSidebar() {
   const location = useLocation();
   const { icon: ThemeIcon, label: themeLabel } = themeConfig[theme];
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [nomeApp, setNomeApp] = useState("Bella Space");
+  const [subtituloApp, setSubtituloApp] = useState("Plataforma de estudos");
 
   useEffect(() => {
     supabase
       .from("admin_config")
-      .select("logo_url")
+      .select("logo_url, nome_app, subtitulo")
       .eq("id", 1)
       .single()
       .then(({ data }) => {
         if (data?.logo_url) setLogoUrl(data.logo_url);
+        if ((data as any)?.nome_app) setNomeApp((data as any).nome_app);
+        if ((data as any)?.subtitulo) setSubtituloApp((data as any).subtitulo);
       });
   }, []);
 
@@ -97,10 +101,10 @@ export function AppSidebar() {
               {!collapsed && (
                 <div>
                   <h1 className="font-mono text-base font-bold text-foreground">
-                    Bella Space
+                    {nomeApp}
                   </h1>
                   <p className="text-[10px] text-muted-foreground/50 font-mono">
-                    Plataforma de estudos
+                    {subtituloApp}
                   </p>
                 </div>
               )}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { ArrowLeft as ArrowLeftIcon } from "lucide-react";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones, Bell, Copy } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,6 +84,24 @@ const Admin = () => {
   const [autenticado, setAutenticado] = useState(false);
   const [senha, setSenha] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
+  const [pendingCounts, setPendingCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!autenticado) return;
+    const fetchCounts = async () => {
+      const [msgRes, certRes, resRes] = await Promise.all([
+        supabase.from("mensagens").select("id", { count: "exact", head: true }).eq("remetente", "aluno").eq("lida", false),
+        supabase.from("certificado_solicitacoes").select("id", { count: "exact", head: true }).eq("status", "pendente"),
+        supabase.from("resgate_solicitacoes").select("id", { count: "exact", head: true }).eq("status", "pendente"),
+      ]);
+      setPendingCounts({
+        mensagens: msgRes.count || 0,
+        certificados: certRes.count || 0,
+        resgates: resRes.count || 0,
+      });
+    };
+    fetchCounts();
+  }, [autenticado, activeSection]);
 
   const handleLogin = () => {
     if (senha === ADMIN_PASSWORD) {
@@ -190,12 +209,18 @@ const Admin = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {group.items.map((item) => {
                       const Icon = item.icon;
+                      const badgeCount = item.key === "mensagens" ? pendingCounts.mensagens : item.key === "certificados" ? pendingCounts.certificados : item.key === "resgates" ? pendingCounts.resgates : 0;
                       return (
                         <button
                           key={item.key}
                           onClick={() => setActiveSection(item.key)}
-                          className="flex flex-col items-start gap-2 p-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all text-left group"
+                          className="relative flex flex-col items-start gap-2 p-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all text-left group"
                         >
+                          {badgeCount > 0 && (
+                            <span className="absolute top-2 right-2 flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold font-mono animate-pulse">
+                              {badgeCount}
+                            </span>
+                          )}
                           <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                             <Icon className="h-4.5 w-4.5 text-primary" />
                           </div>
@@ -277,9 +302,7 @@ function CursosTab() {
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "" }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -338,11 +361,23 @@ function MateriasTab() {
       </div>
       <div className="flex flex-wrap gap-2">
         {materias.map((m) => (
-          <Badge key={m} variant="secondary" className="text-sm py-1.5 px-3 gap-2">
-            {m}
-            <button onClick={() => remove(m)} className="text-destructive hover:text-destructive/80 transition-colors">
-              <Trash2 className="h-3 w-3" />
-            </button>
+           <Badge key={m} variant="secondary" className="text-sm py-1.5 px-3 gap-2">
+             {m}
+             <AlertDialog>
+               <AlertDialogTrigger asChild>
+                 <button className="text-destructive hover:text-destructive/80 transition-colors"><Trash2 className="h-3 w-3" /></button>
+               </AlertDialogTrigger>
+               <AlertDialogContent className="max-w-[280px] rounded-2xl">
+                 <AlertDialogHeader>
+                   <AlertDialogTitle className="text-sm font-mono">Remover matéria</AlertDialogTitle>
+                   <AlertDialogDescription className="text-xs">Deseja remover "{m}"?</AlertDialogDescription>
+                 </AlertDialogHeader>
+                 <AlertDialogFooter>
+                   <AlertDialogCancel className="text-xs h-8">Cancelar</AlertDialogCancel>
+                   <AlertDialogAction className="text-xs h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => remove(m)}>Excluir</AlertDialogAction>
+                 </AlertDialogFooter>
+               </AlertDialogContent>
+             </AlertDialog>
           </Badge>
         ))}
       </div>
@@ -409,7 +444,7 @@ function ResumosTab() {
               <TableCell>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -499,7 +534,7 @@ function QuizTab() {
             <TableRow key={item.id}>
               <TableCell><Badge variant="outline" className="text-primary border-primary/30">{item.materia}</Badge></TableCell>
               <TableCell className="font-mono text-sm">{item.pergunta}</TableCell>
-              <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
+              <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button><ConfirmDeleteButton onConfirm={() => remove(item.id)} /></div></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -605,7 +640,7 @@ function DesafiosTab() {
               <TableCell>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -682,16 +717,32 @@ function ResgatesTab() {
                   <div>
                     <p className="text-sm font-mono font-medium">{s.profile?.display_name || "Desconhecido"}</p>
                     <p className="text-[10px] text-muted-foreground">{s.valor_moedas} moedas • {new Date(s.created_at).toLocaleDateString("pt-BR")}</p>
-                    <p className="text-xs text-foreground mt-1">PIX: <span className="font-mono">{s.chave_pix}</span></p>
+                    <p className="text-xs text-foreground mt-1 flex items-center gap-1.5">PIX: <span className="font-mono">{s.chave_pix}</span>
+                      <button onClick={() => { navigator.clipboard.writeText(s.chave_pix); toast.success("Chave PIX copiada!"); }} className="text-primary hover:text-primary/80 transition-colors" title="Copiar chave PIX"><Copy className="h-3 w-3" /></button>
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     {s.status === "pago" ? (
                       <Badge className="bg-primary/20 text-primary border-0">Pago ✓</Badge>
                     ) : (
-                      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => markAsPaid(s.id)}>
-                        <Check className="h-3.5 w-3.5" />
-                        Marcar como pago
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-1.5">
+                            <Check className="h-3.5 w-3.5" />
+                            Marcar como pago
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="max-w-[280px] rounded-2xl">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-sm font-mono">Confirmar pagamento</AlertDialogTitle>
+                            <AlertDialogDescription className="text-xs">Deseja marcar este resgate de {s.valor_moedas} moedas como pago?</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="text-xs h-8">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction className="text-xs h-8" onClick={() => markAsPaid(s.id)}>Confirmar</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 </div>
@@ -1097,9 +1148,7 @@ function ModulosTab() {
                     <Button variant="ghost" size="icon" onClick={() => { setEditingModulo(mod); setModuloForm({ nome: mod.nome, descricao: mod.descricao || "", curso_id: mod.curso_id || "" }); setModuloDialogOpen(true); }}>
                       <Edit2 className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => removeModulo(mod.id)}>
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
+                     <ConfirmDeleteButton onConfirm={() => removeModulo(mod.id)} />
                   </div>
                 </TableCell>
               </TableRow>
@@ -1142,9 +1191,7 @@ function ModulosTab() {
                             <Button variant="ghost" size="icon" onClick={() => { setEditingTopico(t); setTopicoForm({ titulo: t.titulo, conteudo: t.conteudo, moedas: String(t.moedas ?? 5) }); setTopicoDialogOpen(true); }}>
                               <Edit2 className="h-3 w-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => removeTopico(t.id)}>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
+                             <ConfirmDeleteButton onConfirm={() => removeTopico(t.id)} />
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1240,7 +1287,7 @@ function FrasesTab() {
               <TableCell>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ texto: item.texto }); setDialogOpen(true); }}><Edit2 className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -1377,9 +1424,21 @@ function VideosTab() {
                   <button onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome }); setCatDialogOpen(true); }} className="text-muted-foreground hover:text-foreground transition-colors">
                     <Edit2 className="h-3 w-3" />
                   </button>
-                  <button onClick={() => removeCat(cat.id)} className="text-destructive hover:text-destructive/80 transition-colors">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                   <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                       <button className="text-destructive hover:text-destructive/80 transition-colors"><Trash2 className="h-3 w-3" /></button>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent className="max-w-[280px] rounded-2xl">
+                       <AlertDialogHeader>
+                         <AlertDialogTitle className="text-sm font-mono">Remover categoria</AlertDialogTitle>
+                         <AlertDialogDescription className="text-xs">Deseja remover esta categoria?</AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel className="text-xs h-8">Cancelar</AlertDialogCancel>
+                         <AlertDialogAction className="text-xs h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => removeCat(cat.id)}>Excluir</AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
                 </Badge>
               ))}
             </div>
@@ -1408,7 +1467,7 @@ function VideosTab() {
               <TableCell>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => edit(item)}><Edit2 className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                  <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -1895,9 +1954,7 @@ function BelinhaStoriesManager() {
                 </div>
                 {s.texto && <p className="text-sm truncate">{s.texto}</p>}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => remove(s.id)}>
-                <Trash2 className="h-3 w-3 text-destructive" />
-              </Button>
+               <ConfirmDeleteButton onConfirm={() => remove(s.id)} />
             </div>
           ))}
         </div>
@@ -2092,9 +2149,7 @@ function ForcaTab() {
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ palavra: item.palavra, dica: item.dica }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -2164,9 +2219,7 @@ function MemoriaTab() {
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ termo: item.termo, definicao: item.definicao }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -2237,9 +2290,7 @@ function CruzadasTab() {
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ palavra: item.palavra, dica: item.dica }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -2323,9 +2374,7 @@ function OrdenarTab() {
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ titulo: item.titulo, passos: [...item.passos] }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(item.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                   <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
                 </div>
               </TableCell>
             </TableRow>
@@ -2739,9 +2788,7 @@ function AudiobooksTab() {
                       <Button variant="ghost" size="icon" onClick={() => { setEditingCap(cap); setCapForm({ titulo: cap.titulo, descricao: cap.descricao || "", audio_url: cap.audio_url, duracao_segundos: cap.duracao_segundos?.toString() || "" }); setCapDialogOpen(true); }}>
                         <Edit2 className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => removeCap(cap.id)}>
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
+                       <ConfirmDeleteButton onConfirm={() => removeCap(cap.id)} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -2791,7 +2838,7 @@ function AudiobooksTab() {
                           <BookOpen className="h-3 w-3" /> {capCount}
                         </Button>
                       </TableCell>
-                      <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => editBook(bk)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => removeBook(bk.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
+                      <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => editBook(bk)}><Edit2 className="h-3 w-3" /></Button><ConfirmDeleteButton onConfirm={() => removeBook(bk.id)} /></div></TableCell>
                     </TableRow>
                   );
                 })}
@@ -2809,7 +2856,7 @@ function AudiobooksTab() {
                   <TableRow key={cat.id}>
                     <TableCell className="text-xl">{cat.icone || "📚"}</TableCell>
                     <TableCell className="font-mono text-sm">{cat.nome}</TableCell>
-                    <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, icone: cat.icone || "📚" }); setCatDialogOpen(true); }}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => removeCat(cat.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
+                    <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, icone: cat.icone || "📚" }); setCatDialogOpen(true); }}><Edit2 className="h-3 w-3" /></Button><ConfirmDeleteButton onConfirm={() => removeCat(cat.id)} /></div></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -2878,3 +2925,25 @@ function CrudSection({ title, count, onAdd, children }: { title: string; count: 
 }
 
 export default Admin;
+
+function ConfirmDeleteButton({ onConfirm, label = "Tem certeza que deseja remover?" }: { onConfirm: () => void; label?: string }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Trash2 className="h-3 w-3 text-destructive" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-[280px] rounded-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-sm font-mono">Confirmar exclusão</AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">{label}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="text-xs h-8">Cancelar</AlertDialogCancel>
+          <AlertDialogAction className="text-xs h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={onConfirm}>Excluir</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}

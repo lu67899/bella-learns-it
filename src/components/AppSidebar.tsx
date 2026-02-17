@@ -78,31 +78,26 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent className="flex flex-col h-full bg-sidebar">
-        {/* Header */}
-        <div className="px-5 pt-8 pb-6">
-          <div className="flex items-center justify-between">
+        {/* Header - Logo + User unified */}
+        <div className="px-5 pt-8 pb-4">
+          <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => handleNav("/")}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2.5"
             >
               {logoUrl ? (
-                <div className="h-10 w-10 shrink-0 rounded-xl overflow-hidden ring-1 ring-primary/20">
+                <div className="h-8 w-8 shrink-0 rounded-lg overflow-hidden ring-1 ring-primary/20">
                   <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
                 </div>
               ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-                  <BrainCircuit className="h-5 w-5 text-primary" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                  <BrainCircuit className="h-4 w-4 text-primary" />
                 </div>
               )}
               {!collapsed && (
-                <div>
-                  <h1 className="font-mono text-base font-bold text-foreground">
-                    Bella Space
-                  </h1>
-                  <p className="text-[10px] text-muted-foreground font-mono">
-                    Plataforma de estudos
-                  </p>
-                </div>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  Bella Space
+                </span>
               )}
             </button>
             {isMobile && (
@@ -114,17 +109,15 @@ export function AppSidebar() {
               </button>
             )}
           </div>
-        </div>
 
-        {/* User Card */}
-        <div className="px-5 pb-6">
+          {/* User - compact */}
           <button
             onClick={() => handleNav("/perfil")}
-            className="flex items-center gap-3 w-full p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+            className="flex items-center gap-3 w-full"
           >
-            <Avatar className="h-10 w-10 shrink-0 ring-2 ring-primary/20">
+            <Avatar className="h-9 w-9 shrink-0 ring-2 ring-primary/20">
               <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm font-mono font-bold">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-mono font-bold">
                 {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
@@ -133,19 +126,15 @@ export function AppSidebar() {
                 <p className="text-sm font-medium text-foreground truncate">
                   {profile?.display_name || "Usuário"}
                 </p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <Coins className="h-3 w-3 text-primary" />
-                  <span className="text-[11px] font-mono text-muted-foreground">
-                    {profile?.coins ?? 0} moedas
-                  </span>
-                </div>
+                <span className="text-[10px] font-mono text-muted-foreground/60">
+                  {profile?.coins ?? 0} moedas
+                </span>
               </div>
-            )}
-            {!collapsed && (
-              <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
             )}
           </button>
         </div>
+
+        <div className="mx-5 h-px bg-border/30 mb-2" />
 
         {/* Navigation */}
         <SidebarGroup className="flex-1 px-3">

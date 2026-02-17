@@ -280,8 +280,17 @@ function CursosTab() {
     toast.success("Curso removido!"); load();
   };
 
+  const removeAll = async () => {
+    const ids = items.map(i => i.id);
+    if (ids.length === 0) return;
+    await supabase.from("cursos").delete().in("id", ids);
+    toast.success("Todos os cursos foram removidos!"); load();
+  };
+
   return (
-    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "", moedas_total: "0" }); setDialogOpen(true); }}>
+    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "", moedas_total: "0" }); setDialogOpen(true); }}
+      onRemoveAll={items.length > 0 ? removeAll : undefined}
+    >
       <Table>
         <TableHeader>
           <TableRow>
@@ -2917,14 +2926,35 @@ function AudiobooksTab() {
   );
 }
 
-function CrudSection({ title, count, onAdd, children }: { title: string; count: number; onAdd: () => void; children: React.ReactNode }) {
+function CrudSection({ title, count, onAdd, onRemoveAll, children }: { title: string; count: number; onAdd: () => void; onRemoveAll?: () => void; children: React.ReactNode }) {
   return (
     <Card className="bg-card border-border mt-4">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <CardTitle className="font-mono text-lg flex items-center gap-2">
           {title} <Badge variant="secondary">{count}</Badge>
         </CardTitle>
-        <Button onClick={onAdd} size="sm" className="gap-1"><Plus className="h-3 w-3" /> Adicionar</Button>
+        <div className="flex gap-2">
+          {onRemoveAll && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1 text-destructive border-destructive/30 hover:bg-destructive/10">
+                  <Trash2 className="h-3 w-3" /> Apagar Todos
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-[280px] rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-sm font-mono">Apagar todos?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-xs">Essa ação é irreversível. Todos os {count} itens serão removidos permanentemente.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="text-xs h-8">Cancelar</AlertDialogCancel>
+                  <AlertDialogAction className="text-xs h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={onRemoveAll}>Apagar Todos</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          <Button onClick={onAdd} size="sm" className="gap-1"><Plus className="h-3 w-3" /> Adicionar</Button>
+        </div>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

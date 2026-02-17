@@ -178,9 +178,9 @@ export function AppSidebar() {
               collapsed ? "justify-center p-2" : "px-3 py-2.5"
             }`}
           >
-            <Avatar className="h-8 w-8 shrink-0 ring-1 ring-primary/20">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-mono font-bold">
+            <Avatar className="h-8 w-8 shrink-0 rounded-lg ring-1 ring-primary/20">
+              <AvatarImage src={profile?.avatar_url || undefined} className="rounded-lg" />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-mono font-bold rounded-lg">
                 {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>

@@ -193,6 +193,35 @@ export type Database = {
         }
         Relationships: []
       }
+      audiobook_favoritos: {
+        Row: {
+          audiobook_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          audiobook_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          audiobook_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_favoritos_audiobook_id_fkey"
+            columns: ["audiobook_id"]
+            isOneToOne: false
+            referencedRelation: "audiobooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audiobook_progresso: {
         Row: {
           audiobook_id: string

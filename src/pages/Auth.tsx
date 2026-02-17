@@ -72,7 +72,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background p-3 sm:p-4 relative overflow-hidden">
       {/* Ambient glow effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-neon-purple/8 rounded-full blur-[150px]" />
@@ -90,7 +90,7 @@ const Auth = () => {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[400px] relative z-10"
+        className="w-full max-w-[400px] relative z-10 px-1 sm:px-0"
       >
         {/* Auth Card with integrated logo */}
         <motion.div
@@ -106,7 +106,7 @@ const Auth = () => {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[80px] bg-neon-purple/5 blur-[60px] pointer-events-none" />
 
             {/* Logo inside card */}
-            <div className="flex flex-col items-center gap-4 pt-8 pb-2 px-7">
+            <div className="flex flex-col items-center gap-3 sm:gap-4 pt-6 sm:pt-8 pb-1 sm:pb-2 px-5 sm:px-7">
               <div className="relative">
                 {logoUrl ? (
                   <div className="h-[64px] w-[64px] rounded-2xl overflow-hidden ring-1 ring-primary/20 shadow-xl shadow-neon-purple/20 bg-card/80 backdrop-blur-md flex items-center justify-center">
@@ -138,8 +138,8 @@ const Auth = () => {
               </div>
             </div>
 
-            <div className="p-7 pt-8">
-              <div className="mb-7">
+            <div className="p-5 sm:p-7 pt-5 sm:pt-8">
+              <div className="mb-5 sm:mb-7">
                 <h2 className="text-lg font-mono font-bold text-foreground tracking-tight">
                   {isSignUp ? "Criar conta" : "Bem-vinda de volta"}
                 </h2>
@@ -148,7 +148,7 @@ const Auth = () => {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 {isSignUp && (
                   <div className="space-y-2">
                     <label className="text-[10px] font-mono font-semibold text-muted-foreground/70 uppercase tracking-[0.15em] ml-0.5">
@@ -217,7 +217,7 @@ const Auth = () => {
               </form>
             </div>
 
-            <div className="px-7 py-4 border-t border-border/20 bg-background/20">
+            <div className="px-5 sm:px-7 py-3 sm:py-4 border-t border-border/20 bg-background/20">
               <button
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="w-full text-xs text-muted-foreground/60 hover:text-primary font-mono transition-colors duration-200 tracking-wide"

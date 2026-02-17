@@ -223,21 +223,30 @@ export function AppSidebar() {
       </SidebarContent>
 
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja sair? Seu progresso está salvo.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+        <AlertDialogContent className="max-w-sm rounded-2xl border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/5 p-0 overflow-hidden">
+          <div className="flex flex-col items-center text-center px-8 pt-8 pb-6">
+            <div className="h-14 w-14 rounded-2xl bg-destructive/10 flex items-center justify-center mb-5 ring-1 ring-destructive/20">
+              <LogOut className="h-6 w-6 text-destructive" />
+            </div>
+            <AlertDialogHeader className="space-y-2">
+              <AlertDialogTitle className="text-lg font-bold tracking-tight">
+                Deseja sair?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-muted-foreground/70 leading-relaxed">
+                Seu progresso está salvo. Você pode voltar a qualquer momento.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+          <AlertDialogFooter className="flex-row gap-3 border-t border-border/30 bg-muted/20 px-6 py-4 sm:space-x-0">
+            <AlertDialogCancel className="flex-1 m-0 rounded-xl border-border/50 bg-transparent hover:bg-muted/50 font-medium">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 stopPlayback();
                 signOut();
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="flex-1 m-0 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium shadow-lg shadow-destructive/20"
             >
               Sair
             </AlertDialogAction>

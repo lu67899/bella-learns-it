@@ -13,16 +13,12 @@ serve(async (req) => {
   }
 
   try {
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    if (!OPENROUTER_API_KEY) {
-      throw new Error("OPENROUTER_API_KEY is not configured");
-    }
-
+    // API key is loaded per-action below
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { prompt, curso_id, action, generated } = await req.json();
+    const { prompt, curso_id, action, generated, model } = await req.json();
 
     // Action: fetch existing content context
     if (action === "fetch_context") {
@@ -107,15 +103,21 @@ REGRAS IMPORTANTES:
 7. Cada módulo deve ter 2-4 tópicos.
 8. Gere 1-3 resumos relacionados ao conteúdo criado. Os resumos devem ser sínteses úteis para revisão rápida.`;
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) {
+        throw new Error("LOVABLE_API_KEY is not configured");
+      }
+
+      const selectedModel = model || "google/gemini-3-flash-preview";
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": supabaseUrl,
         },
         body: JSON.stringify({
-          model: "openai/gpt-4o-mini",
+          model: selectedModel,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: prompt },

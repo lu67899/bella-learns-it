@@ -22,7 +22,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { prompt, curso_id, action } = await req.json();
+    const { prompt, curso_id, action, generated } = await req.json();
 
     // Action: fetch existing content context
     if (action === "fetch_context") {
@@ -166,11 +166,7 @@ REGRAS IMPORTANTES:
 
     // Action: insert generated content into DB
     if (action === "insert") {
-      const { generated, curso_id: existingCursoId } = await req.json();
-      // This is handled in the second parse above, re-read from body
-      // Actually we already destructured, let's use the values
-
-      let targetCursoId = existingCursoId || curso_id;
+      let targetCursoId = curso_id;
 
       const gen = generated || JSON.parse(prompt); // fallback
 

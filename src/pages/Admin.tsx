@@ -1927,15 +1927,63 @@ function BelinhaConfigTab() {
           <p className="text-sm font-medium">Modelo da IA</p>
           <p className="text-xs text-muted-foreground">
             {provider === "lovable" 
-              ? "Modelos disponíveis: google/gemini-3-flash-preview, google/gemini-2.5-flash, openai/gpt-5-mini, etc." 
-              : "Modelo do OpenRouter (ex: openai/gpt-4o-mini, google/gemini-2.0-flash-exp)"}
+              ? "Selecione ou digite um modelo do Lovable AI Gateway" 
+              : "Selecione ou digite um modelo do OpenRouter"}
           </p>
-          <Input
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            placeholder={provider === "lovable" ? "google/gemini-3-flash-preview" : "openai/gpt-4o-mini"}
-            className="max-w-md"
-          />
+          {(() => {
+            const lovableModels = [
+              "google/gemini-3-flash-preview",
+              "google/gemini-2.5-flash",
+              "openai/gpt-5-mini",
+              "anthropic/claude-sonnet-4",
+            ];
+            const openrouterModels = [
+              "openai/gpt-4o-mini",
+              "openai/gpt-4o",
+              "google/gemini-2.0-flash-exp",
+              "google/gemini-2.5-flash-preview-05-20",
+              "anthropic/claude-sonnet-4",
+              "deepseek/deepseek-chat-v3-0324",
+              "meta-llama/llama-4-maverick",
+            ];
+            const models = provider === "lovable" ? lovableModels : openrouterModels;
+            const isCustom = model && !models.includes(model);
+            return (
+              <div className="flex flex-col gap-2 max-w-md">
+                <Select
+                  value={isCustom ? "__custom__" : model}
+                  onValueChange={(v) => {
+                    if (v === "__custom__") {
+                      setModel("");
+                    } else {
+                      setModel(v);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um modelo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {models.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        <span className="font-mono text-xs">{m}</span>
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="__custom__">
+                      <span className="text-xs">✏️ Digitar outro modelo</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {(isCustom || model === "") && (
+                  <Input
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder={provider === "lovable" ? "google/gemini-3-flash-preview" : "openai/gpt-4o-mini"}
+                  />
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         <div className="space-y-2">

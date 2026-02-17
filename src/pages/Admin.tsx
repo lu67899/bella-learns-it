@@ -1458,6 +1458,8 @@ function AdminConfigTab() {
   const [nome, setNome] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [nomeApp, setNomeApp] = useState("Bella Space");
+  const [subtitulo, setSubtitulo] = useState("Plataforma de estudos");
   const [uploading, setUploading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1468,6 +1470,8 @@ function AdminConfigTab() {
       setNome(data.nome);
       setAvatarUrl(data.avatar_url);
       setLogoUrl((data as any).logo_url);
+      setNomeApp((data as any).nome_app || "Bella Space");
+      setSubtitulo((data as any).subtitulo || "Plataforma de estudos");
     }
     setLoading(false);
   };
@@ -1589,13 +1593,41 @@ function AdminConfigTab() {
           </div>
         </div>
 
-        {/* Nome */}
+        {/* Nome do Admin */}
         <div className="space-y-2">
           <p className="text-sm font-medium">Nome do admin</p>
           <p className="text-xs text-muted-foreground">Esse nome aparece no chat</p>
           <div className="flex gap-2">
             <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" className="max-w-xs" />
             <Button onClick={saveNome} size="sm">Salvar</Button>
+          </div>
+        </div>
+
+        {/* Nome do App */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Nome do app</p>
+          <p className="text-xs text-muted-foreground">Aparece no menu lateral e na tela de login</p>
+          <div className="flex gap-2">
+            <Input value={nomeApp} onChange={(e) => setNomeApp(e.target.value)} placeholder="Nome do app" className="max-w-xs" />
+            <Button onClick={async () => {
+              if (!nomeApp.trim()) return;
+              await supabase.from("admin_config").update({ nome_app: nomeApp.trim() } as any).eq("id", 1);
+              toast.success("Nome do app atualizado!");
+            }} size="sm">Salvar</Button>
+          </div>
+        </div>
+
+        {/* Subtítulo */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Subtítulo / Frase</p>
+          <p className="text-xs text-muted-foreground">Frase abaixo do nome do app (menu e login)</p>
+          <div className="flex gap-2">
+            <Input value={subtitulo} onChange={(e) => setSubtitulo(e.target.value)} placeholder="Ex: Plataforma de estudos" className="max-w-xs" />
+            <Button onClick={async () => {
+              if (!subtitulo.trim()) return;
+              await supabase.from("admin_config").update({ subtitulo: subtitulo.trim() } as any).eq("id", 1);
+              toast.success("Subtítulo atualizado!");
+            }} size="sm">Salvar</Button>
           </div>
         </div>
       </CardContent>

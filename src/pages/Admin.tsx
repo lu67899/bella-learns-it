@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2 } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
   | "quiz" | "forca" | "memoria" | "cruzadas" | "ordenar" | "videos" | "desafios" | "frases" 
-  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates";
+  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia";
 
 const adminSections = [
   {
@@ -61,12 +61,18 @@ const adminSections = [
     ],
   },
   {
+    group: "🤖 Inteligência Artificial",
+    items: [
+      { key: "gerador-ia" as AdminSection, label: "Gerar Conteúdo", icon: Wand2, desc: "Criar cursos e tópicos com IA" },
+      { key: "belinha" as AdminSection, label: "Belinha IA", icon: Bot, desc: "Assistente e stories" },
+    ],
+  },
+  {
     group: "⚙️ Configurações",
     items: [
       { key: "certificados" as AdminSection, label: "Certificados", icon: Award, desc: "Solicitações e config" },
       { key: "resgates" as AdminSection, label: "Resgates", icon: Award, desc: "Solicitações de resgate PIX" },
       { key: "perfil" as AdminSection, label: "Perfil Admin", icon: User, desc: "Nome e foto do admin" },
-      { key: "belinha" as AdminSection, label: "Belinha IA", icon: Bot, desc: "Assistente e stories" },
     ],
   },
 ];
@@ -135,6 +141,7 @@ const Admin = () => {
       case "belinha": return <BelinhaConfigTab />;
       case "certificados": return <CertificadosTab />;
       case "resgates": return <ResgatesTab />;
+      case "gerador-ia": return <GeradorIATab />;
       default: return null;
     }
   };
@@ -2276,6 +2283,209 @@ function OrdenarTab() {
   );
 }
 
+
+
+// ─── GERADOR IA TAB ─────────────────────────────────────────
+function GeradorIATab() {
+  const [cursos, setCursos] = useState<{ id: string; nome: string; descricao: string | null }[]>([]);
+  const [selectedCurso, setSelectedCurso] = useState<string>("");
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [inserting, setInserting] = useState(false);
+  const [generated, setGenerated] = useState<any>(null);
+  const [contextInfo, setContextInfo] = useState<string>("");
+
+  useEffect(() => {
+    loadCursos();
+  }, []);
+
+  const loadCursos = async () => {
+    const { data } = await supabase.from("cursos").select("id, nome, descricao").order("ordem");
+    if (data) setCursos(data);
+  };
+
+  const loadContext = async (cursoId: string) => {
+    if (!cursoId || cursoId === "novo") {
+      setContextInfo("Será criado um novo curso.");
+      return;
+    }
+    const curso = cursos.find(c => c.id === cursoId);
+    const { data: modulos } = await supabase.from("modulos").select("id, nome, ordem").eq("curso_id", cursoId).order("ordem");
+    let topicCount = 0;
+    if (modulos && modulos.length > 0) {
+      const { count } = await supabase.from("modulo_topicos").select("*", { count: "exact", head: true }).in("modulo_id", modulos.map(m => m.id));
+      topicCount = count || 0;
+    }
+    setContextInfo(`Curso: "${curso?.nome}" — ${modulos?.length || 0} módulos, ${topicCount} tópicos existentes.`);
+  };
+
+  useEffect(() => {
+    if (selectedCurso) loadContext(selectedCurso);
+  }, [selectedCurso]);
+
+  const generate = async () => {
+    if (!prompt.trim()) { toast.error("Digite um prompt!"); return; }
+    setLoading(true);
+    setGenerated(null);
+    try {
+      const res = await supabase.functions.invoke("generate-content", {
+        body: {
+          action: "generate",
+          prompt: prompt.trim(),
+          curso_id: selectedCurso === "novo" ? null : selectedCurso || null,
+        },
+      });
+      if (res.error) throw new Error(res.error.message);
+      const data = res.data;
+      if (data.error) { toast.error(data.error); return; }
+      setGenerated(data.generated);
+      toast.success("Conteúdo gerado! Revise abaixo antes de salvar.");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Erro ao gerar conteúdo");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const insertContent = async () => {
+    if (!generated) return;
+    setInserting(true);
+    try {
+      const res = await supabase.functions.invoke("generate-content", {
+        body: {
+          action: "insert",
+          generated,
+          curso_id: selectedCurso === "novo" ? null : selectedCurso || null,
+          prompt: JSON.stringify(generated),
+        },
+      });
+      if (res.error) throw new Error(res.error.message);
+      const data = res.data;
+      if (data.error) { toast.error(data.error); return; }
+      toast.success("Conteúdo inserido no banco de dados com sucesso! 🎉");
+      setGenerated(null);
+      setPrompt("");
+      loadCursos();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Erro ao inserir conteúdo");
+    } finally {
+      setInserting(false);
+    }
+  };
+
+  const totalTopicos = generated?.modulos?.reduce((acc: number, m: any) => acc + (m.topicos?.length || 0), 0) || 0;
+
+  return (
+    <div className="space-y-4 mt-4">
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="font-mono text-lg flex items-center gap-2">
+            <Wand2 className="h-5 w-5 text-primary" />
+            Gerador de Conteúdo com IA
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            A IA analisa o conteúdo existente no banco de dados antes de gerar. Você pode criar novos cursos ou expandir existentes.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Curso selector */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-mono font-medium">Curso destino</label>
+            <Select value={selectedCurso} onValueChange={setSelectedCurso}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um curso existente ou crie novo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="novo">➕ Criar novo curso</SelectItem>
+                {cursos.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {contextInfo && (
+              <p className="text-xs text-muted-foreground bg-secondary/30 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                <Eye className="h-3 w-3 shrink-0" /> {contextInfo}
+              </p>
+            )}
+          </div>
+
+          {/* Prompt */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-mono font-medium">Prompt para a IA</label>
+            <Textarea
+              placeholder="Ex: Crie 3 módulos sobre Programação Orientada a Objetos com Java, incluindo conceitos de herança, polimorfismo e encapsulamento. Nível universitário mas fácil de entender."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+
+          <Button onClick={generate} disabled={loading || !prompt.trim()} className="w-full gap-2">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            {loading ? "Gerando conteúdo..." : "Gerar Conteúdo"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Preview generated content */}
+      {generated && (
+        <Card className="bg-card border-primary/30 border-2">
+          <CardHeader>
+            <CardTitle className="font-mono text-lg flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Pré-visualização
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Revise o conteúdo gerado antes de salvar no banco de dados.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Course info */}
+            <div className="bg-secondary/20 rounded-lg p-3 space-y-1">
+              <p className="text-sm font-mono font-bold">{generated.curso?.nome}</p>
+              <p className="text-xs text-muted-foreground">{generated.curso?.descricao}</p>
+              <div className="flex gap-2 mt-2">
+                <Badge variant="secondary">{generated.modulos?.length || 0} módulos</Badge>
+                <Badge variant="secondary">{totalTopicos} tópicos</Badge>
+                <Badge variant={generated.curso?.is_new ? "default" : "outline"}>
+                  {generated.curso?.is_new ? "Curso novo" : "Expansão"}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Modules preview */}
+            {generated.modulos?.map((modulo: any, mi: number) => (
+              <div key={mi} className="border border-border rounded-lg p-3 space-y-2">
+                <p className="text-sm font-mono font-bold flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4 text-primary" />
+                  {modulo.nome}
+                </p>
+                <p className="text-xs text-muted-foreground">{modulo.descricao}</p>
+                <div className="space-y-1 pl-4">
+                  {modulo.topicos?.map((topico: any, ti: number) => (
+                    <div key={ti} className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground font-mono">{topico.ordem}.</span>
+                      <span className="font-medium">{topico.titulo}</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">{topico.moedas}🪙</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <Button onClick={insertContent} disabled={inserting} className="w-full gap-2" variant="default">
+              {inserting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {inserting ? "Salvando..." : "Salvar no Banco de Dados"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
 
 
 function CrudSection({ title, count, onAdd, children }: { title: string; count: number; onAdd: () => void; children: React.ReactNode }) {

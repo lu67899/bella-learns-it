@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.belinha-chat]
 verify_jwt = false
+
+[functions.generate-content]
+verify_jwt = false

@@ -338,7 +338,7 @@ const Index = () => {
                             Todas
                           </button>
                         </div>
-                        <ScrollArea className="max-h-56">
+                        <div className="max-h-60 overflow-y-auto overscroll-contain">
                           {(() => {
                             const filtered = notifFiltro === "nao_lidas" ? notificacoes.filter(n => !n.lida) : notificacoes;
                             return filtered.length === 0 ? (
@@ -361,7 +361,7 @@ const Index = () => {
                               </div>
                             );
                           })()}
-                        </ScrollArea>
+                        </div>
                       </Card>
                     </motion.div>
                   )}

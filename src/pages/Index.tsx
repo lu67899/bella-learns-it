@@ -300,7 +300,15 @@ const Index = () => {
                   <span className="text-gradient">{profile?.display_name || "Estudante"}</span> ✨
                 </h1>
               </div>
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" onClick={abrirChat}>
+                  <MessageCircle className="h-4 w-4" />
+                  {naoLidas > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                      {naoLidas}
+                    </span>
+                  )}
+                </Button>
                 <Link to="/notificacoes">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
                     <Bell className="h-4 w-4" />
@@ -725,25 +733,8 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {/* Chat FAB - Tech style */}
-      {!chatAberto && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={abrirChat}
-          className="fixed bottom-6 right-4 z-50 h-9 px-3 rounded-lg bg-card/80 backdrop-blur-xl border border-primary/20 shadow-[0_0_15px_-3px_hsl(var(--primary)/0.25),0_0_6px_-2px_hsl(var(--primary)/0.15)] flex items-center gap-1.5 transition-all hover:border-primary/40 hover:shadow-[0_0_20px_-3px_hsl(var(--primary)/0.4)] group"
-        >
-          <span className="text-primary/60 text-[10px] font-mono group-hover:text-primary transition-colors">&gt;_</span>
-          <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">chat</span>
-          {naoLidas > 0 && (
-            <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary/90 text-[8px] font-bold text-primary-foreground px-1">
-              {naoLidas}
-            </span>
-          )}
-        </motion.button>
-      )}
+
+
     </Layout>
   );
 };

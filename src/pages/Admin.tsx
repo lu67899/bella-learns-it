@@ -1783,6 +1783,7 @@ function AdminConfigTab() {
 function BelinhaConfigTab() {
   const [systemPrompt, setSystemPrompt] = useState("");
   const [model, setModel] = useState("");
+  const [provider, setProvider] = useState<"openrouter" | "lovable">("openrouter");
   const [recado, setRecado] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1793,12 +1794,13 @@ function BelinhaConfigTab() {
     const load = async () => {
       const { data } = await supabase
         .from("assistant_config")
-        .select("system_prompt, model, avatar_url, recado")
+        .select("system_prompt, model, avatar_url, recado, provider")
         .eq("id", 1)
         .single();
       if (data) {
         setSystemPrompt(data.system_prompt);
         setModel(data.model);
+        setProvider((data as any).provider || "openrouter");
         setRecado(data.recado || "");
         setAvatarUrl(data.avatar_url);
       }
@@ -1841,7 +1843,7 @@ function BelinhaConfigTab() {
     setSaving(true);
     const { error } = await supabase
       .from("assistant_config")
-      .update({ system_prompt: systemPrompt, model, recado })
+      .update({ system_prompt: systemPrompt, model, recado, provider } as any)
       .eq("id", 1);
     setSaving(false);
     if (error) {
@@ -1883,13 +1885,55 @@ function BelinhaConfigTab() {
           </div>
         </div>
 
+        {/* Provider selector */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Provedor de IA</p>
+          <div className="flex gap-2 max-w-md">
+            <Button
+              type="button"
+              variant={provider === "lovable" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 font-mono text-xs"
+              onClick={() => {
+                setProvider("lovable");
+                if (!model || model.startsWith("openai/gpt-4o") || model.startsWith("deepseek/") || model.startsWith("anthropic/")) {
+                  setModel("google/gemini-3-flash-preview");
+                }
+              }}
+            >
+              ✨ Lovable AI
+            </Button>
+            <Button
+              type="button"
+              variant={provider === "openrouter" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 font-mono text-xs"
+              onClick={() => {
+                setProvider("openrouter");
+                if (!model || model.startsWith("google/gemini-3")) {
+                  setModel("openai/gpt-4o-mini");
+                }
+              }}
+            >
+              🔀 OpenRouter
+            </Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            {provider === "lovable" ? "Créditos incluídos no Lovable — sem custo extra" : "Requer créditos no openrouter.ai"}
+          </p>
+        </div>
+
         <div className="space-y-2">
           <p className="text-sm font-medium">Modelo da IA</p>
-          <p className="text-xs text-muted-foreground">Modelo usado no OpenRouter (ex: openai/gpt-4o-mini, google/gemini-2.0-flash-exp)</p>
+          <p className="text-xs text-muted-foreground">
+            {provider === "lovable" 
+              ? "Modelos disponíveis: google/gemini-3-flash-preview, google/gemini-2.5-flash, openai/gpt-5-mini, etc." 
+              : "Modelo do OpenRouter (ex: openai/gpt-4o-mini, google/gemini-2.0-flash-exp)"}
+          </p>
           <Input
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder="openai/gpt-4o-mini"
+            placeholder={provider === "lovable" ? "google/gemini-3-flash-preview" : "openai/gpt-4o-mini"}
             className="max-w-md"
           />
         </div>

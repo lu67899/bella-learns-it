@@ -1,0 +1,1 @@
+ALTER TABLE public.assistant_config ADD COLUMN provider text NOT NULL DEFAULT 'openrouter';

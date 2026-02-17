@@ -13,11 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    if (!OPENROUTER_API_KEY) {
-      throw new Error("OPENROUTER_API_KEY is not configured");
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -25,7 +20,7 @@ serve(async (req) => {
     // Fetch assistant config from DB
     const { data: config, error: configError } = await supabase
       .from("assistant_config")
-      .select("system_prompt, model")
+      .select("system_prompt, model, provider")
       .eq("id", 1)
       .single();
 
@@ -35,15 +30,33 @@ serve(async (req) => {
 
     const { messages } = await req.json();
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const useProvider = config.provider || "openrouter";
+    let apiUrl: string;
+    let apiKey: string;
+    let extraHeaders: Record<string, string> = {};
+
+    if (useProvider === "lovable") {
+      apiKey = Deno.env.get("LOVABLE_API_KEY") || "";
+      if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+      apiUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    } else {
+      apiKey = Deno.env.get("OPENROUTER_API_KEY") || "";
+      if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
+      apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+      extraHeaders["HTTP-Referer"] = supabaseUrl;
+    }
+
+    const selectedModel = config.model || (useProvider === "lovable" ? "google/gemini-3-flash-preview" : "openai/gpt-4o-mini");
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": supabaseUrl,
+        ...extraHeaders,
       },
       body: JSON.stringify({
-        model: config.model || "openai/gpt-4o-mini",
+        model: selectedModel,
         messages: [
           { role: "system", content: config.system_prompt },
           ...messages,
@@ -54,24 +67,27 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenRouter error:", response.status, errorText);
+      console.error("AI API error:", response.status, errorText);
+
+      let errorMsg = "Erro na API de IA";
+      try {
+        const errJson = JSON.parse(errorText);
+        errorMsg = errJson?.error?.message || errorMsg;
+      } catch {}
 
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit atingido, tente novamente em instantes." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes na API." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Créditos insuficientes na API de IA." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ error: "Erro na API de IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: errorMsg }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

@@ -8,6 +8,7 @@ import {
   Moon,
   Sparkles,
   Wand2,
+  CloudSun,
   Coins,
   ChevronRight,
   User,
@@ -39,7 +40,8 @@ const items = [
 const themeConfig = {
   dark: { icon: Sparkles, label: "Rosa" },
   pink: { icon: Wand2, label: "Hogwarts" },
-  hogwarts: { icon: Moon, label: "Escuro" },
+  hogwarts: { icon: CloudSun, label: "Azul Céu" },
+  sky: { icon: Moon, label: "Escuro" },
 };
 
 export function AppSidebar() {

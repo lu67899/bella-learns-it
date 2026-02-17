@@ -608,6 +608,7 @@ export type Database = {
           created_at: string
           explicacao: string | null
           id: string
+          moedas: number
           passos: string[]
           titulo: string
         }
@@ -615,6 +616,7 @@ export type Database = {
           created_at?: string
           explicacao?: string | null
           id?: string
+          moedas?: number
           passos: string[]
           titulo: string
         }
@@ -622,6 +624,7 @@ export type Database = {
           created_at?: string
           explicacao?: string | null
           id?: string
+          moedas?: number
           passos?: string[]
           titulo?: string
         }

@@ -138,6 +138,50 @@
     --neon-pink: 30 70% 50%;
     --neon-green: 120 40% 45%;
   }
+
+  [data-theme="sky"] {
+    --background: 205 25% 94%;
+    --foreground: 210 25% 12%;
+
+    --card: 205 20% 90%;
+    --card-foreground: 210 25% 12%;
+
+    --popover: 205 20% 90%;
+    --popover-foreground: 210 25% 12%;
+
+    --primary: 205 75% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 205 18% 85%;
+    --secondary-foreground: 210 25% 15%;
+
+    --muted: 205 12% 88%;
+    --muted-foreground: 210 10% 42%;
+
+    --accent: 195 65% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 205 15% 82%;
+    --input: 205 15% 82%;
+    --ring: 205 75% 50%;
+
+    --sidebar-background: 205 22% 92%;
+    --sidebar-foreground: 210 10% 38%;
+    --sidebar-primary: 205 75% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 205 18% 88%;
+    --sidebar-accent-foreground: 210 25% 12%;
+    --sidebar-border: 205 15% 84%;
+    --sidebar-ring: 205 75% 50%;
+
+    --neon-purple: 205 75% 50%;
+    --neon-cyan: 195 65% 45%;
+    --neon-pink: 215 60% 55%;
+    --neon-green: 170 50% 45%;
+  }
 }
 
 @layer base {

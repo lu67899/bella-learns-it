@@ -262,13 +262,7 @@ const Belinha = () => {
                         : "bg-card border-border"
                     }`}
                   >
-                    {msg.role === "assistant" ? (
-                      <div className="min-w-0" style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    )}
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
                   </Card>
                   {msg.role === "user" && (
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary mt-0.5">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2, Circle } from "lucide-react";
+import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2, Circle, ArrowRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Layout } from "@/components/Layout";
 import {
@@ -28,6 +28,7 @@ interface Modulo {
   nome: string;
   descricao: string | null;
   curso_id: string | null;
+  ordem: number;
 }
 
 interface Topico {
@@ -36,6 +37,11 @@ interface Topico {
   conteudo: string;
   ordem: number;
   moedas: number;
+}
+
+interface NextModulo {
+  id: string;
+  nome: string;
 }
 
 const ModuloPage = () => {
@@ -47,6 +53,7 @@ const ModuloPage = () => {
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null);
   const [loading, setLoading] = useState(true);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [nextModulo, setNextModulo] = useState<NextModulo | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,7 +62,20 @@ const ModuloPage = () => {
         supabase.from("modulo_topicos").select("*").eq("modulo_id", id!).order("ordem"),
         supabase.from("topico_progresso").select("topico_id"),
       ]);
-      if (mRes.data) setModulo(mRes.data);
+      if (mRes.data) {
+        setModulo(mRes.data);
+        // Fetch next module in same course
+        if (mRes.data.curso_id) {
+          const { data: nextMods } = await supabase
+            .from("modulos")
+            .select("id, nome, ordem")
+            .eq("curso_id", mRes.data.curso_id)
+            .gt("ordem", mRes.data.ordem)
+            .order("ordem")
+            .limit(1);
+          setNextModulo(nextMods && nextMods.length > 0 ? nextMods[0] : null);
+        }
+      }
       if (tRes.data) {
         setTopicos(tRes.data);
         if (tRes.data.length > 0) setSelectedTopico(tRes.data[0]);
@@ -274,6 +294,30 @@ const ModuloPage = () => {
                   Próximo <ChevronRight className="h-3 w-3" />
                 </Button>
               </div>
+
+              {/* Next module card when all topics completed */}
+              {topicos.length > 0 && completedIds.size === topicos.length && nextModulo && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4"
+                >
+                  <Link to={`/modulo/${nextModulo.id}`}>
+                    <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors cursor-pointer">
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                          <div>
+                            <p className="text-xs text-muted-foreground font-mono">Módulo concluído! Próximo:</p>
+                            <p className="text-sm font-mono font-semibold text-foreground">{nextModulo.nome}</p>
+                          </div>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-primary shrink-0" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         )}

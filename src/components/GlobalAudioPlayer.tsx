@@ -118,7 +118,7 @@ export function GlobalAudioPlayer() {
               {/* Disc button */}
               <button
                 onClick={() => setPlayerExpanded(true)}
-                className="relative h-14 w-14 rounded-full overflow-hidden shadow-lg shadow-primary/20 border-2 border-primary/30"
+                className="relative h-11 w-11 rounded-full overflow-hidden shadow-lg shadow-primary/20 border-2 border-primary/30"
               >
                 {playingBook?.capa_url ? (
                   <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
@@ -137,7 +137,7 @@ export function GlobalAudioPlayer() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                    className="absolute inset-0 m-auto h-14 w-14 rounded-full bg-background/60 backdrop-blur-sm flex items-center justify-center z-10"
+                    className="absolute inset-0 m-auto h-11 w-11 rounded-full bg-background/60 backdrop-blur-sm flex items-center justify-center z-10"
                   >
                     {isPlaying ? <Pause className="h-5 w-5 text-primary" /> : <Play className="h-5 w-5 text-primary ml-0.5" />}
                   </motion.button>

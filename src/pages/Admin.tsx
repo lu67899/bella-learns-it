@@ -185,9 +185,13 @@ const Admin = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {activeSection !== "dashboard" && (
+            {activeSection !== "dashboard" ? (
               <Button variant="ghost" size="icon" onClick={() => setActiveSection("dashboard")} className="shrink-0">
                 <ChevronLeft className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
+                <ArrowLeftIcon className="h-5 w-5" />
               </Button>
             )}
             <div>

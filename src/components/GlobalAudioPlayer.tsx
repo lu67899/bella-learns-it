@@ -90,7 +90,12 @@ export function GlobalAudioPlayer() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="fixed bottom-6 right-6 z-50"
+              drag
+              dragMomentum={false}
+              dragElastic={0.1}
+              dragConstraints={{ top: -window.innerHeight + 100, bottom: 0, left: -window.innerWidth + 100, right: 0 }}
+              whileDrag={{ scale: 1.1, cursor: "grabbing" }}
+              className="fixed bottom-6 right-6 z-50 cursor-grab touch-none"
               onMouseEnter={() => setDiscHovered(true)}
               onMouseLeave={() => setDiscHovered(false)}
             >

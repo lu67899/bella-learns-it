@@ -123,7 +123,7 @@ export function AppSidebar() {
         <div className="mx-5 h-px bg-border/30 mb-2" />
 
         {/* Navigation */}
-        <SidebarGroup className="flex-1 px-3">
+        <SidebarGroup className="px-3">
           {!collapsed && (
             <p className="px-3 pb-3 text-[10px] font-mono font-semibold text-muted-foreground/50 uppercase tracking-[0.2em]">
               Menu
@@ -159,7 +159,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Footer - User + Actions */}
-        <div className="px-5 pb-8 pt-4 space-y-3">
+        <div className="mt-auto px-5 pb-8 pt-4 space-y-3">
           <div className="h-px bg-border/30" />
 
           {/* User row */}

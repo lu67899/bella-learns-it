@@ -1786,23 +1786,27 @@ function BelinhaConfigTab() {
   const [provider, setProvider] = useState<"openrouter" | "lovable">("openrouter");
   const [recado, setRecado] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [openrouterKey, setOpenrouterKey] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
-        .from("assistant_config")
-        .select("system_prompt, model, avatar_url, recado, provider")
-        .eq("id", 1)
-        .single();
-      if (data) {
-        setSystemPrompt(data.system_prompt);
-        setModel(data.model);
-        setProvider((data as any).provider || "openrouter");
-        setRecado(data.recado || "");
-        setAvatarUrl(data.avatar_url);
+      const [configRes, keysRes] = await Promise.all([
+        supabase.from("assistant_config").select("system_prompt, model, avatar_url, recado, provider").eq("id", 1).single(),
+        supabase.from("api_keys_config").select("openrouter_api_key").eq("id", 1).single(),
+      ]);
+      if (configRes.data) {
+        setSystemPrompt(configRes.data.system_prompt);
+        setModel(configRes.data.model);
+        setProvider((configRes.data as any).provider || "openrouter");
+        setRecado(configRes.data.recado || "");
+        setAvatarUrl(configRes.data.avatar_url);
+      }
+      if (keysRes.data) {
+        setOpenrouterKey((keysRes.data as any).openrouter_api_key || "");
       }
       setLoading(false);
     };
@@ -1841,12 +1845,12 @@ function BelinhaConfigTab() {
 
   const save = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("assistant_config")
-      .update({ system_prompt: systemPrompt, model, recado, provider } as any)
-      .eq("id", 1);
+    const [configRes, keysRes] = await Promise.all([
+      supabase.from("assistant_config").update({ system_prompt: systemPrompt, model, recado, provider } as any).eq("id", 1),
+      supabase.from("api_keys_config").update({ openrouter_api_key: openrouterKey } as any).eq("id", 1),
+    ]);
     setSaving(false);
-    if (error) {
+    if (configRes.error || keysRes.error) {
       toast.error("Erro ao salvar configuração");
     } else {
       toast.success("Configuração da Belinha salva!");
@@ -1922,6 +1926,33 @@ function BelinhaConfigTab() {
             {provider === "lovable" ? "Créditos incluídos no Lovable — sem custo extra" : "Requer créditos no openrouter.ai"}
           </p>
         </div>
+
+        {/* OpenRouter API Key */}
+        {provider === "openrouter" && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">🔑 Chave da API OpenRouter</p>
+            <p className="text-xs text-muted-foreground">
+              Cole sua chave do openrouter.ai aqui. Será salva de forma segura (apenas admins podem ver).
+            </p>
+            <div className="flex gap-2 max-w-md">
+              <Input
+                type={showKey ? "text" : "password"}
+                value={openrouterKey}
+                onChange={(e) => setOpenrouterKey(e.target.value)}
+                placeholder="sk-or-v1-..."
+                className="flex-1 font-mono text-xs"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowKey(!showKey)}
+              >
+                {showKey ? "🙈" : "👁️"}
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <p className="text-sm font-medium">Modelo da IA</p>

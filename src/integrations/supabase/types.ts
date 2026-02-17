@@ -80,6 +80,27 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys_config: {
+        Row: {
+          created_at: string
+          id: number
+          openrouter_api_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          openrouter_api_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          openrouter_api_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_features: {
         Row: {
           created_at: string

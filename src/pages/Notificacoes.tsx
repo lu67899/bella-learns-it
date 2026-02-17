@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,11 +78,7 @@ const Notificacoes = () => {
     <Layout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
         <div className="space-y-4">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
-              <ArrowLeft className="h-4 w-4" /> Voltar
-            </Button>
-          </Link>
+          <BackButton to="/" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-primary" />

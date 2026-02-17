@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2, Circle, ArrowRight } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import ReactMarkdown from "react-markdown";
 import { Layout } from "@/components/Layout";
 import {
@@ -124,11 +125,7 @@ const ModuloPage = () => {
       <Layout>
         <div className="text-center py-16 space-y-4">
           <p className="text-muted-foreground">Módulo não encontrado</p>
-          <Link to="/">
-            <Button variant="outline" className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Voltar
-            </Button>
-          </Link>
+          <BackButton to="/" />
         </div>
       </Layout>
     );
@@ -139,11 +136,7 @@ const ModuloPage = () => {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <Link to={modulo.curso_id ? `/curso/${modulo.curso_id}` : "/"}>
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
-              <ArrowLeft className="h-4 w-4" /> Voltar ao curso
-            </Button>
-          </Link>
+          <BackButton to={modulo.curso_id ? `/curso/${modulo.curso_id}` : "/"} label="Voltar ao curso" />
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-primary" /> {modulo.nome}

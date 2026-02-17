@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, ArrowLeft, Loader2, CheckCircle2, Award, Clock } from "lucide-react";
+import { BookOpen, ChevronRight, Loader2, CheckCircle2, Award, Clock } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -144,11 +145,7 @@ const CursoPage = () => {
       <Layout>
         <div className="text-center py-16 space-y-4">
           <p className="text-muted-foreground">Curso não encontrado</p>
-          <Link to="/">
-            <Button variant="outline" className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Voltar
-            </Button>
-          </Link>
+          <BackButton to="/" />
         </div>
       </Layout>
     );
@@ -158,11 +155,7 @@ const CursoPage = () => {
     <Layout>
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-6">
         <motion.div variants={item} className="space-y-4">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
-              <ArrowLeft className="h-4 w-4" /> Voltar
-            </Button>
-          </Link>
+          <BackButton to="/" />
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-primary" /> {curso.nome}

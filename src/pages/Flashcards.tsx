@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BrainCircuit, RotateCcw, ChevronRight, Trophy, X, Check, Loader2, ArrowLeft, Timer } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -152,9 +153,7 @@ const Quiz = () => {
   return (
     <Layout>
       <div className="max-w-sm mx-auto space-y-5">
-        <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 text-muted-foreground" onClick={() => navigate("/jogos")}>
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Button>
+        <BackButton to="/jogos" />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-mono font-bold flex items-center gap-2">

@@ -157,14 +157,18 @@ const CursoPage = () => {
   return (
     <Layout>
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-6">
-        <motion.div variants={item} className="space-y-2">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
+        <motion.div variants={item} className="space-y-4">
+          <Link to="/">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
+              <ArrowLeft className="h-4 w-4" /> Voltar
+            </Button>
           </Link>
-          <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" /> {curso.nome}
-          </h1>
-          {curso.descricao && <p className="text-sm text-muted-foreground">{curso.descricao}</p>}
+          <div>
+            <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary" /> {curso.nome}
+            </h1>
+            {curso.descricao && <p className="text-sm text-muted-foreground mt-1">{curso.descricao}</p>}
+          </div>
         </motion.div>
 
         <motion.div variants={item} className="space-y-3">

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Headphones, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Maximize2, List, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,24 +24,25 @@ export function GlobalAudioPlayer() {
   } = useAudioPlayer();
   const location = useLocation();
   const isAudiobooksPage = location.pathname === "/audiobooks";
+  const [discHovered, setDiscHovered] = useState(false);
 
   if (!playingCapitulo) return null;
+
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <>
       {/* Mini Player */}
       <AnimatePresence>
         {!playerExpanded && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className={`fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t border-border ${
-              isAudiobooksPage ? "bg-card/95 shadow-2xl" : "bg-card/90 shadow-lg"
-            }`}
-          >
-            {isAudiobooksPage ? (
-              /* Full mini-player on audiobooks page */
+          isAudiobooksPage ? (
+            /* Full mini-player on audiobooks page */
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t border-border bg-card/95 shadow-2xl"
+            >
               <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
                 <div className="flex items-center gap-3">
                   <div
@@ -80,36 +82,68 @@ export function GlobalAudioPlayer() {
                   <span className="text-[10px] font-mono text-muted-foreground w-12">{formatTime(duration)}</span>
                 </div>
               </div>
-            ) : (
-              /* Compact mini-player on other pages */
-              <div className="max-w-2xl mx-auto px-3 py-2">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="h-8 w-8 rounded-md overflow-hidden shrink-0 cursor-pointer"
-                    onClick={() => setPlayerExpanded(true)}
+            </motion.div>
+          ) : (
+            /* Floating disc on other pages */
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="fixed bottom-6 right-6 z-50"
+              onMouseEnter={() => setDiscHovered(true)}
+              onMouseLeave={() => setDiscHovered(false)}
+            >
+              {/* Glow ring */}
+              <div className="absolute -inset-1 rounded-full bg-primary/20 blur-md animate-pulse" />
+
+              {/* Progress ring SVG */}
+              <svg className="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] -rotate-90" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="27" fill="none" stroke="hsl(var(--primary)/0.15)" strokeWidth="2.5" />
+                <circle
+                  cx="30" cy="30" r="27" fill="none"
+                  stroke="hsl(var(--primary))" strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 27}`}
+                  strokeDashoffset={`${2 * Math.PI * 27 * (1 - progressPercent / 100)}`}
+                  className="transition-all duration-300"
+                />
+              </svg>
+
+              {/* Disc button */}
+              <motion.button
+                onClick={() => setPlayerExpanded(true)}
+                className="relative h-14 w-14 rounded-full overflow-hidden shadow-lg shadow-primary/20 border-2 border-primary/30"
+                animate={{ rotate: isPlaying ? 360 : 0 }}
+                transition={{ 
+                  rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+                }}
+              >
+                {playingBook?.capa_url ? (
+                  <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-primary/10 flex items-center justify-center">
+                    <Headphones className="h-6 w-6 text-primary" />
+                  </div>
+                )}
+              </motion.button>
+
+              {/* Play/Pause overlay on hover */}
+              <AnimatePresence>
+                {discHovered && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                    className="absolute inset-0 m-auto h-14 w-14 rounded-full bg-background/60 backdrop-blur-sm flex items-center justify-center z-10"
                   >
-                    {playingBook?.capa_url ? (
-                      <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full bg-primary/10 flex items-center justify-center">
-                        <Headphones className="h-3.5 w-3.5 text-primary" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setPlayerExpanded(true)}>
-                    <p className="text-[11px] font-mono font-medium truncate">{playingCapitulo.titulo}</p>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={togglePlay}>
-                    {isPlaying ? <Pause className="h-3.5 w-3.5 text-primary" /> : <Play className="h-3.5 w-3.5 text-primary ml-0.5" />}
-                  </Button>
-                </div>
-                {/* Thin progress line */}
-                <div className="h-0.5 rounded-full bg-secondary/30 mt-1.5 overflow-hidden">
-                  <div className="h-full rounded-full bg-primary/60 transition-all" style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }} />
-                </div>
-              </div>
-            )}
-          </motion.div>
+                    {isPlaying ? <Pause className="h-5 w-5 text-primary" /> : <Play className="h-5 w-5 text-primary ml-0.5" />}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )
         )}
       </AnimatePresence>
 

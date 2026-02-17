@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
   | "quiz" | "forca" | "memoria" | "cruzadas" | "ordenar" | "videos" | "desafios" | "frases" 
-  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia";
+  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks";
 
 const adminSections = [
   {
@@ -38,6 +38,7 @@ const adminSections = [
       { key: "cursos" as AdminSection, label: "Cursos", icon: Library, desc: "Gerenciar cursos" },
       { key: "modulos" as AdminSection, label: "Módulos", icon: GraduationCap, desc: "Módulos e tópicos" },
       { key: "videos" as AdminSection, label: "Vídeos", icon: PlayCircle, desc: "Videoaulas e mix" },
+      { key: "audiobooks" as AdminSection, label: "Audiobooks", icon: Headphones, desc: "Gerenciar audiobooks" },
     ],
   },
   {
@@ -142,6 +143,7 @@ const Admin = () => {
       case "certificados": return <CertificadosTab />;
       case "resgates": return <ResgatesTab />;
       case "gerador-ia": return <GeradorIATab />;
+      case "audiobooks": return <AudiobooksTab />;
       default: return null;
     }
   };
@@ -2559,6 +2561,149 @@ function GeradorIATab() {
   );
 }
 
+
+// ─── AUDIOBOOKS TAB ─────────────────────────────────────────
+function AudiobooksTab() {
+  const [categorias, setCategorias] = useState<{ id: string; nome: string; icone: string | null; ordem: number }[]>([]);
+  const [books, setBooks] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"books" | "categorias">("books");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [catDialogOpen, setCatDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [editingCat, setEditingCat] = useState<any>(null);
+  const [form, setForm] = useState({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" });
+  const [catForm, setCatForm] = useState({ nome: "", icone: "📚" });
+
+  const loadCategorias = async () => {
+    const { data } = await supabase.from("audiobook_categorias").select("*").order("ordem");
+    if (data) setCategorias(data);
+  };
+  const loadBooks = async () => {
+    const { data } = await supabase.from("audiobooks").select("*, audiobook_categorias(nome)").order("ordem");
+    if (data) setBooks(data);
+  };
+  useEffect(() => { loadCategorias(); loadBooks(); }, []);
+
+  const saveBook = async () => {
+    if (!form.titulo || !form.audio_url) { toast.error("Título e URL do áudio são obrigatórios"); return; }
+    const payload = {
+      titulo: form.titulo, autor: form.autor || null, descricao: form.descricao || null,
+      audio_url: form.audio_url, capa_url: form.capa_url || null,
+      categoria_id: form.categoria_id || null,
+      duracao_segundos: form.duracao_segundos ? parseInt(form.duracao_segundos) : 0,
+      ordem: editing ? editing.ordem : books.length,
+    };
+    if (editing) { await supabase.from("audiobooks").update(payload).eq("id", editing.id); }
+    else { await supabase.from("audiobooks").insert(payload); }
+    toast.success("Audiobook salvo!"); setDialogOpen(false); setEditing(null);
+    setForm({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" });
+    loadBooks();
+  };
+
+  const removeBook = async (id: string) => {
+    await supabase.from("audiobooks").delete().eq("id", id);
+    toast.success("Removido!"); loadBooks();
+  };
+
+  const saveCat = async () => {
+    if (!catForm.nome) return;
+    const payload = { nome: catForm.nome, icone: catForm.icone || "📚", ordem: editingCat ? editingCat.ordem : categorias.length };
+    if (editingCat) { await supabase.from("audiobook_categorias").update(payload).eq("id", editingCat.id); }
+    else { await supabase.from("audiobook_categorias").insert(payload); }
+    toast.success("Categoria salva!"); setCatDialogOpen(false); setEditingCat(null); setCatForm({ nome: "", icone: "📚" });
+    loadCategorias();
+  };
+
+  const removeCat = async (id: string) => {
+    await supabase.from("audiobook_categorias").delete().eq("id", id);
+    toast.success("Removida!"); loadCategorias();
+  };
+
+  const editBook = (item: any) => {
+    setEditing(item);
+    setForm({ titulo: item.titulo, autor: item.autor || "", descricao: item.descricao || "", audio_url: item.audio_url, capa_url: item.capa_url || "", categoria_id: item.categoria_id || "", duracao_segundos: item.duracao_segundos?.toString() || "" });
+    setDialogOpen(true);
+  };
+
+  const fmtDur = (s: number) => { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h}h${m}min` : `${m}min`; };
+
+  return (
+    <div className="space-y-4 mt-4">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <TabsList className="w-full">
+          <TabsTrigger value="books" className="flex-1">Audiobooks</TabsTrigger>
+          <TabsTrigger value="categorias" className="flex-1">Categorias</TabsTrigger>
+        </TabsList>
+        <TabsContent value="books">
+          <CrudSection title="Audiobooks" count={books.length} onAdd={() => { setEditing(null); setForm({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" }); setDialogOpen(true); }}>
+            <Table>
+              <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Autor</TableHead><TableHead>Categoria</TableHead><TableHead>Duração</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {books.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell><div className="flex items-center gap-2">{item.capa_url && <img src={item.capa_url} alt="" className="h-8 w-8 rounded object-cover" />}<span className="font-mono text-sm">{item.titulo}</span></div></TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{item.autor || "—"}</TableCell>
+                    <TableCell>{item.audiobook_categorias ? <Badge variant="outline" className="text-primary border-primary/30">{item.audiobook_categorias.nome}</Badge> : "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{item.duracao_segundos ? fmtDur(item.duracao_segundos) : "—"}</TableCell>
+                    <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => editBook(item)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => removeBook(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {books.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum audiobook cadastrado.</p>}
+          </CrudSection>
+        </TabsContent>
+        <TabsContent value="categorias">
+          <CrudSection title="Categorias" count={categorias.length} onAdd={() => { setEditingCat(null); setCatForm({ nome: "", icone: "📚" }); setCatDialogOpen(true); }}>
+            <Table>
+              <TableHeader><TableRow><TableHead className="w-16">Ícone</TableHead><TableHead>Nome</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {categorias.map((cat) => (
+                  <TableRow key={cat.id}>
+                    <TableCell className="text-xl">{cat.icone || "📚"}</TableCell>
+                    <TableCell className="font-mono text-sm">{cat.nome}</TableCell>
+                    <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => { setEditingCat(cat); setCatForm({ nome: cat.nome, icone: cat.icone || "📚" }); setCatDialogOpen(true); }}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => removeCat(cat.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {categorias.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhuma categoria cadastrada.</p>}
+          </CrudSection>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Audiobook</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Título *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+            <Input placeholder="Autor" value={form.autor} onChange={(e) => setForm({ ...form, autor: e.target.value })} />
+            <Textarea placeholder="Descrição" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} />
+            <Input placeholder="URL do áudio (Cloudflare R2) *" value={form.audio_url} onChange={(e) => setForm({ ...form, audio_url: e.target.value })} />
+            <Input placeholder="URL da capa (imagem)" value={form.capa_url} onChange={(e) => setForm({ ...form, capa_url: e.target.value })} />
+            <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Categoria (opcional)" /></SelectTrigger>
+              <SelectContent>{categorias.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.icone} {cat.nome}</SelectItem>)}</SelectContent>
+            </Select>
+            <Input placeholder="Duração em segundos (ex: 3600)" type="number" value={form.duracao_segundos} onChange={(e) => setForm({ ...form, duracao_segundos: e.target.value })} />
+            <Button onClick={saveBook} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-mono">{editingCat ? "Editar" : "Nova"} Categoria</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Nome da categoria" value={catForm.nome} onChange={(e) => setCatForm({ ...catForm, nome: e.target.value })} />
+            <Input placeholder="Emoji/ícone (ex: 📚)" value={catForm.icone} onChange={(e) => setCatForm({ ...catForm, icone: e.target.value })} />
+            <Button onClick={saveCat} className="w-full">Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
 function CrudSection({ title, count, onAdd, children }: { title: string; count: number; onAdd: () => void; children: React.ReactNode }) {
   return (

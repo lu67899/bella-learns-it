@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BrainCircuit, Eye, EyeOff, Upload, User } from "lucide-react";
+import { BrainCircuit, Eye, EyeOff, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,21 +13,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("A imagem deve ter no máximo 2MB");
-        return;
-      }
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,19 +43,6 @@ const Auth = () => {
         const userId = data.user?.id;
         if (!userId) throw new Error("Erro ao criar conta");
 
-        // Wait for session to be available, then upload avatar & update profile
-        if (data.session && avatarFile) {
-          const ext = avatarFile.name.split(".").pop();
-          const path = `${userId}/avatar.${ext}`;
-          const { error: uploadError } = await supabase.storage
-            .from("avatars")
-            .upload(path, avatarFile, { upsert: true });
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-            await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", userId);
-          }
-        }
-
         toast.success("Conta criada com sucesso! 🎉");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -87,98 +60,133 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Ambient glow effects */}
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-primary/10 rounded-full blur-[100px]" />
+      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-accent/10 rounded-full blur-[100px]" />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-sm relative z-10"
       >
         {/* Logo */}
-        <div className="flex flex-col items-center gap-2 mb-8">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/20">
-            <BrainCircuit className="h-8 w-8 text-primary" />
+        <motion.div 
+          className="flex flex-col items-center gap-3 mb-10"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="relative">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-accent/20 border border-primary/20 shadow-lg shadow-primary/10">
+              <BrainCircuit className="h-9 w-9 text-primary" />
+            </div>
+            <motion.div
+              className="absolute -top-1 -right-1"
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Sparkles className="h-4 w-4 text-accent" />
+            </motion.div>
           </div>
-          <h1 className="font-mono text-xl font-bold text-gradient">Bella Space</h1>
-          <p className="text-xs text-muted-foreground">Sua plataforma de estudos</p>
-        </div>
+          <div className="text-center">
+            <h1 className="font-mono text-2xl font-bold text-gradient tracking-tight">Bella Space</h1>
+            <p className="text-xs text-muted-foreground mt-1">Sua plataforma de estudos ✨</p>
+          </div>
+        </motion.div>
 
-        <Card className="p-6 bg-card border-border">
-          <h2 className="text-lg font-mono font-semibold text-center mb-6">
-            {isSignUp ? "Criar conta" : "Entrar"}
+        <Card className="p-8 bg-card/80 backdrop-blur-sm border-border/50 shadow-2xl shadow-primary/5">
+          <h2 className="text-lg font-mono font-semibold text-center mb-1 text-foreground">
+            {isSignUp ? "Criar conta" : "Bem-vinda de volta"}
           </h2>
+          <p className="text-xs text-muted-foreground text-center mb-6">
+            {isSignUp ? "Comece sua jornada de estudos" : "Continue de onde parou"}
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
-              <>
-                {/* Avatar upload */}
-                <div className="flex justify-center">
-                  <label className="relative cursor-pointer group">
-                    <div className="h-20 w-20 rounded-full border-2 border-dashed border-border group-hover:border-primary/50 transition-colors flex items-center justify-center overflow-hidden bg-secondary">
-                      {avatarPreview ? (
-                        <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
-                      ) : (
-                        <User className="h-8 w-8 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                      <Upload className="h-3 w-3 text-primary-foreground" />
-                    </div>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                  </label>
-                </div>
-                <p className="text-[10px] text-muted-foreground text-center">Foto de perfil (opcional)</p>
-
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground ml-1">Nome</label>
                 <Input
-                  placeholder="Seu nome"
+                  placeholder="Como quer ser chamada?"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={100}
-                  className="h-10 text-sm"
+                  className="h-11 text-sm bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
                 />
-              </>
+              </div>
             )}
 
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              maxLength={255}
-              className="h-10 text-sm"
-            />
-
-            <div className="relative">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Email</label>
               <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                maxLength={72}
-                className="h-10 text-sm pr-10"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                maxLength={255}
+                className="h-11 text-sm bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
             </div>
 
-            <Button type="submit" className="w-full h-10" disabled={loading}>
-              {loading ? "Aguarde..." : isSignUp ? "Criar conta" : "Entrar"}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Senha</label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo 6 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  maxLength={72}
+                  className="h-11 text-sm pr-10 bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-11 font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow" 
+              disabled={loading}
+            >
+              {loading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
+                />
+              ) : isSignUp ? "Criar conta" : "Entrar"}
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
+            <div className="relative mb-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/50" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-card px-3 text-muted-foreground">ou</span>
+              </div>
+            </div>
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+              className="text-xs text-primary/80 hover:text-primary font-medium transition-colors"
             >
               {isSignUp ? "Já tem conta? Entrar" : "Não tem conta? Criar uma"}
             </button>
           </div>
         </Card>
+
+        <p className="text-[10px] text-muted-foreground/50 text-center mt-6">
+          Feito com 💜 para você estudar melhor
+        </p>
       </motion.div>
     </div>
   );

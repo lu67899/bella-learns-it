@@ -109,14 +109,23 @@ export function AppSidebar() {
                 </div>
               )}
             </button>
-            {isMobile && (
+            <div className="flex items-center gap-1">
               <button
-                onClick={() => setOpenMobile(false)}
-                className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                onClick={toggleTheme}
+                className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-colors"
+                title={themeLabel}
               >
-                <X className="h-4 w-4" />
+                <ThemeIcon className="h-3.5 w-3.5" />
               </button>
-            )}
+              {isMobile && (
+                <button
+                  onClick={() => setOpenMobile(false)}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -187,26 +196,16 @@ export function AppSidebar() {
             )}
           </button>
 
-          {/* Theme + Logout */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={toggleTheme}
-              className={`flex items-center gap-2 flex-1 rounded-xl text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors ${
-                collapsed ? "justify-center p-2" : "px-3 py-2"
-              }`}
-            >
-              <ThemeIcon className="h-3.5 w-3.5 shrink-0" />
-              {!collapsed && <span className="text-[11px] font-mono">{themeLabel}</span>}
-            </button>
-            <button
-              onClick={signOut}
-              className={`rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors ${
-                collapsed ? "p-2" : "px-3 py-2"
-              }`}
-            >
-              <LogOut className="h-3.5 w-3.5 shrink-0" />
-            </button>
-          </div>
+          {/* Logout */}
+          <button
+            onClick={signOut}
+            className={`flex items-center gap-2 w-full rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors ${
+              collapsed ? "justify-center p-2" : "px-3 py-2"
+            }`}
+          >
+            <LogOut className="h-3.5 w-3.5 shrink-0" />
+            {!collapsed && <span className="text-[11px] font-mono">Sair</span>}
+          </button>
         </div>
       </SidebarContent>
     </Sidebar>

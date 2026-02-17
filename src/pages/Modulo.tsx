@@ -138,14 +138,18 @@ const ModuloPage = () => {
     <Layout>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-          <Link to={modulo.curso_id ? `/curso/${modulo.curso_id}` : "/"} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <Link to={modulo.curso_id ? `/curso/${modulo.curso_id}` : "/"}>
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
+              <ArrowLeft className="h-4 w-4" /> Voltar ao curso
+            </Button>
           </Link>
-          <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" /> {modulo.nome}
-          </h1>
-          {modulo.descricao && <p className="text-sm text-muted-foreground">{modulo.descricao}</p>}
+          <div>
+            <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary" /> {modulo.nome}
+            </h1>
+            {modulo.descricao && <p className="text-sm text-muted-foreground mt-1">{modulo.descricao}</p>}
+          </div>
           
           {/* Progress bar */}
           {topicos.length > 0 && (

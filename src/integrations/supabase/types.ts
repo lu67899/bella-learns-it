@@ -468,28 +468,34 @@ export type Database = {
       }
       cursos: {
         Row: {
+          assunto: string | null
           created_at: string
           descricao: string | null
           icone: string | null
           id: string
           nome: string
           ordem: number
+          tempo_estimado: string | null
         }
         Insert: {
+          assunto?: string | null
           created_at?: string
           descricao?: string | null
           icone?: string | null
           id?: string
           nome: string
           ordem?: number
+          tempo_estimado?: string | null
         }
         Update: {
+          assunto?: string | null
           created_at?: string
           descricao?: string | null
           icone?: string | null
           id?: string
           nome?: string
           ordem?: number
+          tempo_estimado?: string | null
         }
         Relationships: []
       }
@@ -617,6 +623,35 @@ export type Database = {
           texto?: string
         }
         Relationships: []
+      }
+      inscricoes_cursos: {
+        Row: {
+          created_at: string
+          curso_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          curso_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          curso_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_cursos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       materias: {
         Row: {

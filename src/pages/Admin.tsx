@@ -253,10 +253,10 @@ const Admin = () => {
 
 // ─── CURSOS TAB ─────────────────────────────────────────
 function CursosTab() {
-  const [items, setItems] = useState<{ id: string; nome: string; descricao: string | null; ordem: number }[]>([]);
+  const [items, setItems] = useState<{ id: string; nome: string; descricao: string | null; assunto: string | null; tempo_estimado: string | null; ordem: number }[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ nome: "", descricao: "" });
+  const [form, setForm] = useState({ nome: "", descricao: "", assunto: "", tempo_estimado: "" });
 
   const load = async () => {
     const { data } = await supabase.from("cursos").select("*").order("ordem");
@@ -266,13 +266,13 @@ function CursosTab() {
 
   const save = async () => {
     if (!form.nome) return;
-    const payload = { nome: form.nome, descricao: form.descricao || null, ordem: editing ? editing.ordem : items.length };
+    const payload = { nome: form.nome, descricao: form.descricao || null, assunto: form.assunto || null, tempo_estimado: form.tempo_estimado || null, ordem: editing ? editing.ordem : items.length };
     if (editing) {
       await supabase.from("cursos").update(payload).eq("id", editing.id);
     } else {
       await supabase.from("cursos").insert(payload);
     }
-    toast.success("Curso salvo!"); setDialogOpen(false); setEditing(null); setForm({ nome: "", descricao: "" }); load();
+    toast.success("Curso salvo!"); setDialogOpen(false); setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "" }); load();
   };
 
   const remove = async (id: string) => {
@@ -281,13 +281,14 @@ function CursosTab() {
   };
 
   return (
-    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "" }); setDialogOpen(true); }}>
+    <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "" }); setDialogOpen(true); }}>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-16">#</TableHead>
             <TableHead>Nome</TableHead>
-            <TableHead>Descrição</TableHead>
+            <TableHead>Assunto</TableHead>
+            <TableHead>Tempo</TableHead>
             <TableHead className="w-24">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -296,10 +297,11 @@ function CursosTab() {
             <TableRow key={item.id}>
               <TableCell className="font-mono text-sm">{item.ordem + 1}</TableCell>
               <TableCell className="font-mono text-sm">{item.nome}</TableCell>
-              <TableCell className="text-sm text-muted-foreground">{item.descricao || "—"}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.assunto || "—"}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.tempo_estimado || "—"}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "" }); setDialogOpen(true); }}>
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "", assunto: item.assunto || "", tempo_estimado: item.tempo_estimado || "" }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>
                    <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
@@ -315,6 +317,8 @@ function CursosTab() {
           <div className="space-y-4">
             <Input placeholder="Nome do curso (ex: Sistemas de Informação)" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
             <Input placeholder="Descrição (opcional)" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+            <Input placeholder="Assunto abordado (ex: Programação Web)" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} />
+            <Input placeholder="Tempo estimado (ex: 40 horas)" value={form.tempo_estimado} onChange={(e) => setForm({ ...form, tempo_estimado: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

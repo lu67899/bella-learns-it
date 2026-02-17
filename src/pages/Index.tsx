@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones } from "lucide-react";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
@@ -60,6 +60,7 @@ const Index = () => {
   const { features } = useAppFeatures();
   const reduceMotion = useReducedMotion();
   const [cursos, setCursos] = useState<CursoDB[]>([]);
+  const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
   const [chatAberto, setChatAberto] = useState(false);
@@ -82,7 +83,7 @@ const Index = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [cursoRes, modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes, adminRes] = await Promise.all([
+      const [cursoRes, modRes, topRes, mRes, progRes, notifRes, desafiosRes, respostasRes, frasesRes, adminRes, inscRes] = await Promise.all([
         supabase.from("cursos").select("*").order("ordem"),
         supabase.from("modulos").select("id, curso_id"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
@@ -93,7 +94,11 @@ const Index = () => {
         supabase.from("desafio_respostas").select("desafio_id"),
         supabase.from("frases_motivacionais").select("texto").eq("ativa", true),
         supabase.from("admin_config").select("nome, avatar_url").eq("id", 1).single(),
+        supabase.from("inscricoes_cursos").select("curso_id"),
       ]);
+
+      const enrolledSet = new Set((inscRes.data || []).map((i: any) => i.curso_id));
+      setEnrolledIds(enrolledSet);
 
       const topicosByModule = new Map<string, string[]>();
       (topRes.data || []).forEach((t: any) => {
@@ -126,8 +131,19 @@ const Index = () => {
       });
       setCursos(cursosData);
 
-      const totalTopics = Array.from(topicosByModule.values()).flat().length;
-      setOverallProgress(totalTopics > 0 ? (completedSet.size / totalTopics) * 100 : 0);
+      // Calculate progress only for enrolled courses
+      const enrolledCursoIds = [...enrolledSet];
+      let enrolledTotalTopics = 0;
+      let enrolledCompletedTopics = 0;
+      enrolledCursoIds.forEach((cursoId) => {
+        const modIds = modulesByCurso.get(cursoId) || [];
+        modIds.forEach((modId) => {
+          const topicIds = topicosByModule.get(modId) || [];
+          enrolledTotalTopics += topicIds.length;
+          enrolledCompletedTopics += topicIds.filter((tid) => completedSet.has(tid)).length;
+        });
+      });
+      setOverallProgress(enrolledTotalTopics > 0 ? (enrolledCompletedTopics / enrolledTotalTopics) * 100 : 0);
 
       if (mRes.data) {
         setMensagens(mRes.data);
@@ -431,14 +447,12 @@ const Index = () => {
           </div>
         </motion.div>
 
-        {/* Cursos */}
-        <motion.div variants={item} className="space-y-4">
-          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">Cursos</p>
-          {cursos.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
-          ) : (
+        {/* Meus Cursos (inscritos) */}
+        {cursos.filter(c => enrolledIds.has(c.id)).length > 0 && (
+          <motion.div variants={item} className="space-y-4">
+            <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">Meus Cursos</p>
             <div className="flex flex-col gap-3">
-              {cursos.map((curso) => {
+              {cursos.filter(c => enrolledIds.has(c.id)).map((curso) => {
                 const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
                 const isComplete = pct === 100;
                 return (
@@ -479,6 +493,48 @@ const Index = () => {
                   </Link>
                 );
               })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Cursos Disponíveis (não inscritos) */}
+        <motion.div variants={item} className="space-y-4">
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">
+            {cursos.filter(c => enrolledIds.has(c.id)).length > 0 ? "Explorar Cursos" : "Cursos"}
+          </p>
+          {cursos.filter(c => !enrolledIds.has(c.id)).length === 0 && cursos.filter(c => enrolledIds.has(c.id)).length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
+          ) : cursos.filter(c => !enrolledIds.has(c.id)).length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Você já está inscrito em todos os cursos!</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {cursos.filter(c => !enrolledIds.has(c.id)).map((curso) => (
+                <Link key={curso.id} to={`/curso/${curso.id}`} className="block">
+                  <motion.div
+                    whileHover={hoverLift}
+                    whileTap={tapDown}
+                    className="group p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary transition-colors">
+                        <span className="text-base emoji-fix">📚</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-mono text-sm font-medium truncate">{curso.nome}</p>
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        {curso.descricao && (
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{curso.descricao}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/60 font-mono mt-2">
+                      {curso.modulos_count || 0} módulos · {curso.total_topicos || 0} tópicos
+                    </p>
+                  </motion.div>
+                </Link>
+              ))}
             </div>
           )}
         </motion.div>

@@ -5,9 +5,9 @@ import BackButton from "@/components/BackButton";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ModuloProgress {
   id: string;
@@ -27,24 +27,45 @@ interface CursoGroup {
 }
 
 const Progresso = () => {
+  const { user } = useAuth();
   const [cursoGroups, setCursoGroups] = useState<CursoGroup[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
   const [openCursos, setOpenCursos] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
+      // Fetch enrolled course IDs first
+      let enrolledCursoIds: string[] = [];
+      if (user) {
+        const { data: inscData } = await supabase
+          .from("inscricoes_cursos")
+          .select("curso_id")
+          .eq("user_id", user.id);
+        enrolledCursoIds = (inscData || []).map((i: any) => i.curso_id);
+      }
+
+      if (enrolledCursoIds.length === 0) {
+        setCursoGroups([]);
+        setOverallProgress(0);
+        return;
+      }
+
       const [cursoRes, modRes, topRes, progRes] = await Promise.all([
-        supabase.from("cursos").select("id, nome, ordem").order("ordem"),
-        supabase.from("modulos").select("*").order("ordem"),
+        supabase.from("cursos").select("id, nome, ordem").in("id", enrolledCursoIds).order("ordem"),
+        supabase.from("modulos").select("*").in("curso_id", enrolledCursoIds).order("ordem"),
         supabase.from("modulo_topicos").select("modulo_id, id"),
         supabase.from("topico_progresso").select("topico_id"),
       ]);
 
+      const moduleIds = (modRes.data || []).map((m: any) => m.id);
+
       const topicosByModule = new Map<string, string[]>();
       (topRes.data || []).forEach((t: any) => {
-        const arr = topicosByModule.get(t.modulo_id) || [];
-        arr.push(t.id);
-        topicosByModule.set(t.modulo_id, arr);
+        if (moduleIds.includes(t.modulo_id)) {
+          const arr = topicosByModule.get(t.modulo_id) || [];
+          arr.push(t.id);
+          topicosByModule.set(t.modulo_id, arr);
+        }
       });
 
       const completedSet = new Set((progRes.data || []).map((p: any) => p.topico_id));
@@ -61,24 +82,21 @@ const Progresso = () => {
         };
       });
 
-      // Group by curso
       const cursoMap = new Map<string, CursoGroup>();
       (cursoRes.data || []).forEach((c: any) => {
         cursoMap.set(c.id, { id: c.id, nome: c.nome, modulos: [], totalTopics: 0, completedTopics: 0 });
       });
 
-      // Orphan group for modules without curso
-      const orphan: CursoGroup = { id: "__orphan", nome: "Outros", modulos: [], totalTopics: 0, completedTopics: 0 };
-
       modsWithProgress.forEach((mod) => {
         const group = mod.curso_id ? cursoMap.get(mod.curso_id) : null;
-        const target = group || orphan;
-        target.modulos.push(mod);
-        target.totalTopics += mod.topicos_count;
-        target.completedTopics += mod.completed_count;
+        if (group) {
+          group.modulos.push(mod);
+          group.totalTopics += mod.topicos_count;
+          group.completedTopics += mod.completed_count;
+        }
       });
 
-      const groups = [...cursoMap.values(), ...(orphan.modulos.length > 0 ? [orphan] : [])];
+      const groups = [...cursoMap.values()];
       setCursoGroups(groups);
 
       const totalT = groups.reduce((s, g) => s + g.totalTopics, 0);
@@ -86,7 +104,7 @@ const Progresso = () => {
       setOverallProgress(totalT > 0 ? (totalC / totalT) * 100 : 0);
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   const toggleCurso = (id: string) => {
     setOpenCursos((prev) => {
@@ -126,10 +144,7 @@ const Progresso = () => {
 
             return (
               <div key={grupo.id}>
-                <button
-                  onClick={() => toggleCurso(grupo.id)}
-                  className="w-full text-left"
-                >
+                <button onClick={() => toggleCurso(grupo.id)} className="w-full text-left">
                   <Card className={`bg-card border-border transition-all ${isOpen ? "border-primary/30" : "hover:border-primary/20"}`}>
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-center justify-between">
@@ -140,9 +155,7 @@ const Progresso = () => {
                             <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
                           )}
                           <div>
-                            <p className={`font-mono font-semibold text-sm ${isCursoComplete ? "text-primary" : ""}`}>
-                              {grupo.nome}
-                            </p>
+                            <p className={`font-mono font-semibold text-sm ${isCursoComplete ? "text-primary" : ""}`}>{grupo.nome}</p>
                             <p className="text-[11px] text-muted-foreground">
                               {grupo.modulos.length} módulo{grupo.modulos.length !== 1 ? "s" : ""} · {grupo.completedTopics}/{grupo.totalTopics} tópicos
                             </p>
@@ -202,7 +215,7 @@ const Progresso = () => {
             );
           })}
           {cursoGroups.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum curso cadastrado.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">Você ainda não está inscrito em nenhum curso.</p>
           )}
         </div>
       </motion.div>

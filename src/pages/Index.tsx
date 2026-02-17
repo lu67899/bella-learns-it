@@ -284,42 +284,36 @@ const Index = () => {
 
   return (
     <Layout>
-      <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-10 pb-20">
+      <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-6 pb-20">
 
         {/* Header */}
         <motion.div variants={item}>
-          <div className="relative rounded-2xl bg-card border border-border px-5 py-6">
-            {/* Decorative glow */}
-            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
-
-            <div className="relative flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase mb-1">{saudacao}</p>
-                <h1 className="text-xl font-bold font-mono truncate">
-                  <span className="text-gradient">{profile?.display_name || "Estudante"}</span> ✨
-                </h1>
-              </div>
-              <div className="shrink-0 flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" onClick={abrirChat}>
-                  <MessageCircle className="h-4 w-4" />
-                  {naoLidas > 0 && (
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase mb-0.5">{saudacao}</p>
+              <h1 className="text-xl font-bold font-mono truncate">
+                <span className="text-gradient">{profile?.display_name || "Estudante"}</span> ✨
+              </h1>
+            </div>
+            <div className="shrink-0 flex items-center gap-0.5">
+              <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" onClick={abrirChat}>
+                <MessageCircle className="h-4 w-4" />
+                {naoLidas > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                    {naoLidas}
+                  </span>
+                )}
+              </Button>
+              <Link to="/notificacoes">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
+                  <Bell className="h-4 w-4" />
+                  {notifNaoLidas > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                      {naoLidas}
+                      {notifNaoLidas}
                     </span>
                   )}
                 </Button>
-                <Link to="/notificacoes">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
-                    <Bell className="h-4 w-4" />
-                    {notifNaoLidas > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                        {notifNaoLidas}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              </div>
+              </Link>
             </div>
           </div>
         </motion.div>
@@ -327,8 +321,7 @@ const Index = () => {
         {/* Frase Motivacional */}
         {frases.length > 0 && (
           <motion.div variants={item}>
-            <div className="relative rounded-lg bg-primary/5 border border-primary/10 px-5 py-4 overflow-hidden">
-              <span className="absolute top-2 left-3 text-primary/20 text-2xl font-serif leading-none">"</span>
+            <div className="relative px-4 py-3 overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.p
                   key={fraseIdx}
@@ -336,19 +329,19 @@ const Index = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.6 }}
-                  className="text-sm text-center text-foreground/70 italic pl-4"
+                  className="text-xs text-center text-muted-foreground italic font-mono"
                 >
-                  {frases[fraseIdx]}
+                  "{frases[fraseIdx]}"
                 </motion.p>
               </AnimatePresence>
               {frases.length > 1 && (
-                <div className="flex justify-center gap-1 mt-3">
+                <div className="flex justify-center gap-1 mt-2">
                   {frases.map((_, i) => (
                     <button
                       key={i}
                       onClick={() => setFraseIdx(i)}
                       className={`h-1 rounded-full transition-all duration-500 ${
-                        i === fraseIdx ? "w-6 bg-primary" : "w-1.5 bg-muted hover:bg-muted-foreground/30"
+                        i === fraseIdx ? "w-5 bg-primary" : "w-1 bg-muted-foreground/20"
                       }`}
                     />
                   ))}
@@ -358,20 +351,16 @@ const Index = () => {
           </motion.div>
         )}
 
-        {/* Progress & Desafios - side by side */}
+        {/* Stats Row */}
         <div className="grid grid-cols-2 gap-3">
           <motion.div variants={item} whileHover={hoverLift} whileTap={tapDown}>
             <Link to="/progresso">
-              <div className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Progresso</span>
-                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                </div>
+              <div className="p-4 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-3">
-                  <CircularProgress value={overallProgress} size={56} strokeWidth={4} variant="gradient" />
+                  <CircularProgress value={overallProgress} size={48} strokeWidth={3.5} variant="gradient" />
                   <div>
-                    <p className="text-2xl font-bold font-mono text-gradient">{Math.round(overallProgress)}%</p>
-                    <p className="text-[10px] text-muted-foreground">Concluído</p>
+                    <p className="text-xl font-bold font-mono text-gradient">{Math.round(overallProgress)}%</p>
+                    <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Progresso</p>
                   </div>
                 </div>
               </div>
@@ -379,21 +368,15 @@ const Index = () => {
           </motion.div>
           <motion.div variants={item} whileHover={hoverLift} whileTap={tapDown}>
             <Link to="/desafios">
-              <div className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider flex items-center gap-1">
-                    <Trophy className="h-3 w-3" /> Desafios
-                  </span>
-                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                </div>
+              <div className="p-4 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-3">
-                  <CircularProgress value={desafiosCount.total > 0 ? (desafiosCount.respondidos / desafiosCount.total) * 100 : 0} size={56} strokeWidth={4} />
+                  <CircularProgress value={desafiosCount.total > 0 ? (desafiosCount.respondidos / desafiosCount.total) * 100 : 0} size={48} strokeWidth={3.5} />
                   <div>
-                    <p className="text-2xl font-bold font-mono">
+                    <p className="text-xl font-bold font-mono">
                       <span className="text-gradient">{desafiosCount.respondidos}</span>
-                      <span className="text-muted-foreground text-sm">/{desafiosCount.total}</span>
+                      <span className="text-muted-foreground text-xs">/{desafiosCount.total}</span>
                     </p>
-                    <p className="text-[10px] text-muted-foreground">Respondidos</p>
+                    <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Desafios</p>
                   </div>
                 </div>
               </div>
@@ -401,29 +384,28 @@ const Index = () => {
           </motion.div>
         </div>
 
-        {/* Acesso Rápido */}
+        {/* Quick Access */}
         <motion.div variants={item} className="space-y-3">
-          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Acesso rápido</p>
-          <div className="grid grid-cols-2 gap-3">
+          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-[0.2em] font-semibold">Acesso rápido</p>
+          <div className="grid grid-cols-4 gap-2">
             {[
               { label: "Resumos", to: "/resumos", icon: "📖", type: "emoji" as const },
               { label: "Jogos", to: "/jogos", icon: "🎮", type: "emoji" as const },
               { label: "Mix", to: "/mix", icon: PlayCircle, type: "icon" as const },
-              
               { label: "Belinha", to: "/belinha", icon: Bot, type: "icon" as const },
             ].map((a) => {
               const IconComponent = a.type === "icon" ? a.icon as React.ComponentType<{ className?: string }> : null;
               return (
                 <Link key={a.to} to={a.to}>
-                  <motion.div whileHover={hoverLift} whileTap={tapDown} className="group flex flex-col items-center gap-1.5 p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
+                  <motion.div whileHover={hoverLift} whileTap={tapDown} className="group flex flex-col items-center gap-1.5 py-3 rounded-xl bg-card border border-border hover:border-primary/20 transition-all cursor-pointer">
                     {a.type === "emoji" ? (
                       <span className="text-lg emoji-fix">{a.icon as string}</span>
                     ) : (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
                         {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
                       </div>
                     )}
-                    <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
+                    <span className="text-[9px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">{a.label}</span>
                   </motion.div>
                 </Link>
               );
@@ -432,12 +414,12 @@ const Index = () => {
         </motion.div>
 
         {/* Cursos */}
-        <motion.div variants={item} className="space-y-4">
-          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">Cursos</p>
+        <motion.div variants={item} className="space-y-3">
+          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-[0.2em] font-semibold">Cursos</p>
           {cursos.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Nenhum curso cadastrado.</p>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {cursos.map((curso) => {
                 const pct = (curso.total_topicos || 0) > 0 ? ((curso.completed_topicos || 0) / (curso.total_topicos || 1)) * 100 : 0;
                 const isComplete = pct === 100;
@@ -446,10 +428,10 @@ const Index = () => {
                     <motion.div
                       whileHover={hoverLift}
                       whileTap={tapDown}
-                      className="group p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer"
+                      className="group p-4 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isComplete ? "bg-primary/15" : "bg-secondary"} transition-colors`}>
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isComplete ? "bg-primary/15" : "bg-muted/50"} transition-colors`}>
                           {isComplete ? (
                             <CheckCircle2 className="h-5 w-5 text-primary" />
                           ) : (
@@ -457,24 +439,16 @@ const Index = () => {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="font-mono text-sm font-medium truncate">{curso.nome}</p>
-                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
+                          <p className="font-mono text-sm font-medium truncate">{curso.nome}</p>
                           {curso.descricao && (
-                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{curso.descricao}</p>
+                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">{curso.descricao}</p>
                           )}
                         </div>
+                        <span className="text-[10px] font-mono text-muted-foreground tabular-nums shrink-0">{Math.round(pct)}%</span>
                       </div>
-                      <div className="mt-3 flex items-center gap-3">
-                        <SegmentProgress value={pct} segments={5} className="flex-1" />
-                        <span className="text-[10px] font-mono text-muted-foreground shrink-0 tabular-nums">
-                          {Math.round(pct)}%
-                        </span>
+                      <div className="mt-3">
+                        <SegmentProgress value={pct} segments={5} className="w-full" />
                       </div>
-                      <p className="text-[10px] text-muted-foreground/60 font-mono mt-1.5">
-                        {curso.modulos_count || 0} módulos · {curso.completed_topicos || 0}/{curso.total_topicos || 0} tópicos
-                      </p>
                     </motion.div>
                   </Link>
                 );

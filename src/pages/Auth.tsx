@@ -92,53 +92,11 @@ const Auth = () => {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-[400px] relative z-10"
       >
-        {/* Logo & Branding */}
-        <motion.div 
-          className="flex flex-col items-center gap-5 mb-10"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.6 }}
-        >
-          <div className="relative">
-            {logoUrl ? (
-              <div className="h-[72px] w-[72px] rounded-2xl overflow-hidden ring-1 ring-primary/20 shadow-2xl shadow-neon-purple/20 bg-card/80 backdrop-blur-md flex items-center justify-center">
-                <img 
-                  src={logoUrl} 
-                  alt="Logo" 
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="h-[72px] w-[72px] rounded-2xl bg-gradient-to-br from-neon-purple/25 via-primary/15 to-neon-cyan/15 ring-1 ring-primary/20 shadow-2xl shadow-neon-purple/20 flex items-center justify-center backdrop-blur-md">
-                <BrainCircuit className="h-9 w-9 text-primary" />
-              </div>
-            )}
-            <motion.div
-              className="absolute -top-1 -right-1"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <div className="h-5 w-5 rounded-full bg-neon-cyan/20 ring-1 ring-neon-cyan/30 flex items-center justify-center">
-                <Sparkles className="h-2.5 w-2.5 text-neon-cyan" />
-              </div>
-            </motion.div>
-          </div>
-
-          <div className="text-center space-y-1.5">
-            <h1 className="font-mono text-[22px] font-bold tracking-tight text-foreground">
-              Bella Space
-            </h1>
-            <p className="text-[11px] text-muted-foreground/60 font-mono tracking-widest uppercase">
-              Plataforma de estudos
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Auth Card */}
+        {/* Auth Card with integrated logo */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.6 }}
+          transition={{ delay: 0.15, duration: 0.6 }}
         >
           <Card className="p-0 bg-card/50 backdrop-blur-2xl border-border/30 shadow-2xl shadow-black/30 relative overflow-hidden rounded-2xl">
             {/* Top accent gradient */}
@@ -146,6 +104,39 @@ const Auth = () => {
             
             {/* Inner glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[80px] bg-neon-purple/5 blur-[60px] pointer-events-none" />
+
+            {/* Logo inside card */}
+            <div className="flex flex-col items-center gap-4 pt-8 pb-2 px-7">
+              <div className="relative">
+                {logoUrl ? (
+                  <div className="h-[64px] w-[64px] rounded-2xl overflow-hidden ring-1 ring-primary/20 shadow-xl shadow-neon-purple/20 bg-card/80 backdrop-blur-md flex items-center justify-center">
+                    <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-[64px] w-[64px] rounded-2xl bg-gradient-to-br from-neon-purple/25 via-primary/15 to-neon-cyan/15 ring-1 ring-primary/20 shadow-xl shadow-neon-purple/20 flex items-center justify-center backdrop-blur-md">
+                    <BrainCircuit className="h-8 w-8 text-primary" />
+                  </div>
+                )}
+                <motion.div
+                  className="absolute -top-1 -right-1"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <div className="h-5 w-5 rounded-full bg-neon-cyan/20 ring-1 ring-neon-cyan/30 flex items-center justify-center">
+                    <Sparkles className="h-2.5 w-2.5 text-neon-cyan" />
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="text-center space-y-1">
+                <h1 className="font-mono text-xl font-bold tracking-tight text-foreground">
+                  Bella Space
+                </h1>
+                <p className="text-[10px] text-muted-foreground/50 font-mono tracking-widest uppercase">
+                  Plataforma de estudos
+                </p>
+              </div>
+            </div>
 
             <div className="p-7 pt-8">
               <div className="mb-7">

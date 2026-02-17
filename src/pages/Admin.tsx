@@ -2511,7 +2511,9 @@ function OrdenarTab() {
 function GeradorIATab() {
   const [cursos, setCursos] = useState<{ id: string; nome: string; descricao: string | null }[]>([]);
   const [selectedCurso, setSelectedCurso] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("google/gemini-3-flash-preview");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-4o-mini");
+  const [customModel, setCustomModel] = useState<string>("");
+  const [useCustomModel, setUseCustomModel] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [inserting, setInserting] = useState(false);
@@ -2519,12 +2521,12 @@ function GeradorIATab() {
   const [contextInfo, setContextInfo] = useState<string>("");
 
   const aiModels = [
-    { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (Padrão)", desc: "Rápido e eficiente" },
-    { value: "google/gemini-3-pro-preview", label: "Gemini 3 Pro", desc: "Mais preciso, mais lento" },
+    { value: "openai/gpt-4o-mini", label: "GPT-4o Mini (Padrão)", desc: "Rápido e barato" },
+    { value: "openai/gpt-4o", label: "GPT-4o", desc: "Alta qualidade" },
     { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash", desc: "Equilibrado" },
-    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", desc: "Alta qualidade" },
-    { value: "openai/gpt-5-mini", label: "GPT-5 Mini", desc: "Bom custo-benefício" },
-    { value: "openai/gpt-5", label: "GPT-5", desc: "Máxima qualidade" },
+    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", desc: "Máxima qualidade" },
+    { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4", desc: "Excelente raciocínio" },
+    { value: "deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3", desc: "Custo muito baixo" },
   ];
 
   useEffect(() => {
@@ -2565,7 +2567,7 @@ function GeradorIATab() {
           action: "generate",
           prompt: prompt.trim(),
           curso_id: selectedCurso === "novo" ? null : selectedCurso || null,
-          model: selectedModel,
+          model: useCustomModel && customModel.trim() ? customModel.trim() : selectedModel,
         },
       });
       if (res.error) throw new Error(res.error.message);
@@ -2646,20 +2648,43 @@ function GeradorIATab() {
 
           {/* Model selector */}
           <div className="space-y-1.5">
-            <label className="text-sm font-mono font-medium">Modelo de IA</label>
-            <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o modelo" />
-              </SelectTrigger>
-              <SelectContent>
-                {aiModels.map(m => (
-                  <SelectItem key={m.value} value={m.value}>
-                    <span className="font-mono">{m.label}</span>
-                    <span className="text-muted-foreground ml-2 text-xs">— {m.desc}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-mono font-medium">Modelo de IA</label>
+              <button
+                type="button"
+                onClick={() => setUseCustomModel(!useCustomModel)}
+                className="text-[11px] text-primary hover:underline font-mono"
+              >
+                {useCustomModel ? "← Usar lista" : "Digitar modelo"}
+              </button>
+            </div>
+            {useCustomModel ? (
+              <div className="space-y-1">
+                <Input
+                  placeholder="Ex: anthropic/claude-sonnet-4, meta-llama/llama-4-scout"
+                  value={customModel}
+                  onChange={(e) => setCustomModel(e.target.value)}
+                  className="font-mono text-sm"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Use o identificador do modelo do OpenRouter (ex: openai/gpt-4o-mini)
+                </p>
+              </div>
+            ) : (
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {aiModels.map(m => (
+                    <SelectItem key={m.value} value={m.value}>
+                      <span className="font-mono">{m.label}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">— {m.desc}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Prompt */}

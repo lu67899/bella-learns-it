@@ -1454,7 +1454,9 @@ function VideosTab() {
 function AdminConfigTab() {
   const [nome, setNome] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -1462,6 +1464,7 @@ function AdminConfigTab() {
     if (data) {
       setNome(data.nome);
       setAvatarUrl(data.avatar_url);
+      setLogoUrl((data as any).logo_url);
     }
     setLoading(false);
   };
@@ -1501,6 +1504,34 @@ function AdminConfigTab() {
     toast.success("Foto atualizada!");
   };
 
+  const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Usuário não autenticado"); setUploadingLogo(false); return; }
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/app-logo.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Erro ao enviar logo");
+      setUploadingLogo(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = urlData.publicUrl + "?t=" + Date.now();
+    
+    await supabase.from("admin_config").update({ logo_url: url } as any).eq("id", 1);
+    setLogoUrl(url);
+    setUploadingLogo(false);
+    toast.success("Logo atualizado!");
+  };
+
   if (loading) return <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>;
 
   return (
@@ -1511,6 +1542,28 @@ function AdminConfigTab() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Logo do App */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-xl object-cover border-2 border-primary/30" />
+            ) : (
+              <div className="h-16 w-16 rounded-xl bg-secondary flex items-center justify-center border-2 border-border">
+                <Image className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Logo do App</p>
+            <p className="text-xs text-muted-foreground">Aparece na tela de login</p>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-primary hover:underline">
+              <Upload className="h-3 w-3" />
+              {uploadingLogo ? "Enviando..." : "Alterar logo"}
+              <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+            </label>
+          </div>
+        </div>
+
         {/* Avatar */}
         <div className="flex items-center gap-4">
           <div className="relative">

@@ -86,6 +86,7 @@ export type Database = {
           id: number
           music_enabled: boolean
           news_enabled: boolean
+          notifications_enabled: boolean
           updated_at: string
         }
         Insert: {
@@ -93,6 +94,7 @@ export type Database = {
           id?: number
           music_enabled?: boolean
           news_enabled?: boolean
+          notifications_enabled?: boolean
           updated_at?: string
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           id?: number
           music_enabled?: boolean
           news_enabled?: boolean
+          notifications_enabled?: boolean
           updated_at?: string
         }
         Relationships: []

@@ -493,47 +493,74 @@ const Index = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            className={`fixed right-4 left-4 sm:left-auto sm:w-[340px] z-50 ${chatMinimizado ? "bottom-8" : "bottom-16"}`}
+            className={`fixed right-4 left-4 sm:left-auto sm:w-[340px] z-50 ${chatMinimizado ? "bottom-4 left-auto !w-auto" : "bottom-16"}`}
             style={{ transformOrigin: "bottom right" }}
           >
-            <div className="rounded-2xl bg-background/80 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_hsl(var(--primary)/0.15)] overflow-hidden">
-              {/* Header */}
-              <div
-                className="flex items-center justify-between px-5 py-3.5 cursor-pointer border-b border-border/20"
-                onClick={() => setChatMinimizado(!chatMinimizado)}
-              >
-                <div className="flex items-center gap-2.5">
+            <div className={`overflow-hidden ${chatMinimizado ? "rounded-full" : "rounded-2xl"} bg-background/80 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_hsl(var(--primary)/0.15)]`}>
+              {chatMinimizado ? (
+                <button
+                  onClick={() => setChatMinimizado(false)}
+                  className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+                >
                   {adminConfig.avatar_url ? (
-                    <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border/30" />
+                    <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
                   ) : (
                     <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
                       <MessageCircle className="h-3 w-3 text-primary" />
                     </div>
                   )}
-                  <div>
-                    <span className="text-xs font-medium text-foreground">{chatMinimizado ? "Chat" : adminConfig.nome}</span>
-                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">chat</span>
                   {naoLidas > 0 && (
-                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">
                       {naoLidas}
                     </span>
                   )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
-                    onClick={(e) => { e.stopPropagation(); setChatMinimizado(!chatMinimizado); }}
+                  <span
+                    className="ml-1 text-muted-foreground/50 hover:text-foreground transition-colors"
+                    onClick={(e) => { e.stopPropagation(); setChatAberto(false); setChatMinimizado(false); }}
                   >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
-                    onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}
+                    <X className="h-3 w-3" />
+                  </span>
+                </button>
+              ) : (
+                <>
+                  {/* Header */}
+                  <div
+                    className="flex items-center justify-between px-5 py-3.5 cursor-pointer border-b border-border/20"
+                    onClick={() => setChatMinimizado(true)}
                   >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
+                    <div className="flex items-center gap-2.5">
+                      {adminConfig.avatar_url ? (
+                        <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border/30" />
+                      ) : (
+                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          <MessageCircle className="h-3 w-3 text-primary" />
+                        </div>
+                      )}
+                      <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
+                      {naoLidas > 0 && (
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">
+                          {naoLidas}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setChatMinimizado(true); }}
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
+                        onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Body */}
               <AnimatePresence>

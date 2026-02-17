@@ -28,6 +28,7 @@ import JogoDaMemoria from "./pages/JogoDaMemoria";
 import PalavrasCruzadas from "./pages/PalavrasCruzadas";
 import OrdenarPassos from "./pages/OrdenarPassos";
 import Auth from "./pages/Auth";
+import Notificacoes from "./pages/Notificacoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const AppRoutes = () => (
     <Route path="/jogo-da-memoria" element={<ProtectedRoute><JogoDaMemoria /></ProtectedRoute>} />
     <Route path="/palavras-cruzadas" element={<ProtectedRoute><PalavrasCruzadas /></ProtectedRoute>} />
     <Route path="/ordenar-passos" element={<ProtectedRoute><OrdenarPassos /></ProtectedRoute>} />
+    <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

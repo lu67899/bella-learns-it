@@ -29,6 +29,8 @@ const Notificacoes = () => {
       const { data } = await supabase
         .from("notificacoes")
         .select("*")
+        .neq("tipo", "certificado")
+        .neq("tipo", "resgate")
         .order("created_at", { ascending: false })
         .limit(50);
       if (data) setNotificacoes(data);

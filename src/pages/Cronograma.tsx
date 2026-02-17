@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CalendarDays, Check, Loader2, Plus, Edit2, Trash2 } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,7 @@ const Cronograma = () => {
   return (
     <Layout>
       <div className="max-w-5xl mx-auto space-y-6">
+        <BackButton to="/" />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">

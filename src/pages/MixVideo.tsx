@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -86,13 +87,7 @@ const MixVideo = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-5xl mx-auto space-y-5 pb-20"
       >
-        <button
-          onClick={() => navigate("/mix")}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar para Mix
-        </button>
+        <BackButton to="/mix" label="Voltar para Mix" />
 
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-12">Carregando...</p>

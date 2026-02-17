@@ -16,8 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMaterias } from "@/hooks/useMaterias";
-
-const ADMIN_PASSWORD = "bella2024";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 // Types
 interface Resumo { id: string; materia: string; titulo: string; conteudo: string; created_at: string; }
@@ -81,13 +81,33 @@ const adminSections = [
 ];
 
 const Admin = () => {
-  const [autenticado, setAutenticado] = useState(false);
-  const [senha, setSenha] = useState("");
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [pendingCounts, setPendingCounts] = useState<Record<string, number>>({});
 
+  // Check admin role
   useEffect(() => {
-    if (!autenticado) return;
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    const checkRole = async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+    };
+    checkRole();
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
     const fetchCounts = async () => {
       const [msgRes, certRes, resRes] = await Promise.all([
         supabase.from("mensagens").select("id", { count: "exact", head: true }).eq("remetente", "aluno").eq("lida", false),
@@ -101,47 +121,38 @@ const Admin = () => {
       });
     };
     fetchCounts();
-  }, [autenticado, activeSection]);
+  }, [isAdmin, activeSection]);
 
-  const handleLogin = () => {
-    if (senha === ADMIN_PASSWORD) {
-      setAutenticado(true);
-      toast.success("Acesso concedido!");
-    } else {
-      toast.error("Senha incorreta!");
-    }
-  };
-
-  if (!autenticado) {
+  if (authLoading || isAdmin === null) {
     return (
       <Layout>
-        <div className="max-w-sm mx-auto mt-20 space-y-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-            <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-primary/20">
-              <Lock className="h-8 w-8 text-primary" />
-            </div>
-            <h1 className="text-2xl font-mono font-bold">Painel Admin</h1>
-            <p className="text-sm text-muted-foreground">Digite a senha para acessar</p>
-          </motion.div>
-          <Card className="bg-card border-border">
-            <CardContent className="p-6 space-y-4">
-              <Input
-                type="password"
-                placeholder="Senha de acesso"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              />
-              <Button onClick={handleLogin} className="w-full gap-2">
-                <Shield className="h-4 w-4" /> Entrar
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Layout>
     );
   }
 
+  if (!isAdmin) {
+    return (
+      <Layout>
+        <div className="max-w-sm mx-auto mt-20 space-y-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
+            <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-destructive/20">
+              <Shield className="h-8 w-8 text-destructive" />
+            </div>
+            <h1 className="text-2xl font-mono font-bold">Acesso Negado</h1>
+            <p className="text-sm text-muted-foreground">Sua conta não tem permissão de administrador.</p>
+          </motion.div>
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={() => navigate("/")} className="gap-2">
+              <ArrowLeftIcon className="h-4 w-4" /> Voltar ao início
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   const renderContent = () => {
     switch (activeSection) {
       case "cursos": return <CursosTab />;
@@ -189,7 +200,7 @@ const Admin = () => {
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setAutenticado(false)} className="gap-1.5 text-xs">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="gap-1.5 text-xs">
             <LogOut className="h-3.5 w-3.5" /> Sair
           </Button>
         </div>

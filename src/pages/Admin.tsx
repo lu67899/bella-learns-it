@@ -2511,6 +2511,7 @@ function OrdenarTab() {
 function GeradorIATab() {
   const [cursos, setCursos] = useState<{ id: string; nome: string; descricao: string | null }[]>([]);
   const [selectedCurso, setSelectedCurso] = useState<string>("");
+  const [aiProvider, setAiProvider] = useState<"openrouter" | "lovable">("openrouter");
   const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-4o-mini");
   const [customModel, setCustomModel] = useState<string>("");
   const [useCustomModel, setUseCustomModel] = useState(false);
@@ -2520,7 +2521,7 @@ function GeradorIATab() {
   const [generated, setGenerated] = useState<any>(null);
   const [contextInfo, setContextInfo] = useState<string>("");
 
-  const aiModels = [
+  const openrouterModels = [
     { value: "openai/gpt-4o-mini", label: "GPT-4o Mini (Padrão)", desc: "Rápido e barato" },
     { value: "openai/gpt-4o", label: "GPT-4o", desc: "Alta qualidade" },
     { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash", desc: "Equilibrado" },
@@ -2528,6 +2529,17 @@ function GeradorIATab() {
     { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4", desc: "Excelente raciocínio" },
     { value: "deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3", desc: "Custo muito baixo" },
   ];
+
+  const lovableModels = [
+    { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (Padrão)", desc: "Rápido e eficiente" },
+    { value: "google/gemini-3-pro-preview", label: "Gemini 3 Pro", desc: "Máxima qualidade" },
+    { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash", desc: "Equilibrado" },
+    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", desc: "Alta qualidade" },
+    { value: "openai/gpt-5-mini", label: "GPT-5 Mini", desc: "Rápido e poderoso" },
+    { value: "openai/gpt-5", label: "GPT-5", desc: "Máximo poder" },
+  ];
+
+  const aiModels = aiProvider === "lovable" ? lovableModels : openrouterModels;
 
   useEffect(() => {
     loadCursos();
@@ -2567,7 +2579,8 @@ function GeradorIATab() {
           action: "generate",
           prompt: prompt.trim(),
           curso_id: selectedCurso === "novo" ? null : selectedCurso || null,
-          model: useCustomModel && customModel.trim() ? customModel.trim() : selectedModel,
+          model: aiProvider === "openrouter" && useCustomModel && customModel.trim() ? customModel.trim() : selectedModel,
+          provider: aiProvider,
         },
       });
       if (res.error) throw new Error(res.error.message);
@@ -2646,19 +2659,56 @@ function GeradorIATab() {
             )}
           </div>
 
+          {/* Provider selector */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-mono font-medium">Provedor de IA</label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={aiProvider === "lovable" ? "default" : "outline"}
+                size="sm"
+                className="flex-1 font-mono text-xs"
+                onClick={() => {
+                  setAiProvider("lovable");
+                  setSelectedModel("google/gemini-3-flash-preview");
+                  setUseCustomModel(false);
+                }}
+              >
+                ✨ Lovable AI
+              </Button>
+              <Button
+                type="button"
+                variant={aiProvider === "openrouter" ? "default" : "outline"}
+                size="sm"
+                className="flex-1 font-mono text-xs"
+                onClick={() => {
+                  setAiProvider("openrouter");
+                  setSelectedModel("openai/gpt-4o-mini");
+                }}
+              >
+                🔀 OpenRouter
+              </Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {aiProvider === "lovable" ? "Créditos incluídos no Lovable — sem custo extra" : "Requer créditos no openrouter.ai"}
+            </p>
+          </div>
+
           {/* Model selector */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-sm font-mono font-medium">Modelo de IA</label>
-              <button
-                type="button"
-                onClick={() => setUseCustomModel(!useCustomModel)}
-                className="text-[11px] text-primary hover:underline font-mono"
-              >
-                {useCustomModel ? "← Usar lista" : "Digitar modelo"}
-              </button>
+              {aiProvider === "openrouter" && (
+                <button
+                  type="button"
+                  onClick={() => setUseCustomModel(!useCustomModel)}
+                  className="text-[11px] text-primary hover:underline font-mono"
+                >
+                  {useCustomModel ? "← Usar lista" : "Digitar modelo"}
+                </button>
+              )}
             </div>
-            {useCustomModel ? (
+            {aiProvider === "openrouter" && useCustomModel ? (
               <div className="space-y-1">
                 <Input
                   placeholder="Ex: anthropic/claude-sonnet-4, meta-llama/llama-4-scout"

@@ -18,7 +18,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { prompt, curso_id, action, generated, model } = await req.json();
+    const { prompt, curso_id, action, generated, model, provider } = await req.json();
 
     // Action: fetch existing content context
     if (action === "fetch_context") {
@@ -103,19 +103,30 @@ REGRAS IMPORTANTES:
 7. Cada módulo deve ter 2-4 tópicos.
 8. Gere 1-3 resumos relacionados ao conteúdo criado. Os resumos devem ser sínteses úteis para revisão rápida.`;
 
-      const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-      if (!OPENROUTER_API_KEY) {
-        throw new Error("OPENROUTER_API_KEY is not configured");
+      const useProvider = provider || "openrouter";
+      let apiUrl: string;
+      let apiKey: string;
+      let extraHeaders: Record<string, string> = {};
+
+      if (useProvider === "lovable") {
+        apiKey = Deno.env.get("LOVABLE_API_KEY") || "";
+        if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+        apiUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
+      } else {
+        apiKey = Deno.env.get("OPENROUTER_API_KEY") || "";
+        if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
+        apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+        extraHeaders["HTTP-Referer"] = supabaseUrl;
       }
 
-      const selectedModel = model || "openai/gpt-4o-mini";
+      const selectedModel = model || (useProvider === "lovable" ? "google/gemini-3-flash-preview" : "openai/gpt-4o-mini");
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": supabaseUrl,
+          ...extraHeaders,
         },
         body: JSON.stringify({
           model: selectedModel,

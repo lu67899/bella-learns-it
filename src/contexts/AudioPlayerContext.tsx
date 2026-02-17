@@ -58,6 +58,7 @@ interface AudioPlayerContextType {
   setProgressos: React.Dispatch<React.SetStateAction<Progresso[]>>;
   setFavoritos: React.Dispatch<React.SetStateAction<string[]>>;
   getCapProgress: (capId: string) => { percent: number; concluido: boolean };
+  stopPlayback: () => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | null>(null);
@@ -87,7 +88,21 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
   // Load favoritos on mount
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      // User logged out - stop playback
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
+      setPlayingCapitulo(null);
+      setPlayingBook(null);
+      setPlayingBookCaps([]);
+      setIsPlaying(false);
+      setFavoritos([]);
+      setProgressos([]);
+      return;
+    }
     supabase.from("audiobook_favoritos").select("audiobook_id").then(({ data }) => {
       if (data) setFavoritos(data.map((f: any) => f.audiobook_id));
     });
@@ -200,11 +215,24 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   const getCapProgress = (capId: string) => {
     const p = progressos.find((pr) => pr.capitulo_id === capId);
     if (!p) return { percent: 0, concluido: false };
-    // We need duracao_segundos from the cap - check playingBookCaps first
     const cap = playingBookCaps.find((c) => c.id === capId);
     if (!cap || !cap.duracao_segundos) return { percent: 0, concluido: p.concluido };
     return { percent: Math.min(100, (p.posicao_segundos / cap.duracao_segundos) * 100), concluido: p.concluido };
   };
+
+  const stopPlayback = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+    setPlayingCapitulo(null);
+    setPlayingBook(null);
+    setPlayingBookCaps([]);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+  }, []);
 
   return (
     <AudioPlayerContext.Provider value={{
@@ -214,6 +242,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       setPlayerExpanded, setShowChapterList,
       playCapitulo, togglePlay, seek, skip, handleVolume, toggleMute,
       toggleFavorite, saveProgress, setProgressos, setFavoritos, getCapProgress,
+      stopPlayback,
     }}>
       {children}
     </AudioPlayerContext.Provider>

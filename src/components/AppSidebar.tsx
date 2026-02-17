@@ -18,6 +18,17 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -53,6 +64,8 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { profile, signOut } = useAuth();
+  const { stopPlayback } = useAudioPlayer();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -198,7 +211,7 @@ export function AppSidebar() {
 
           {/* Logout */}
           <button
-            onClick={signOut}
+            onClick={() => setShowLogoutConfirm(true)}
             className={`flex items-center gap-2 w-full rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors ${
               collapsed ? "justify-center p-2" : "px-3 py-2"
             }`}
@@ -208,6 +221,29 @@ export function AppSidebar() {
           </button>
         </div>
       </SidebarContent>
+
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja sair? Seu progresso está salvo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                stopPlayback();
+                signOut();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   );
 }

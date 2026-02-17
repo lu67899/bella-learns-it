@@ -251,16 +251,28 @@ const ModuloPage = () => {
                               <Circle className="h-3.5 w-3.5" /> Marcar como concluído
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar conclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja marcar este tópico como concluído? Essa ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => markComplete(selectedTopico)}>
+                          <AlertDialogContent className="max-w-[280px] rounded-2xl border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/5 p-0 overflow-hidden">
+                            <div className="flex flex-col items-center text-center px-6 pt-6 pb-4">
+                              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3 ring-1 ring-primary/20">
+                                <Circle className="h-4 w-4 text-primary" />
+                              </div>
+                              <AlertDialogHeader className="space-y-1">
+                                <AlertDialogTitle className="text-sm font-bold tracking-tight">
+                                  Confirmar conclusão
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-xs text-muted-foreground/70 leading-relaxed">
+                                  Essa ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                            </div>
+                            <AlertDialogFooter className="flex-row gap-2 border-t border-border/30 bg-muted/20 px-4 py-3 sm:space-x-0">
+                              <AlertDialogCancel className="flex-1 m-0 h-8 text-xs rounded-lg border-border/50 bg-transparent hover:bg-muted/50 font-medium">
+                                Cancelar
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => markComplete(selectedTopico)}
+                                className="flex-1 m-0 h-8 text-xs rounded-lg font-medium shadow-lg shadow-primary/20"
+                              >
                                 Confirmar
                               </AlertDialogAction>
                             </AlertDialogFooter>

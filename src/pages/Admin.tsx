@@ -2573,6 +2573,25 @@ function AudiobooksTab() {
   const [editingCat, setEditingCat] = useState<any>(null);
   const [form, setForm] = useState({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" });
   const [catForm, setCatForm] = useState({ nome: "", icone: "📚" });
+  const [uploadingCapa, setUploadingCapa] = useState(false);
+  const capaInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadCapa = async (file: File) => {
+    setUploadingCapa(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("audiobook-covers").upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("audiobook-covers").getPublicUrl(fileName);
+      setForm((f) => ({ ...f, capa_url: publicUrl }));
+      toast.success("Capa enviada!");
+    } catch (e: any) {
+      toast.error("Erro ao enviar capa: " + e.message);
+    } finally {
+      setUploadingCapa(false);
+    }
+  };
 
   const loadCategorias = async () => {
     const { data } = await supabase.from("audiobook_categorias").select("*").order("ordem");
@@ -2680,7 +2699,20 @@ function AudiobooksTab() {
             <Input placeholder="Autor" value={form.autor} onChange={(e) => setForm({ ...form, autor: e.target.value })} />
             <Textarea placeholder="Descrição" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} />
             <Input placeholder="URL do áudio (Cloudflare R2) *" value={form.audio_url} onChange={(e) => setForm({ ...form, audio_url: e.target.value })} />
-            <Input placeholder="URL da capa (imagem)" value={form.capa_url} onChange={(e) => setForm({ ...form, capa_url: e.target.value })} />
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-mono">Capa (imagem)</p>
+              {form.capa_url && (
+                <div className="relative w-20 h-20">
+                  <img src={form.capa_url} alt="Capa" className="w-20 h-20 rounded-lg object-cover border border-border" />
+                  <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-5 w-5 bg-destructive/90 hover:bg-destructive text-white rounded-full" onClick={() => setForm({ ...form, capa_url: "" })}><X className="h-3 w-3" /></Button>
+                </div>
+              )}
+              <input ref={capaInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCapa(f); e.target.value = ""; }} />
+              <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => capaInputRef.current?.click()} disabled={uploadingCapa}>
+                {uploadingCapa ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                {uploadingCapa ? "Enviando..." : "Enviar capa"}
+              </Button>
+            </div>
             <Select value={form.categoria_id} onValueChange={(v) => setForm({ ...form, categoria_id: v })}>
               <SelectTrigger><SelectValue placeholder="Categoria (opcional)" /></SelectTrigger>
               <SelectContent>{categorias.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.icone} {cat.nome}</SelectItem>)}</SelectContent>

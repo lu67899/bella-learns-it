@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMaterias } from "@/hooks/useMaterias";
@@ -86,6 +87,32 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [pendingCounts, setPendingCounts] = useState<Record<string, number>>({});
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // Fetch notification toggle state
+  useEffect(() => {
+    const fetchNotifState = async () => {
+      const { data } = await supabase.from("app_features").select("notifications_enabled").limit(1).single();
+      if (data) setNotificationsEnabled(data.notifications_enabled);
+    };
+    fetchNotifState();
+  }, []);
+
+  const toggleNotifications = async (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    await supabase.from("app_features").update({ notifications_enabled: enabled }).eq("id", 1);
+    toast.success(enabled ? "Notificações automáticas ativadas" : "Notificações automáticas pausadas");
+  };
+
+  const sendCourseNotification = async (cursoId: string, cursoNome: string) => {
+    await supabase.from("notificacoes").insert({
+      tipo: "novo_conteudo",
+      titulo: "Novo curso disponível!",
+      mensagem: `O curso "${cursoNome}" foi adicionado com todos os módulos e tópicos.`,
+      link: `/curso/${cursoId}`,
+    });
+    toast.success("Notificação enviada para os alunos!");
+  };
 
   // Check admin role
   useEffect(() => {
@@ -214,6 +241,24 @@ const Admin = () => {
               exit={{ opacity: 0, y: -8 }}
               className="space-y-6"
             >
+              {/* Notification Toggle */}
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Bell className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium font-mono">Notificações Automáticas</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {notificationsEnabled ? "Cada novo conteúdo gera notificação" : "Pausadas — ideal para cadastrar em lote"}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch checked={notificationsEnabled} onCheckedChange={toggleNotifications} />
+                </CardContent>
+              </Card>
+
               {adminSections.map((group) => (
                 <div key={group.group} className="space-y-2.5">
                   <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider px-1"><span className="emoji-fix mr-1">{group.group.split(" ")[0]}</span>{group.group.split(" ").slice(1).join(" ")}</p>
@@ -298,6 +343,16 @@ function CursosTab() {
     toast.success("Todos os cursos foram removidos!"); load();
   };
 
+  const notifyCourse = async (id: string, nome: string) => {
+    await supabase.from("notificacoes").insert({
+      tipo: "novo_conteudo",
+      titulo: "Novo curso disponível!",
+      mensagem: `O curso "${nome}" foi adicionado com todos os módulos e tópicos.`,
+      link: `/curso/${id}`,
+    });
+    toast.success("Notificação enviada!");
+  };
+
   return (
     <CrudSection title="Cursos" count={items.length} onAdd={() => { setEditing(null); setForm({ nome: "", descricao: "", assunto: "", tempo_estimado: "", moedas_total: "0" }); setDialogOpen(true); }}
       onRemoveAll={items.length > 0 ? removeAll : undefined}
@@ -323,6 +378,9 @@ function CursosTab() {
               <TableCell className="text-sm text-muted-foreground">{item.moedas_total || "—"}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" title="Notificar alunos" onClick={() => notifyCourse(item.id, item.nome)}>
+                    <Bell className="h-3 w-3" />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ nome: item.nome, descricao: item.descricao || "", assunto: item.assunto || "", tempo_estimado: item.tempo_estimado || "", moedas_total: String(item.moedas_total || 0) }); setDialogOpen(true); }}>
                     <Edit2 className="h-3 w-3" />
                   </Button>

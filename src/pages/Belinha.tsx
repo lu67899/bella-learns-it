@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, User, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
@@ -235,7 +236,7 @@ const Belinha = () => {
                 <div className="mt-0.5">
                   <BelinhaAvatar avatarUrl={avatarUrl} />
                 </div>
-                <Card className="max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed bg-card border-border">
+                <Card className="max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed bg-card border-border">
                   <p className="whitespace-pre-wrap">{recado}</p>
                 </Card>
               </motion.div>
@@ -255,13 +256,19 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "assistant" ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-pre:my-2 prose-code:bg-secondary prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
                   </Card>
                   {msg.role === "user" && (
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary mt-0.5">

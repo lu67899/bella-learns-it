@@ -2511,11 +2511,21 @@ function OrdenarTab() {
 function GeradorIATab() {
   const [cursos, setCursos] = useState<{ id: string; nome: string; descricao: string | null }[]>([]);
   const [selectedCurso, setSelectedCurso] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("google/gemini-3-flash-preview");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [inserting, setInserting] = useState(false);
   const [generated, setGenerated] = useState<any>(null);
   const [contextInfo, setContextInfo] = useState<string>("");
+
+  const aiModels = [
+    { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (Padrão)", desc: "Rápido e eficiente" },
+    { value: "google/gemini-3-pro-preview", label: "Gemini 3 Pro", desc: "Mais preciso, mais lento" },
+    { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash", desc: "Equilibrado" },
+    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", desc: "Alta qualidade" },
+    { value: "openai/gpt-5-mini", label: "GPT-5 Mini", desc: "Bom custo-benefício" },
+    { value: "openai/gpt-5", label: "GPT-5", desc: "Máxima qualidade" },
+  ];
 
   useEffect(() => {
     loadCursos();
@@ -2555,6 +2565,7 @@ function GeradorIATab() {
           action: "generate",
           prompt: prompt.trim(),
           curso_id: selectedCurso === "novo" ? null : selectedCurso || null,
+          model: selectedModel,
         },
       });
       if (res.error) throw new Error(res.error.message);
@@ -2631,6 +2642,24 @@ function GeradorIATab() {
                 <Eye className="h-3 w-3 shrink-0" /> {contextInfo}
               </p>
             )}
+          </div>
+
+          {/* Model selector */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-mono font-medium">Modelo de IA</label>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o modelo" />
+              </SelectTrigger>
+              <SelectContent>
+                {aiModels.map(m => (
+                  <SelectItem key={m.value} value={m.value}>
+                    <span className="font-mono">{m.label}</span>
+                    <span className="text-muted-foreground ml-2 text-xs">— {m.desc}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Prompt */}

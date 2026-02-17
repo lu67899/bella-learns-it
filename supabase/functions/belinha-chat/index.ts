@@ -67,6 +67,7 @@ serve(async (req) => {
           { role: "system", content: config.system_prompt },
           ...messages,
         ],
+        max_tokens: 8192,
         stream: true,
       }),
     });

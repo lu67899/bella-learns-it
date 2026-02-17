@@ -83,7 +83,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent className="flex flex-col h-full bg-sidebar">
         {/* Header - Logo + Title */}
-        <div className="px-5 pt-8 pb-5">
+        <div className="px-5 pt-14 sm:pt-6 pb-5">
           <div className="flex items-center justify-between">
             <button
               onClick={() => handleNav("/")}

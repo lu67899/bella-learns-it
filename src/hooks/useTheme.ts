@@ -1,9 +1,9 @@
 import { useLocalStorage } from "./useLocalStorage";
 import { useEffect } from "react";
 
-export type ThemeName = "dark" | "pink" | "hogwarts";
+export type ThemeName = "dark" | "pink" | "hogwarts" | "sky";
 
-const themeOrder: ThemeName[] = ["dark", "pink", "hogwarts"];
+const themeOrder: ThemeName[] = ["dark", "pink", "hogwarts", "sky"];
 
 export function useTheme() {
   const [theme, setTheme] = useLocalStorage<ThemeName>("bella-theme", "dark");

@@ -473,6 +473,7 @@ export type Database = {
           descricao: string | null
           icone: string | null
           id: string
+          moedas_total: number
           nome: string
           ordem: number
           tempo_estimado: string | null
@@ -483,6 +484,7 @@ export type Database = {
           descricao?: string | null
           icone?: string | null
           id?: string
+          moedas_total?: number
           nome: string
           ordem?: number
           tempo_estimado?: string | null
@@ -493,6 +495,7 @@ export type Database = {
           descricao?: string | null
           icone?: string | null
           id?: string
+          moedas_total?: number
           nome?: string
           ordem?: number
           tempo_estimado?: string | null

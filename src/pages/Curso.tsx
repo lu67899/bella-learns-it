@@ -17,6 +17,7 @@ interface CursoDB {
   descricao: string | null;
   assunto: string | null;
   tempo_estimado: string | null;
+  moedas_total: number;
 }
 
 interface ModuloDB {
@@ -114,7 +115,7 @@ const CursoPage = () => {
 
   const totalTopics = modulos.reduce((sum, m) => sum + m.topicos_count, 0);
   const completedTopics = modulos.reduce((sum, m) => sum + m.completed_count, 0);
-  const totalMoedas = modulos.reduce((sum, m) => sum + m.total_moedas, 0);
+  const totalMoedas = curso?.moedas_total || 0;
   const isCourseComplete = totalTopics > 0 && completedTopics === totalTopics;
 
   const handleInscrever = async () => {

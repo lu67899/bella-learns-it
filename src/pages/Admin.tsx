@@ -2447,9 +2447,10 @@ function GeradorIATab() {
             <div className="bg-secondary/20 rounded-lg p-3 space-y-1">
               <p className="text-sm font-mono font-bold">{generated.curso?.nome}</p>
               <p className="text-xs text-muted-foreground">{generated.curso?.descricao}</p>
-              <div className="flex gap-2 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 <Badge variant="secondary">{generated.modulos?.length || 0} módulos</Badge>
                 <Badge variant="secondary">{totalTopicos} tópicos</Badge>
+                <Badge variant="secondary">{generated.resumos?.length || 0} resumos</Badge>
                 <Badge variant={generated.curso?.is_new ? "default" : "outline"}>
                   {generated.curso?.is_new ? "Curso novo" : "Expansão"}
                 </Badge>
@@ -2475,6 +2476,24 @@ function GeradorIATab() {
                 </div>
               </div>
             ))}
+
+            {/* Resumos preview */}
+            {generated.resumos?.length > 0 && (
+              <div className="border border-border rounded-lg p-3 space-y-2">
+                <p className="text-sm font-mono font-bold flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  Resumos ({generated.resumos.length})
+                </p>
+                <div className="space-y-1 pl-4">
+                  {generated.resumos.map((r: any, ri: number) => (
+                    <div key={ri} className="flex items-center gap-2 text-xs">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">{r.materia}</Badge>
+                      <span className="font-medium">{r.titulo}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Button onClick={insertContent} disabled={inserting} className="w-full gap-2" variant="default">
               {inserting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}

@@ -91,13 +91,21 @@ REGRAS IMPORTANTES:
         }
       ]
     }
+  ],
+  "resumos": [
+    {
+      "materia": "string (nome da matéria/área do conteúdo)",
+      "titulo": "string (título do resumo)",
+      "conteudo": "string (resumo completo em markdown, com pontos-chave, definições importantes e fórmulas se aplicável, mínimo 200 palavras)"
+    }
   ]
 }
 3. Se o curso já existe (curso_id fornecido), coloque is_new: false e adicione APENAS módulos/tópicos NOVOS que ainda não existem.
 4. Se for um curso novo, coloque is_new: true.
 5. Use ordens que continuem a sequência existente.
 6. O conteúdo de cada tópico deve ser rico, com analogias, exemplos, tabelas comparativas e exercícios mentais.
-7. Cada módulo deve ter 2-4 tópicos.`;
+7. Cada módulo deve ter 2-4 tópicos.
+8. Gere 1-3 resumos relacionados ao conteúdo criado. Os resumos devem ser sínteses úteis para revisão rápida.`;
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -202,6 +210,18 @@ REGRAS IMPORTANTES:
           if (topError) {
             console.error("Error inserting topic:", topError);
           }
+        }
+      }
+
+      // Insert resumos
+      for (const resumo of gen.resumos || []) {
+        const { error: resError } = await supabase.from("resumos").insert({
+          materia: resumo.materia,
+          titulo: resumo.titulo,
+          conteudo: resumo.conteudo,
+        });
+        if (resError) {
+          console.error("Error inserting resumo:", resError);
         }
       }
 

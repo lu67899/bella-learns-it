@@ -56,6 +56,7 @@ const Audiobooks = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [audiobooks, setAudiobooks] = useState<Audiobook[]>([]);
   const [progressos, setProgressos] = useState<Progresso[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Categoria | null>(null);
   const [selectedBook, setSelectedBook] = useState<Audiobook | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -101,7 +102,6 @@ const Audiobooks = () => {
       togglePlay();
       return;
     }
-    // Save current progress before switching
     if (selectedBook) saveProgress();
 
     setSelectedBook(book);
@@ -120,7 +120,6 @@ const Audiobooks = () => {
 
     audio.addEventListener("loadedmetadata", () => {
       setDuration(audio.duration);
-      // Restore saved position
       const saved = progressos.find((p) => p.audiobook_id === book.id);
       if (saved && saved.posicao_segundos > 0 && !saved.concluido) {
         audio.currentTime = saved.posicao_segundos;
@@ -203,26 +202,48 @@ const Audiobooks = () => {
     return Math.min(100, (p.posicao_segundos / book.duracao_segundos) * 100);
   };
 
-  const groupedBooks = categorias.map((cat) => ({
-    ...cat,
-    books: audiobooks.filter((b) => b.categoria_id === cat.id),
-  }));
+  const booksInCategory = selectedCategory
+    ? audiobooks.filter((b) => b.categoria_id === selectedCategory.id)
+    : [];
+
   const uncategorized = audiobooks.filter((b) => !b.categoria_id);
 
   return (
     <Layout>
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-6 pb-32">
+        {/* Header */}
         <motion.div variants={item}>
-          <Button variant="ghost" size="sm" className="gap-1.5 mb-4 -ml-2 text-muted-foreground" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" /> Voltar
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 mb-4 -ml-2 text-muted-foreground"
+            onClick={() => {
+              if (selectedCategory) {
+                setSelectedCategory(null);
+              } else {
+                navigate("/");
+              }
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" /> {selectedCategory ? "Categorias" : "Voltar"}
           </Button>
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-              <Headphones className="h-5 w-5 text-primary" />
+              {selectedCategory ? (
+                <span className="text-lg">{selectedCategory.icone}</span>
+              ) : (
+                <Headphones className="h-5 w-5 text-primary" />
+              )}
             </div>
             <div>
-              <h1 className="text-xl font-bold font-mono">Audiobooks</h1>
-              <p className="text-xs text-muted-foreground">Ouça seus materiais de estudo</p>
+              <h1 className="text-xl font-bold font-mono">
+                {selectedCategory ? selectedCategory.nome : "Audiobooks"}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {selectedCategory
+                  ? `${booksInCategory.length} audiobook${booksInCategory.length !== 1 ? "s" : ""}`
+                  : "Escolha uma categoria para começar"}
+              </p>
             </div>
           </div>
         </motion.div>
@@ -231,56 +252,125 @@ const Audiobooks = () => {
           <motion.div variants={item} className="text-center py-12">
             <p className="text-sm text-muted-foreground font-mono">Carregando...</p>
           </motion.div>
-        ) : audiobooks.length === 0 ? (
-          <motion.div variants={item} className="text-center py-12">
-            <Headphones className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground font-mono">Nenhum audiobook disponível ainda</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Os audiobooks serão adicionados pelo admin</p>
-          </motion.div>
-        ) : (
+        ) : !selectedCategory ? (
+          /* ── CATEGORY GRID ── */
           <>
-            {groupedBooks.map((group) =>
-              group.books.length > 0 ? (
-                <motion.div key={group.id} variants={item} className="space-y-3">
-                  <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider flex items-center gap-2">
-                    <span>{group.icone}</span> {group.nome}
-                  </p>
-                  <div className="grid gap-3">
-                    {group.books.map((book) => (
-                      <AudiobookCard
-                        key={book.id}
-                        book={book}
-                        isActive={selectedBook?.id === book.id}
-                        isPlaying={selectedBook?.id === book.id && isPlaying}
-                        progress={getBookProgress(book.id)}
-                        concluido={progressos.find((p) => p.audiobook_id === book.id)?.concluido || false}
-                        onPlay={() => playBook(book)}
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-              ) : null
-            )}
-
-            {uncategorized.length > 0 && (
-              <motion.div variants={item} className="space-y-3">
-                {categorias.length > 0 && (
-                  <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📚 Outros</p>
-                )}
-                <div className="grid gap-3">
-                  {uncategorized.map((book) => (
-                    <AudiobookCard
-                      key={book.id}
-                      book={book}
-                      isActive={selectedBook?.id === book.id}
-                      isPlaying={selectedBook?.id === book.id && isPlaying}
-                      progress={getBookProgress(book.id)}
-                      concluido={progressos.find((p) => p.audiobook_id === book.id)?.concluido || false}
-                      onPlay={() => playBook(book)}
-                    />
-                  ))}
-                </div>
+            {categorias.length === 0 && uncategorized.length === 0 ? (
+              <motion.div variants={item} className="text-center py-12">
+                <Headphones className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-sm text-muted-foreground font-mono">Nenhum audiobook disponível ainda</p>
               </motion.div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {categorias.map((cat) => {
+                  const count = audiobooks.filter((b) => b.categoria_id === cat.id).length;
+                  const catBooks = audiobooks.filter((b) => b.categoria_id === cat.id);
+                  const coverBook = catBooks.find((b) => b.capa_url);
+                  return (
+                    <motion.div
+                      key={cat.id}
+                      variants={item}
+                      whileHover={{ y: -3, scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => setSelectedCategory(cat)}
+                      className="group relative cursor-pointer rounded-2xl border border-border bg-card overflow-hidden transition-all hover:border-primary/40 hover:shadow-lg"
+                    >
+                      {/* Cover image or gradient */}
+                      <div className="aspect-[4/3] relative overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
+                        {coverBook?.capa_url ? (
+                          <img
+                            src={coverBook.capa_url}
+                            alt={cat.nome}
+                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-4xl">{cat.icone}</span>
+                          </div>
+                        )}
+                        {/* Overlay gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                      </div>
+                      {/* Info */}
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-sm">{cat.icone}</span>
+                          <p className="font-mono text-sm font-semibold truncate">{cat.nome}</p>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-mono">
+                          {count} {count === 1 ? "audiobook" : "audiobooks"}
+                        </p>
+                      </div>
+                      {/* Arrow */}
+                      <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-background/60 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ChevronRight className="h-3.5 w-3.5 text-foreground" />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+
+                {/* Uncategorized card */}
+                {uncategorized.length > 0 && (
+                  <motion.div
+                    variants={item}
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSelectedCategory({ id: "__uncategorized__", nome: "Outros", icone: "📚" })}
+                    className="group relative cursor-pointer rounded-2xl border border-border bg-card overflow-hidden transition-all hover:border-primary/40 hover:shadow-lg"
+                  >
+                    <div className="aspect-[4/3] relative overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+                      {uncategorized[0]?.capa_url ? (
+                        <img
+                          src={uncategorized[0].capa_url}
+                          alt="Outros"
+                          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-4xl">📚</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-sm">📚</span>
+                        <p className="font-mono text-sm font-semibold">Outros</p>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground font-mono">
+                        {uncategorized.length} {uncategorized.length === 1 ? "audiobook" : "audiobooks"}
+                      </p>
+                    </div>
+                    <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-background/60 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ChevronRight className="h-3.5 w-3.5 text-foreground" />
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          /* ── AUDIOBOOKS LIST INSIDE CATEGORY ── */
+          <>
+            {(selectedCategory.id === "__uncategorized__" ? uncategorized : booksInCategory).length === 0 ? (
+              <motion.div variants={item} className="text-center py-12">
+                <Headphones className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-sm text-muted-foreground font-mono">Nenhum audiobook nesta categoria</p>
+              </motion.div>
+            ) : (
+              <div className="grid gap-3">
+                {(selectedCategory.id === "__uncategorized__" ? uncategorized : booksInCategory).map((book) => (
+                  <AudiobookCard
+                    key={book.id}
+                    book={book}
+                    isActive={selectedBook?.id === book.id}
+                    isPlaying={selectedBook?.id === book.id && isPlaying}
+                    progress={getBookProgress(book.id)}
+                    concluido={progressos.find((p) => p.audiobook_id === book.id)?.concluido || false}
+                    onPlay={() => playBook(book)}
+                  />
+                ))}
+              </div>
             )}
           </>
         )}
@@ -296,7 +386,6 @@ const Audiobooks = () => {
             className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border shadow-2xl"
           >
             <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
-              {/* Info + controls */}
               <div className="flex items-center gap-3">
                 {selectedBook.capa_url ? (
                   <img src={selectedBook.capa_url} alt={selectedBook.titulo} className="h-10 w-10 rounded-lg object-cover shrink-0" />
@@ -324,16 +413,9 @@ const Audiobooks = () => {
                   </Button>
                 </div>
               </div>
-              {/* Seek bar */}
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono text-muted-foreground w-12 text-right">{formatTime(currentTime)}</span>
-                <Slider
-                  value={[currentTime]}
-                  max={duration || 1}
-                  step={1}
-                  onValueChange={seek}
-                  className="flex-1"
-                />
+                <Slider value={[currentTime]} max={duration || 1} step={1} onValueChange={seek} className="flex-1" />
                 <span className="text-[10px] font-mono text-muted-foreground w-12">{formatTime(duration)}</span>
               </div>
             </div>
@@ -375,10 +457,7 @@ const AudiobookCard = ({ book, isActive, isPlaying, progress, concluido, onPlay 
       <div className="flex items-center gap-2 mt-1.5">
         {progress > 0 && (
           <div className="flex-1 max-w-[120px] h-1 rounded-full bg-secondary/50 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
           </div>
         )}
         {concluido && <span className="text-[9px] font-mono text-primary">✓ Concluído</span>}

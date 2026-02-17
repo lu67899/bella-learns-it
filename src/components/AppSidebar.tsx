@@ -78,26 +78,31 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent className="flex flex-col h-full bg-sidebar">
-        {/* Header - Logo + User unified */}
-        <div className="px-5 pt-8 pb-4">
-          <div className="flex items-center justify-between mb-6">
+        {/* Header - Logo + Title */}
+        <div className="px-5 pt-8 pb-5">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => handleNav("/")}
-              className="flex items-center gap-2.5"
+              className="flex items-center gap-3"
             >
               {logoUrl ? (
-                <div className="h-8 w-8 shrink-0 rounded-lg overflow-hidden ring-1 ring-primary/20">
+                <div className="h-10 w-10 shrink-0 rounded-xl overflow-hidden ring-1 ring-primary/20">
                   <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
                 </div>
               ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15">
-                  <BrainCircuit className="h-4 w-4 text-primary" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+                  <BrainCircuit className="h-5 w-5 text-primary" />
                 </div>
               )}
               {!collapsed && (
-                <span className="font-mono text-sm font-bold text-foreground">
-                  Bella Space
-                </span>
+                <div>
+                  <h1 className="font-mono text-base font-bold text-foreground">
+                    Bella Space
+                  </h1>
+                  <p className="text-[10px] text-muted-foreground/50 font-mono">
+                    Plataforma de estudos
+                  </p>
+                </div>
               )}
             </button>
             {isMobile && (
@@ -109,29 +114,6 @@ export function AppSidebar() {
               </button>
             )}
           </div>
-
-          {/* User - compact */}
-          <button
-            onClick={() => handleNav("/perfil")}
-            className="flex items-center gap-3 w-full"
-          >
-            <Avatar className="h-9 w-9 shrink-0 ring-2 ring-primary/20">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-mono font-bold">
-                {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-            {!collapsed && (
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {profile?.display_name || "Usuário"}
-                </p>
-                <span className="text-[10px] font-mono text-muted-foreground/60">
-                  {profile?.coins ?? 0} moedas
-                </span>
-              </div>
-            )}
-          </button>
         </div>
 
         <div className="mx-5 h-px bg-border/30 mb-2" />
@@ -172,27 +154,55 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Footer Actions */}
-        <div className="px-5 pb-8 pt-4 space-y-2">
-          <div className="h-px bg-border/40 mb-4" />
+        {/* Footer - User + Actions */}
+        <div className="px-5 pb-8 pt-4 space-y-3">
+          <div className="h-px bg-border/30" />
+
+          {/* User row */}
           <button
-            onClick={toggleTheme}
-            className={`flex items-center gap-3 w-full rounded-xl text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors ${
-              collapsed ? "justify-center p-2" : "px-4 py-2.5"
+            onClick={() => handleNav("/perfil")}
+            className={`flex items-center gap-3 w-full rounded-xl hover:bg-muted/40 transition-colors ${
+              collapsed ? "justify-center p-2" : "px-3 py-2.5"
             }`}
           >
-            <ThemeIcon className="h-4 w-4 shrink-0" />
-            {!collapsed && <span className="text-xs font-mono">{themeLabel}</span>}
+            <Avatar className="h-8 w-8 shrink-0 ring-1 ring-primary/20">
+              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-mono font-bold">
+                {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-xs font-medium text-foreground truncate">
+                  {profile?.display_name || "Usuário"}
+                </p>
+                <span className="text-[10px] font-mono text-muted-foreground/50">
+                  {profile?.coins ?? 0} moedas
+                </span>
+              </div>
+            )}
           </button>
-          <button
-            onClick={signOut}
-            className={`flex items-center gap-3 w-full rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors ${
-              collapsed ? "justify-center p-2" : "px-4 py-2.5"
-            }`}
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            {!collapsed && <span className="text-xs font-mono">Sair</span>}
-          </button>
+
+          {/* Theme + Logout */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleTheme}
+              className={`flex items-center gap-2 flex-1 rounded-xl text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors ${
+                collapsed ? "justify-center p-2" : "px-3 py-2"
+              }`}
+            >
+              <ThemeIcon className="h-3.5 w-3.5 shrink-0" />
+              {!collapsed && <span className="text-[11px] font-mono">{themeLabel}</span>}
+            </button>
+            <button
+              onClick={signOut}
+              className={`rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors ${
+                collapsed ? "p-2" : "px-3 py-2"
+              }`}
+            >
+              <LogOut className="h-3.5 w-3.5 shrink-0" />
+            </button>
+          </div>
         </div>
       </SidebarContent>
     </Sidebar>

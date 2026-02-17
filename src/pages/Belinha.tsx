@@ -248,7 +248,7 @@ const Belinha = () => {
                   key={i}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex gap-2.5 min-w-0 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
                     <div className="mt-0.5">
@@ -256,14 +256,14 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    className={`min-w-0 max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="whitespace-pre-wrap">
+                      <div className="min-w-0" style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}>
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (

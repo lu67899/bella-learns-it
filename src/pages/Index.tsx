@@ -67,6 +67,7 @@ const Index = () => {
   const [naoLidas, setNaoLidas] = useState(0);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [notifAberta, setNotifAberta] = useState(false);
+  const [notifFiltro, setNotifFiltro] = useState<"nao_lidas" | "todas">("nao_lidas");
   const bottomRef = useRef<HTMLDivElement>(null);
   const [overallProgress, setOverallProgress] = useState(0);
   const [desafiosCount, setDesafiosCount] = useState({ total: 0, respondidos: 0 });
@@ -310,25 +311,56 @@ const Index = () => {
                 </Button>
                 <AnimatePresence>
                   {notifAberta && (
-                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 top-11 w-72 z-50">
+                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 top-11 w-80 z-50">
                       <Card className="bg-card border-border shadow-xl">
                         <div className="flex items-center justify-between p-3 border-b border-border">
                           <span className="font-mono text-xs font-semibold">Notificações</span>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNotifAberta(false)}><X className="h-3 w-3" /></Button>
+                          <div className="flex items-center gap-1">
+                            {notifNaoLidas > 0 && (
+                              <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground" onClick={async () => {
+                                const ids = notificacoes.filter(n => !n.lida).map(n => n.id);
+                                if (ids.length > 0) {
+                                  await supabase.from("notificacoes").update({ lida: true }).in("id", ids);
+                                  setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })));
+                                }
+                              }}>
+                                Marcar todas lidas
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNotifAberta(false)}><X className="h-3 w-3" /></Button>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 px-3 pt-2">
+                          <button onClick={() => setNotifFiltro("nao_lidas")} className={`text-[10px] font-mono px-2.5 py-1 rounded-full transition-colors ${notifFiltro === "nao_lidas" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                            Não lidas {notifNaoLidas > 0 && `(${notifNaoLidas})`}
+                          </button>
+                          <button onClick={() => setNotifFiltro("todas")} className={`text-[10px] font-mono px-2.5 py-1 rounded-full transition-colors ${notifFiltro === "todas" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                            Todas
+                          </button>
                         </div>
                         <ScrollArea className="max-h-56">
-                          {notificacoes.length === 0 ? (
-                            <p className="text-xs text-muted-foreground text-center py-6">Sem notificações</p>
-                          ) : (
-                            <div className="divide-y divide-border">
-                              {notificacoes.map((n) => (
-                                <button key={n.id} onClick={() => marcarNotifLida(n)} className={`w-full text-left p-3 hover:bg-secondary/40 transition-colors ${!n.lida ? "bg-primary/5" : ""}`}>
-                                  <p className={`text-xs font-mono ${!n.lida ? "font-semibold" : "text-muted-foreground"}`}>{n.titulo}</p>
-                                  {n.mensagem && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{n.mensagem}</p>}
-                                </button>
-                              ))}
-                            </div>
-                          )}
+                          {(() => {
+                            const filtered = notifFiltro === "nao_lidas" ? notificacoes.filter(n => !n.lida) : notificacoes;
+                            return filtered.length === 0 ? (
+                              <p className="text-xs text-muted-foreground text-center py-6">
+                                {notifFiltro === "nao_lidas" ? "Nenhuma notificação não lida 🎉" : "Sem notificações"}
+                              </p>
+                            ) : (
+                              <div className="divide-y divide-border mt-2">
+                                {filtered.map((n) => (
+                                  <button key={n.id} onClick={() => marcarNotifLida(n)} className={`w-full text-left p-3 hover:bg-secondary/40 transition-colors ${!n.lida ? "bg-primary/5" : ""}`}>
+                                    <div className="flex items-start gap-2">
+                                      {!n.lida && <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
+                                      <div className="min-w-0 flex-1">
+                                        <p className={`text-xs font-mono ${!n.lida ? "font-semibold" : "text-muted-foreground"}`}>{n.titulo}</p>
+                                        {n.mensagem && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{n.mensagem}</p>}
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          })()}
                         </ScrollArea>
                       </Card>
                     </motion.div>

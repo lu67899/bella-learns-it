@@ -40,7 +40,13 @@ serve(async (req) => {
       if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
       apiUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
     } else {
-      apiKey = Deno.env.get("OPENROUTER_API_KEY") || "";
+      // Try DB key first, fallback to env var
+      const { data: keysData } = await supabase
+        .from("api_keys_config")
+        .select("openrouter_api_key")
+        .eq("id", 1)
+        .single();
+      apiKey = keysData?.openrouter_api_key || Deno.env.get("OPENROUTER_API_KEY") || "";
       if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
       apiUrl = "https://openrouter.ai/api/v1/chat/completions";
       extraHeaders["HTTP-Referer"] = supabaseUrl;

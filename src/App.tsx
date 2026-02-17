@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppFeaturesProvider } from "@/contexts/AppFeaturesContext";
+import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
+import { GlobalAudioPlayer } from "@/components/GlobalAudioPlayer";
 import Index from "./pages/Index";
 import Resumos from "./pages/Resumos";
 import ResumoDetalhe from "./pages/ResumoDetalhe";
@@ -86,9 +88,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppFeaturesProvider>
-            <AppRoutes />
-          </AppFeaturesProvider>
+          <AudioPlayerProvider>
+            <AppFeaturesProvider>
+              <AppRoutes />
+              <GlobalAudioPlayer />
+            </AppFeaturesProvider>
+          </AudioPlayerProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

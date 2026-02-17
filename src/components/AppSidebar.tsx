@@ -4,6 +4,7 @@ import {
   StickyNote,
   Shield,
   Newspaper,
+  Headphones,
   LogOut,
   Moon,
   Sparkles,
@@ -35,6 +36,7 @@ const items = [
   { title: "Notícias", url: "/noticias", icon: Newspaper },
   { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
+  { title: "Audiobooks", url: "/audiobooks", icon: Headphones },
   { title: "Admin", url: "/admin", icon: Shield },
 ];
 

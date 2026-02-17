@@ -128,6 +128,115 @@ export type Database = {
         }
         Relationships: []
       }
+      audiobook_categorias: {
+        Row: {
+          created_at: string
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
+      audiobook_progresso: {
+        Row: {
+          audiobook_id: string
+          concluido: boolean
+          id: string
+          posicao_segundos: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audiobook_id: string
+          concluido?: boolean
+          id?: string
+          posicao_segundos?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audiobook_id?: string
+          concluido?: boolean
+          id?: string
+          posicao_segundos?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_progresso_audiobook_id_fkey"
+            columns: ["audiobook_id"]
+            isOneToOne: false
+            referencedRelation: "audiobooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobooks: {
+        Row: {
+          audio_url: string
+          autor: string | null
+          capa_url: string | null
+          categoria_id: string | null
+          created_at: string
+          descricao: string | null
+          duracao_segundos: number | null
+          id: string
+          ordem: number
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url: string
+          autor?: string | null
+          capa_url?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao_segundos?: number | null
+          id?: string
+          ordem?: number
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string
+          autor?: string | null
+          capa_url?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao_segundos?: number | null
+          id?: string
+          ordem?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobooks_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       belinha_stories: {
         Row: {
           created_at: string

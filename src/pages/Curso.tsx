@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, Loader2, CheckCircle2, Award, Clock, UserPlus, Info } from "lucide-react";
+import { BookOpen, ChevronRight, Loader2, CheckCircle2, Award, Clock, UserPlus, Info, Coins } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +26,7 @@ interface ModuloDB {
   ordem: number;
   topicos_count: number;
   completed_count: number;
+  total_moedas: number;
 }
 
 const container = {
@@ -62,20 +63,20 @@ const CursoPage = () => {
 
       const [topRes, progRes] = moduleIds.length > 0
         ? await Promise.all([
-            supabase.from("modulo_topicos").select("modulo_id, id").in("modulo_id", moduleIds),
+            supabase.from("modulo_topicos").select("modulo_id, id, moedas").in("modulo_id", moduleIds),
             supabase.from("topico_progresso").select("topico_id"),
           ])
         : [{ data: [] }, { data: [] }];
 
-      const topicosByModule = new Map<string, string[]>();
+      const topicosByModule = new Map<string, { id: string; moedas: number }[]>();
       ((topRes as any).data || []).forEach((t: any) => {
         const arr = topicosByModule.get(t.modulo_id) || [];
-        arr.push(t.id);
+        arr.push({ id: t.id, moedas: t.moedas || 5 });
         topicosByModule.set(t.modulo_id, arr);
       });
 
       const allTopicIds = new Set<string>();
-      topicosByModule.forEach((ids) => ids.forEach((tid) => allTopicIds.add(tid)));
+      topicosByModule.forEach((topics) => topics.forEach((t) => allTopicIds.add(t.id)));
 
       const completedSet = new Set(
         ((progRes as any).data || [])
@@ -84,11 +85,12 @@ const CursoPage = () => {
       );
 
       const mods = (modRes.data || []).map((m: any) => {
-        const topicIds = topicosByModule.get(m.id) || [];
+        const topics = topicosByModule.get(m.id) || [];
         return {
           ...m,
-          topicos_count: topicIds.length,
-          completed_count: topicIds.filter((tid: string) => completedSet.has(tid)).length,
+          topicos_count: topics.length,
+          completed_count: topics.filter((t) => completedSet.has(t.id)).length,
+          total_moedas: topics.reduce((sum, t) => sum + t.moedas, 0),
         };
       });
       setModulos(mods);
@@ -112,6 +114,7 @@ const CursoPage = () => {
 
   const totalTopics = modulos.reduce((sum, m) => sum + m.topicos_count, 0);
   const completedTopics = modulos.reduce((sum, m) => sum + m.completed_count, 0);
+  const totalMoedas = modulos.reduce((sum, m) => sum + m.total_moedas, 0);
   const isCourseComplete = totalTopics > 0 && completedTopics === totalTopics;
 
   const handleInscrever = async () => {
@@ -197,6 +200,15 @@ const CursoPage = () => {
                   <div>
                     <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Tempo estimado</p>
                     <p className="text-sm">{curso.tempo_estimado}</p>
+                  </div>
+                </div>
+              )}
+              {totalMoedas > 0 && (
+                <div className="flex items-start gap-2">
+                  <Coins className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Moedas ao concluir</p>
+                    <p className="text-sm">{totalMoedas} moedas</p>
                   </div>
                 </div>
               )}

@@ -475,9 +475,6 @@ const Index = () => {
                             <p className="font-mono text-sm font-medium truncate">{curso.nome}</p>
                             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
-                          {curso.descricao && (
-                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{curso.descricao}</p>
-                          )}
                         </div>
                       </div>
                       <div className="mt-3 flex items-center gap-3">
@@ -524,9 +521,6 @@ const Index = () => {
                           <p className="font-mono text-sm font-medium truncate">{curso.nome}</p>
                           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        {curso.descricao && (
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{curso.descricao}</p>
-                        )}
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground/60 font-mono mt-2">

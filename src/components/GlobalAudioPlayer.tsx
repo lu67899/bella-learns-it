@@ -3,6 +3,7 @@ import { Headphones, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Chevr
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { useLocation } from "react-router-dom";
 
 const formatTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
@@ -20,6 +21,8 @@ export function GlobalAudioPlayer() {
     playCapitulo, togglePlay, seek, skip, handleVolume, toggleMute,
     toggleFavorite, getCapProgress,
   } = useAudioPlayer();
+  const location = useLocation();
+  const isAudiobooksPage = location.pathname === "/audiobooks";
 
   if (!playingCapitulo) return null;
 
@@ -32,47 +35,80 @@ export function GlobalAudioPlayer() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border shadow-2xl"
+            className={`fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t border-border ${
+              isAudiobooksPage ? "bg-card/95 shadow-2xl" : "bg-card/90 shadow-lg"
+            }`}
           >
-            <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-10 w-10 rounded-lg overflow-hidden shrink-0 cursor-pointer"
-                  onClick={() => setPlayerExpanded(true)}
-                >
-                  {playingBook?.capa_url ? (
-                    <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="h-full w-full bg-primary/10 flex items-center justify-center">
-                      <Headphones className="h-5 w-5 text-primary" />
-                    </div>
-                  )}
+            {isAudiobooksPage ? (
+              /* Full mini-player on audiobooks page */
+              <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-10 w-10 rounded-lg overflow-hidden shrink-0 cursor-pointer"
+                    onClick={() => setPlayerExpanded(true)}
+                  >
+                    {playingBook?.capa_url ? (
+                      <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-primary/10 flex items-center justify-center">
+                        <Headphones className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setPlayerExpanded(true)}>
+                    <p className="text-xs font-mono font-medium truncate">{playingCapitulo.titulo}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{playingBook?.titulo}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => skip(-15)}>
+                      <SkipBack className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20" onClick={togglePlay}>
+                      {isPlaying ? <Pause className="h-5 w-5 text-primary" /> : <Play className="h-5 w-5 text-primary ml-0.5" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => skip(30)}>
+                      <SkipForward className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPlayerExpanded(true)}>
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setPlayerExpanded(true)}>
-                  <p className="text-xs font-mono font-medium truncate">{playingCapitulo.titulo}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{playingBook?.titulo}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => skip(-15)}>
-                    <SkipBack className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20" onClick={togglePlay}>
-                    {isPlaying ? <Pause className="h-5 w-5 text-primary" /> : <Play className="h-5 w-5 text-primary ml-0.5" />}
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => skip(30)}>
-                    <SkipForward className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPlayerExpanded(true)}>
-                    <Maximize2 className="h-3.5 w-3.5" />
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-muted-foreground w-12 text-right">{formatTime(currentTime)}</span>
+                  <Slider value={[currentTime]} max={duration || 1} step={1} onValueChange={seek} className="flex-1" />
+                  <span className="text-[10px] font-mono text-muted-foreground w-12">{formatTime(duration)}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-muted-foreground w-12 text-right">{formatTime(currentTime)}</span>
-                <Slider value={[currentTime]} max={duration || 1} step={1} onValueChange={seek} className="flex-1" />
-                <span className="text-[10px] font-mono text-muted-foreground w-12">{formatTime(duration)}</span>
+            ) : (
+              /* Compact mini-player on other pages */
+              <div className="max-w-2xl mx-auto px-3 py-2">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-8 w-8 rounded-md overflow-hidden shrink-0 cursor-pointer"
+                    onClick={() => setPlayerExpanded(true)}
+                  >
+                    {playingBook?.capa_url ? (
+                      <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-primary/10 flex items-center justify-center">
+                        <Headphones className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setPlayerExpanded(true)}>
+                    <p className="text-[11px] font-mono font-medium truncate">{playingCapitulo.titulo}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={togglePlay}>
+                    {isPlaying ? <Pause className="h-3.5 w-3.5 text-primary" /> : <Play className="h-3.5 w-3.5 text-primary ml-0.5" />}
+                  </Button>
+                </div>
+                {/* Thin progress line */}
+                <div className="h-0.5 rounded-full bg-secondary/30 mt-1.5 overflow-hidden">
+                  <div className="h-full rounded-full bg-primary/60 transition-all" style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }} />
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

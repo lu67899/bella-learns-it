@@ -1,4 +1,4 @@
-import { Moon, Sparkles, Wand2, CloudSun } from "lucide-react";
+import { Moon, Sparkles, Wand2, CloudSun, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { motion } from "framer-motion";
@@ -7,7 +7,8 @@ const themeIcons = {
   dark: { icon: Sparkles, label: "Tema Rosa" },
   pink: { icon: Wand2, label: "Tema Hogwarts" },
   hogwarts: { icon: CloudSun, label: "Tema Azul Céu" },
-  sky: { icon: Moon, label: "Tema Escuro" },
+  sky: { icon: Gem, label: "Tema Roxo" },
+  purple: { icon: Moon, label: "Tema Escuro" },
 };
 
 export function ThemeToggle() {

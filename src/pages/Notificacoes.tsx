@@ -61,10 +61,16 @@ const Notificacoes = () => {
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffH = differenceInHours(now, date);
-    if (diffH < 1) return "agora";
-    if (diffH < 24) return `${diffH}h atrás`;
-    return format(date, "dd/MM HH:mm");
+    const isSameDay =
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+    if (isSameDay) {
+      const diffH = differenceInHours(now, date);
+      if (diffH < 1) return "agora";
+      return `${diffH}h atrás`;
+    }
+    return format(date, "dd/MM/yyyy");
   };
 
   return (

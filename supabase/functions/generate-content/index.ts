@@ -131,12 +131,24 @@ REGRAS IMPORTANTES:
       if (!response.ok) {
         const errorText = await response.text();
         console.error("OpenRouter error:", response.status, errorText);
+        
+        let errorMsg = "Erro na API de IA";
+        try {
+          const errJson = JSON.parse(errorText);
+          errorMsg = errJson?.error?.message || errorMsg;
+        } catch {}
+
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "Créditos insuficientes no OpenRouter. Adicione créditos em openrouter.ai/settings/credits" }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         if (response.status === 429) {
           return new Response(JSON.stringify({ error: "Rate limit atingido, tente novamente em instantes." }), {
             status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        return new Response(JSON.stringify({ error: "Erro na API de IA" }), {
+        return new Response(JSON.stringify({ error: errorMsg }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

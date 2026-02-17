@@ -188,6 +188,7 @@ const ModuloPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
+              onAnimationStart={() => window.scrollTo({ top: 0, behavior: "instant" })}
             >
               <Card className="bg-card border-border">
                 <CardContent className="p-6 md:p-8">

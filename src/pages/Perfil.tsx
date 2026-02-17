@@ -175,13 +175,13 @@ export default function Perfil() {
                 <Card className="p-6 bg-card border-border">
                   <div className="flex items-center gap-5">
                     <div className="relative group">
-                      <Avatar className="h-20 w-20 border-2 border-primary/30">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/20 text-primary text-2xl font-mono">
+                      <Avatar className="h-20 w-20 rounded-2xl border-2 border-primary/30">
+                        <AvatarImage src={profile?.avatar_url || undefined} className="rounded-2xl" />
+                        <AvatarFallback className="bg-primary/20 text-primary text-2xl font-mono rounded-2xl">
                           {profile?.display_name?.charAt(0)?.toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <label className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                      <label className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-2xl opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                         <Camera className="h-5 w-5 text-foreground" />
                         <input
                           type="file"

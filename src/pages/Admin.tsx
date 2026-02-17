@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { ArrowLeft as ArrowLeftIcon } from "lucide-react";
 import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -2566,13 +2567,18 @@ function GeradorIATab() {
 function AudiobooksTab() {
   const [categorias, setCategorias] = useState<{ id: string; nome: string; icone: string | null; ordem: number }[]>([]);
   const [books, setBooks] = useState<any[]>([]);
+  const [capitulos, setCapitulos] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"books" | "categorias">("books");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [catDialogOpen, setCatDialogOpen] = useState(false);
+  const [capDialogOpen, setCapDialogOpen] = useState(false);
+  const [capListBookId, setCapListBookId] = useState<string | null>(null);
   const [editing, setEditing] = useState<any>(null);
   const [editingCat, setEditingCat] = useState<any>(null);
-  const [form, setForm] = useState({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" });
+  const [editingCap, setEditingCap] = useState<any>(null);
+  const [form, setForm] = useState({ titulo: "", autor: "", descricao: "", capa_url: "", categoria_id: "" });
   const [catForm, setCatForm] = useState({ nome: "", icone: "📚" });
+  const [capForm, setCapForm] = useState({ titulo: "", descricao: "", audio_url: "", duracao_segundos: "" });
   const [uploadingCapa, setUploadingCapa] = useState(false);
   const capaInputRef = useRef<HTMLInputElement>(null);
 
@@ -2601,27 +2607,30 @@ function AudiobooksTab() {
     const { data } = await supabase.from("audiobooks").select("*, audiobook_categorias(nome)").order("ordem");
     if (data) setBooks(data);
   };
-  useEffect(() => { loadCategorias(); loadBooks(); }, []);
+  const loadCapitulos = async () => {
+    const { data } = await supabase.from("audiobook_capitulos").select("*").order("ordem");
+    if (data) setCapitulos(data);
+  };
+  useEffect(() => { loadCategorias(); loadBooks(); loadCapitulos(); }, []);
 
   const saveBook = async () => {
-    if (!form.titulo || !form.audio_url) { toast.error("Título e URL do áudio são obrigatórios"); return; }
-    const payload = {
+    if (!form.titulo) { toast.error("Título é obrigatório"); return; }
+    const payload: any = {
       titulo: form.titulo, autor: form.autor || null, descricao: form.descricao || null,
-      audio_url: form.audio_url, capa_url: form.capa_url || null,
-      categoria_id: form.categoria_id || null,
-      duracao_segundos: form.duracao_segundos ? parseInt(form.duracao_segundos) : 0,
+      capa_url: form.capa_url || null, categoria_id: form.categoria_id || null,
       ordem: editing ? editing.ordem : books.length,
     };
+    if (!editing) payload.audio_url = "placeholder";
     if (editing) { await supabase.from("audiobooks").update(payload).eq("id", editing.id); }
     else { await supabase.from("audiobooks").insert(payload); }
     toast.success("Audiobook salvo!"); setDialogOpen(false); setEditing(null);
-    setForm({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" });
+    setForm({ titulo: "", autor: "", descricao: "", capa_url: "", categoria_id: "" });
     loadBooks();
   };
 
   const removeBook = async (id: string) => {
     await supabase.from("audiobooks").delete().eq("id", id);
-    toast.success("Removido!"); loadBooks();
+    toast.success("Removido!"); loadBooks(); loadCapitulos();
   };
 
   const saveCat = async () => {
@@ -2638,13 +2647,93 @@ function AudiobooksTab() {
     toast.success("Removida!"); loadCategorias();
   };
 
+  const saveCap = async () => {
+    if (!capForm.titulo || !capForm.audio_url || !capListBookId) { toast.error("Título e URL do áudio são obrigatórios"); return; }
+    const bookCaps = capitulos.filter((c: any) => c.audiobook_id === capListBookId);
+    const payload = {
+      audiobook_id: capListBookId,
+      titulo: capForm.titulo, descricao: capForm.descricao || null,
+      audio_url: capForm.audio_url,
+      duracao_segundos: capForm.duracao_segundos ? parseInt(capForm.duracao_segundos) : 0,
+      ordem: editingCap ? editingCap.ordem : bookCaps.length,
+    };
+    if (editingCap) { await supabase.from("audiobook_capitulos").update(payload).eq("id", editingCap.id); }
+    else { await supabase.from("audiobook_capitulos").insert(payload); }
+    toast.success("Capítulo salvo!"); setCapDialogOpen(false); setEditingCap(null);
+    setCapForm({ titulo: "", descricao: "", audio_url: "", duracao_segundos: "" });
+    loadCapitulos();
+  };
+
+  const removeCap = async (id: string) => {
+    await supabase.from("audiobook_capitulos").delete().eq("id", id);
+    toast.success("Removido!"); loadCapitulos();
+  };
+
   const editBook = (item: any) => {
     setEditing(item);
-    setForm({ titulo: item.titulo, autor: item.autor || "", descricao: item.descricao || "", audio_url: item.audio_url, capa_url: item.capa_url || "", categoria_id: item.categoria_id || "", duracao_segundos: item.duracao_segundos?.toString() || "" });
+    setForm({ titulo: item.titulo, autor: item.autor || "", descricao: item.descricao || "", capa_url: item.capa_url || "", categoria_id: item.categoria_id || "" });
     setDialogOpen(true);
   };
 
   const fmtDur = (s: number) => { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h}h${m}min` : `${m}min`; };
+
+  const bookBeingViewed = capListBookId ? books.find((b: any) => b.id === capListBookId) : null;
+  const bookCapsFiltered = capitulos.filter((c: any) => c.audiobook_id === capListBookId);
+
+  if (capListBookId && bookBeingViewed) {
+    return (
+      <div className="space-y-4 mt-4">
+        <Button variant="ghost" size="sm" className="gap-1.5 -ml-2" onClick={() => setCapListBookId(null)}>
+          <ArrowLeftIcon className="h-4 w-4" /> Voltar para audiobooks
+        </Button>
+        <CrudSection
+          title={`Capítulos — ${bookBeingViewed.titulo}`}
+          count={bookCapsFiltered.length}
+          onAdd={() => { setEditingCap(null); setCapForm({ titulo: "", descricao: "", audio_url: "", duracao_segundos: "" }); setCapDialogOpen(true); }}
+        >
+          <Table>
+            <TableHeader><TableRow><TableHead className="w-12">#</TableHead><TableHead>Título</TableHead><TableHead>Duração</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {bookCapsFiltered.map((cap: any, idx: number) => (
+                <TableRow key={cap.id}>
+                  <TableCell className="font-mono text-sm">{idx + 1}</TableCell>
+                  <TableCell>
+                    <p className="font-mono text-sm">{cap.titulo}</p>
+                    {cap.descricao && <p className="text-[11px] text-muted-foreground truncate max-w-[200px]">{cap.descricao}</p>}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{cap.duracao_segundos ? fmtDur(cap.duracao_segundos) : "—"}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => { setEditingCap(cap); setCapForm({ titulo: cap.titulo, descricao: cap.descricao || "", audio_url: cap.audio_url, duracao_segundos: cap.duracao_segundos?.toString() || "" }); setCapDialogOpen(true); }}>
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => removeCap(cap.id)}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {bookCapsFiltered.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum capítulo. Adicione acima!</p>}
+        </CrudSection>
+
+        <Dialog open={capDialogOpen} onOpenChange={setCapDialogOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle className="font-mono">{editingCap ? "Editar" : "Novo"} Capítulo</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Input placeholder="Título do capítulo *" value={capForm.titulo} onChange={(e) => setCapForm({ ...capForm, titulo: e.target.value })} />
+              <Input placeholder="Descrição (opcional)" value={capForm.descricao} onChange={(e) => setCapForm({ ...capForm, descricao: e.target.value })} />
+              <Input placeholder="URL do áudio (Cloudflare R2) *" value={capForm.audio_url} onChange={(e) => setCapForm({ ...capForm, audio_url: e.target.value })} />
+              <Input placeholder="Duração em segundos (ex: 3600)" type="number" value={capForm.duracao_segundos} onChange={(e) => setCapForm({ ...capForm, duracao_segundos: e.target.value })} />
+              <Button onClick={saveCap} className="w-full">Salvar</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 mt-4">
@@ -2654,19 +2743,26 @@ function AudiobooksTab() {
           <TabsTrigger value="categorias" className="flex-1">Categorias</TabsTrigger>
         </TabsList>
         <TabsContent value="books">
-          <CrudSection title="Audiobooks" count={books.length} onAdd={() => { setEditing(null); setForm({ titulo: "", autor: "", descricao: "", audio_url: "", capa_url: "", categoria_id: "", duracao_segundos: "" }); setDialogOpen(true); }}>
+          <CrudSection title="Audiobooks" count={books.length} onAdd={() => { setEditing(null); setForm({ titulo: "", autor: "", descricao: "", capa_url: "", categoria_id: "" }); setDialogOpen(true); }}>
             <Table>
-              <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Autor</TableHead><TableHead>Categoria</TableHead><TableHead>Duração</TableHead><TableHead className="w-24">Ações</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Autor</TableHead><TableHead>Categoria</TableHead><TableHead>Caps</TableHead><TableHead className="w-28">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
-                {books.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell><div className="flex items-center gap-2">{item.capa_url && <img src={item.capa_url} alt="" className="h-8 w-8 rounded object-cover" />}<span className="font-mono text-sm">{item.titulo}</span></div></TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{item.autor || "—"}</TableCell>
-                    <TableCell>{item.audiobook_categorias ? <Badge variant="outline" className="text-primary border-primary/30">{item.audiobook_categorias.nome}</Badge> : "—"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{item.duracao_segundos ? fmtDur(item.duracao_segundos) : "—"}</TableCell>
-                    <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => editBook(item)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => removeBook(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
-                  </TableRow>
-                ))}
+                {books.map((bk: any) => {
+                  const capCount = capitulos.filter((c: any) => c.audiobook_id === bk.id).length;
+                  return (
+                    <TableRow key={bk.id}>
+                      <TableCell><div className="flex items-center gap-2">{bk.capa_url && <img src={bk.capa_url} alt="" className="h-8 w-8 rounded object-cover" />}<span className="font-mono text-sm">{bk.titulo}</span></div></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{bk.autor || "—"}</TableCell>
+                      <TableCell>{bk.audiobook_categorias ? <Badge variant="outline" className="text-primary border-primary/30">{bk.audiobook_categorias.nome}</Badge> : "—"}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => setCapListBookId(bk.id)}>
+                          <BookOpen className="h-3 w-3" /> {capCount}
+                        </Button>
+                      </TableCell>
+                      <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => editBook(bk)}><Edit2 className="h-3 w-3" /></Button><Button variant="ghost" size="icon" onClick={() => removeBook(bk.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button></div></TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             {books.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum audiobook cadastrado.</p>}
@@ -2698,7 +2794,6 @@ function AudiobooksTab() {
             <Input placeholder="Título *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
             <Input placeholder="Autor" value={form.autor} onChange={(e) => setForm({ ...form, autor: e.target.value })} />
             <Textarea placeholder="Descrição" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} />
-            <Input placeholder="URL do áudio (Cloudflare R2) *" value={form.audio_url} onChange={(e) => setForm({ ...form, audio_url: e.target.value })} />
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-mono">Capa (imagem)</p>
               {form.capa_url && (
@@ -2717,7 +2812,6 @@ function AudiobooksTab() {
               <SelectTrigger><SelectValue placeholder="Categoria (opcional)" /></SelectTrigger>
               <SelectContent>{categorias.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.icone} {cat.nome}</SelectItem>)}</SelectContent>
             </Select>
-            <Input placeholder="Duração em segundos (ex: 3600)" type="number" value={form.duracao_segundos} onChange={(e) => setForm({ ...form, duracao_segundos: e.target.value })} />
             <Button onClick={saveBook} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

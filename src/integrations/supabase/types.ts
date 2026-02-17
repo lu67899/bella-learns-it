@@ -128,6 +128,47 @@ export type Database = {
         }
         Relationships: []
       }
+      audiobook_capitulos: {
+        Row: {
+          audio_url: string
+          audiobook_id: string
+          created_at: string
+          descricao: string | null
+          duracao_segundos: number | null
+          id: string
+          ordem: number
+          titulo: string
+        }
+        Insert: {
+          audio_url: string
+          audiobook_id: string
+          created_at?: string
+          descricao?: string | null
+          duracao_segundos?: number | null
+          id?: string
+          ordem?: number
+          titulo: string
+        }
+        Update: {
+          audio_url?: string
+          audiobook_id?: string
+          created_at?: string
+          descricao?: string | null
+          duracao_segundos?: number | null
+          id?: string
+          ordem?: number
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_capitulos_audiobook_id_fkey"
+            columns: ["audiobook_id"]
+            isOneToOne: false
+            referencedRelation: "audiobooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audiobook_categorias: {
         Row: {
           created_at: string
@@ -155,6 +196,7 @@ export type Database = {
       audiobook_progresso: {
         Row: {
           audiobook_id: string
+          capitulo_id: string | null
           concluido: boolean
           id: string
           posicao_segundos: number
@@ -163,6 +205,7 @@ export type Database = {
         }
         Insert: {
           audiobook_id: string
+          capitulo_id?: string | null
           concluido?: boolean
           id?: string
           posicao_segundos?: number
@@ -171,6 +214,7 @@ export type Database = {
         }
         Update: {
           audiobook_id?: string
+          capitulo_id?: string | null
           concluido?: boolean
           id?: string
           posicao_segundos?: number
@@ -183,6 +227,13 @@ export type Database = {
             columns: ["audiobook_id"]
             isOneToOne: false
             referencedRelation: "audiobooks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_progresso_capitulo_id_fkey"
+            columns: ["capitulo_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_capitulos"
             referencedColumns: ["id"]
           },
         ]

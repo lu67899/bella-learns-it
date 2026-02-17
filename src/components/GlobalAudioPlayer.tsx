@@ -111,13 +111,9 @@ export function GlobalAudioPlayer() {
               </svg>
 
               {/* Disc button */}
-              <motion.button
+              <button
                 onClick={() => setPlayerExpanded(true)}
                 className="relative h-14 w-14 rounded-full overflow-hidden shadow-lg shadow-primary/20 border-2 border-primary/30"
-                animate={{ rotate: isPlaying ? 360 : 0 }}
-                transition={{ 
-                  rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-                }}
               >
                 {playingBook?.capa_url ? (
                   <img src={playingBook.capa_url} alt="" className="h-full w-full object-cover" />
@@ -126,7 +122,7 @@ export function GlobalAudioPlayer() {
                     <Headphones className="h-6 w-6 text-primary" />
                   </div>
                 )}
-              </motion.button>
+              </button>
 
               {/* Play/Pause overlay on hover */}
               <AnimatePresence>

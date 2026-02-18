@@ -224,13 +224,15 @@ const Anotacoes = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Anotação</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-            <Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} />
-            <Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} />
-            <Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
-            <Button onClick={save} className="w-full">Salvar</Button>
-          </div>
+          <form autoComplete="off" onSubmit={(e) => { e.preventDefault(); save(); }} role="presentation">
+            <div className="space-y-4">
+              <div role="presentation"><Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} role="presentation" /></div>
+              <div role="presentation"><Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} role="presentation" /></div>
+              <div role="presentation"><Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} autoComplete="off" role="presentation" /></div>
+              <div role="presentation"><Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} role="presentation" /></div>
+              <Button type="submit" className="w-full">Salvar</Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </Layout>

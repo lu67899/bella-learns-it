@@ -335,7 +335,8 @@ h1, h2, h3, p, span, button {
 .belinha-md h2 { font-size: 0.95rem; }
 .belinha-md h3 { font-size: 0.875rem; }
 .belinha-md code {
-  background: hsl(var(--secondary) / 0.7);
+  background: hsl(var(--secondary));
+  color: hsl(var(--primary));
   padding: 0.15rem 0.4rem;
   border-radius: 0.3rem;
   font-size: 0.8rem;

@@ -68,12 +68,6 @@ const Clima = () => {
   useEffect(() => {
     const fetchForecast = async () => {
       try {
-        await supabase.auth.getSession();
-        const { data: result, error } = await supabase.functions.invoke("weather", {
-          body: null,
-          headers: {},
-        });
-        // Use query params via GET isn't possible with invoke, so let's use a direct fetch
         const { data: { session } } = await supabase.auth.getSession();
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const res = await fetch(
@@ -136,7 +130,7 @@ const Clima = () => {
 
   return (
     <PageContainer>
-      <div className="space-y-4 pb-6">
+      <div className="space-y-4 pb-6 w-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-card border border-border hover:bg-secondary transition-colors">
@@ -168,7 +162,7 @@ const Clima = () => {
           </div>
 
           {/* Detail grid */}
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-2 gap-2 mt-4">
             <DetailItem icon={<Droplets className="h-3.5 w-3.5" />} label="Umidade" value={`${data.current.humidity}%`} />
             <DetailItem icon={<Wind className="h-3.5 w-3.5" />} label="Vento" value={`${data.current.wind} km/h`} />
             <DetailItem icon={<Gauge className="h-3.5 w-3.5" />} label="Pressão" value={`${data.current.pressure} hPa`} />
@@ -193,17 +187,17 @@ const Clima = () => {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.05 * i }}
-                className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0"
+                className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0 gap-2"
               >
-                <div className="flex items-center gap-3 min-w-[120px]">
-                  {getWeatherIcon(day.icon, "h-5 w-5")}
-                  <div>
-                    <p className="text-xs font-medium">{getDayName(day.date)}</p>
-                    <p className="text-[10px] text-muted-foreground capitalize">{day.description}</p>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {getWeatherIcon(day.icon, "h-5 w-5 shrink-0")}
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium truncate">{getDayName(day.date)}</p>
+                    <p className="text-[10px] text-muted-foreground capitalize truncate">{day.description}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-right">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-1">
                     <Droplets className="h-3 w-3 text-muted-foreground" />
                     <span className="text-[10px] text-muted-foreground font-mono">{day.humidity}%</span>
                   </div>
@@ -222,11 +216,11 @@ const Clima = () => {
 };
 
 const DetailItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-2">
-    <span className="text-muted-foreground">{icon}</span>
-    <div>
-      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{label}</p>
-      <p className="text-xs font-mono font-medium">{value}</p>
+  <div className="flex items-center gap-2 rounded-lg bg-secondary/50 px-2.5 py-2 min-w-0 overflow-hidden">
+    <span className="text-muted-foreground shrink-0">{icon}</span>
+    <div className="min-w-0">
+      <p className="text-[9px] text-muted-foreground uppercase tracking-wider truncate">{label}</p>
+      <p className="text-xs font-mono font-medium truncate">{value}</p>
     </div>
   </div>
 );

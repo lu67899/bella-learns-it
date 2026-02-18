@@ -225,10 +225,10 @@ const Anotacoes = () => {
         <DialogContent>
           <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Anotação</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-            <Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} />
+            <Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} autoComplete="off" data-1p-ignore data-lpignore="true" />
+            <Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} autoComplete="off" data-1p-ignore data-lpignore="true" />
             <Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} />
-            <Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
+            <Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} autoComplete="off" data-1p-ignore data-lpignore="true" />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

@@ -30,6 +30,7 @@ import JogoDaMemoria from "./pages/JogoDaMemoria";
 import PalavrasCruzadas from "./pages/PalavrasCruzadas";
 import OrdenarPassos from "./pages/OrdenarPassos";
 import Audiobooks from "./pages/Audiobooks";
+import LivrosPdf from "./pages/LivrosPdf";
 import Auth from "./pages/Auth";
 import Notificacoes from "./pages/Notificacoes";
 import PlayPage from "./pages/Play";
@@ -77,6 +78,7 @@ const AppRoutes = () => (
     <Route path="/palavras-cruzadas" element={<ProtectedRoute><PalavrasCruzadas /></ProtectedRoute>} />
     <Route path="/ordenar-passos" element={<ProtectedRoute><OrdenarPassos /></ProtectedRoute>} />
     <Route path="/audiobooks" element={<ProtectedRoute><Audiobooks /></ProtectedRoute>} />
+    <Route path="/livros-pdf" element={<ProtectedRoute><LivrosPdf /></ProtectedRoute>} />
     <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
     <Route path="/play" element={<ProtectedRoute><PlayPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />

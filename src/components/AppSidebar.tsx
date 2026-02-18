@@ -7,6 +7,7 @@ import {
   Newspaper,
   Headphones,
   Play,
+  BookOpen,
   LogOut,
   Moon,
   Sparkles,
@@ -51,6 +52,7 @@ const items = [
   { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
   { title: "Audiobooks", url: "/audiobooks", icon: Headphones },
+  { title: "Livros PDF", url: "/livros-pdf", icon: BookOpen },
   { title: "Admin", url: "/admin", icon: Shield },
 ];
 

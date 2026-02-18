@@ -286,8 +286,8 @@ h1, h2, h3, p, span, button {
   font-size: 0.8125rem;
   line-height: 1.65;
   color: hsl(var(--foreground) / 0.88);
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
   max-width: 100%;
   letter-spacing: 0.005em;
 }

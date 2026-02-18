@@ -29,14 +29,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAppFeatures } from "@/contexts/AppFeaturesContext";
 
 function AutoOpenSidebar() {
-  const location = useLocation();
   const { setOpenMobile, isMobile } = useSidebar();
   useEffect(() => {
-    if (location.state?.openSidebar && isMobile) {
-      setOpenMobile(true);
-      window.history.replaceState({}, "");
-    }
-  }, [location.state, isMobile, setOpenMobile]);
+    const handler = () => {
+      if (isMobile) {
+        requestAnimationFrame(() => setOpenMobile(true));
+      }
+    };
+    window.addEventListener("open-sidebar", handler);
+    return () => window.removeEventListener("open-sidebar", handler);
+  }, [isMobile, setOpenMobile]);
   return null;
 }
 

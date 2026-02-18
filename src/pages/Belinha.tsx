@@ -284,11 +284,13 @@ const Belinha = () => {
                   className={msg.role === "user" ? "flex justify-end" : ""}
                 >
                   {msg.role === "assistant" ? (
-                    <div className="min-w-0">
+                    <div className="min-w-0 group/msg">
                       <div className="belinha-md">
                         <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ pre: CodeBlock }}>{msg.content}</ReactMarkdown>
                       </div>
-                      <CopyButton text={msg.content} label="Copiar" />
+                      <div className="opacity-0 group-hover/msg:opacity-100 transition-opacity mt-1.5">
+                        <CopyButton text={msg.content} label="Copiar" />
+                      </div>
                     </div>
                   ) : (
                     <div className="inline-block bg-primary text-primary-foreground rounded-2xl px-4 py-2 max-w-[85%]">

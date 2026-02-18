@@ -7,8 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { StoryRing, BelinhaStoriesViewer, useBelinhaStories } from "@/components/BelinhaStories";
 import { supabase } from "@/integrations/supabase/client";
@@ -228,8 +226,8 @@ const Belinha = () => {
         </Dialog>
 
         {/* Messages */}
-        <ScrollArea className="flex-1">
-          <div className="space-y-6 pb-4 px-1">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ minHeight: 0 }}>
+          <div className="space-y-6 pb-4">
             {/* Recado inicial */}
             {messages.length === 0 && recado && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -250,25 +248,14 @@ const Belinha = () => {
                   className={msg.role === "user" ? "flex justify-end" : ""}
                 >
                   {msg.role === "assistant" ? (
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
                         <BelinhaAvatar avatarUrl={avatarUrl} />
                         <span className="text-xs font-mono text-muted-foreground">Belinha</span>
                       </div>
-                      <article className="prose prose-sm dark:prose-invert max-w-none break-words [overflow-wrap:anywhere]
-                        prose-p:text-[13px] prose-p:leading-[1.7] prose-p:mb-3 prose-p:text-foreground/85
-                        prose-headings:text-foreground prose-headings:font-semibold
-                        prose-h1:text-base prose-h1:mb-2 prose-h2:text-sm prose-h2:mb-2 prose-h3:text-[13px] prose-h3:mb-1.5
-                        prose-strong:text-foreground prose-strong:font-semibold
-                        prose-li:text-[13px] prose-li:leading-[1.7] prose-li:text-foreground/85
-                        prose-ul:my-2 prose-ol:my-2 prose-ul:pl-5 prose-ol:pl-5
-                        prose-code:bg-secondary/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
-                        prose-pre:bg-secondary/50 prose-pre:rounded-lg prose-pre:p-3 prose-pre:text-xs prose-pre:overflow-x-auto
-                        prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4
-                        prose-table:text-xs prose-th:bg-secondary/50 prose-th:px-2 prose-th:py-1.5 prose-th:border prose-th:border-border prose-td:px-2 prose-td:py-1.5 prose-td:border prose-td:border-border
-                      ">
+                      <div className="belinha-md text-[13px] leading-[1.7] text-foreground/85">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </article>
+                      </div>
                     </div>
                   ) : (
                     <div className="inline-block bg-primary text-primary-foreground rounded-2xl px-4 py-2 max-w-[85%]">
@@ -295,7 +282,7 @@ const Belinha = () => {
 
             <div ref={bottomRef} />
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Input */}
         <div className="pt-3 border-t border-border">

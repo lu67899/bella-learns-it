@@ -277,7 +277,7 @@ const Belinha = () => {
         <Dialog open={showProfile} onOpenChange={setShowProfile}>
           <DialogContent className="max-w-[300px] p-0 overflow-hidden border-border rounded-2xl">
             {/* Top band */}
-            <div className="h-2 bg-gradient-to-r from-primary to-primary/60" />
+            
             <div className="pt-6 pb-4 flex flex-col items-center gap-3 px-5">
               <div className="ring-2 ring-primary/30 ring-offset-2 ring-offset-background rounded-full">
                 <BelinhaAvatar avatarUrl={avatarUrl} size="xl" />

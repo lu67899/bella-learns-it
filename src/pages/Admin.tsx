@@ -89,6 +89,30 @@ const Admin = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [pendingCounts, setPendingCounts] = useState<Record<string, number>>({});
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [updateNotifOpen, setUpdateNotifOpen] = useState(false);
+  const [updateNotifTitle, setUpdateNotifTitle] = useState("Atualização disponível! 🚀");
+  const [updateNotifMsg, setUpdateNotifMsg] = useState("");
+  const [sendingNotif, setSendingNotif] = useState(false);
+
+  const sendUpdateNotification = async () => {
+    if (!updateNotifTitle.trim()) return;
+    setSendingNotif(true);
+    try {
+      await supabase.from("notificacoes").insert({
+        tipo: "atualizacao",
+        titulo: updateNotifTitle.trim(),
+        mensagem: updateNotifMsg.trim() || null,
+      });
+      toast.success("Notificação de atualização enviada!");
+      setUpdateNotifOpen(false);
+      setUpdateNotifTitle("Atualização disponível! 🚀");
+      setUpdateNotifMsg("");
+    } catch {
+      toast.error("Erro ao enviar notificação");
+    } finally {
+      setSendingNotif(false);
+    }
+  };
 
   // Fetch notification toggle state
   useEffect(() => {
@@ -260,6 +284,47 @@ const Admin = () => {
                   <Switch checked={notificationsEnabled} onCheckedChange={toggleNotifications} />
                 </CardContent>
               </Card>
+
+              {/* Send Update Notification */}
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Send className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium font-mono">Notificar Atualização</p>
+                      <p className="text-[11px] text-muted-foreground">Enviar aviso de update do app</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setUpdateNotifOpen(true)} className="gap-1.5 text-xs">
+                    <Send className="h-3 w-3" /> Enviar
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Dialog open={updateNotifOpen} onOpenChange={setUpdateNotifOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Enviar Notificação de Atualização</DialogTitle>
+                    <DialogDescription>Todos os usuários receberão essa notificação.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Título</label>
+                      <Input value={updateNotifTitle} onChange={e => setUpdateNotifTitle(e.target.value)} placeholder="Ex: Atualização disponível! 🚀" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Mensagem (opcional)</label>
+                      <Textarea value={updateNotifMsg} onChange={e => setUpdateNotifMsg(e.target.value)} placeholder="Descreva as novidades..." rows={3} />
+                    </div>
+                    <Button onClick={sendUpdateNotification} disabled={sendingNotif || !updateNotifTitle.trim()} className="w-full gap-2">
+                      {sendingNotif ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      Enviar Notificação
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {adminSections.map((group) => (
                 <div key={group.group} className="space-y-2.5">

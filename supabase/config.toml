@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.generate-content]
 verify_jwt = false
+
+[functions.baserow-content]
+verify_jwt = false
+
+[functions.baserow-list-tables]
+verify_jwt = false

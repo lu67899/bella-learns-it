@@ -121,22 +121,22 @@ function PlayerView({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="fixed inset-0 z-50 bg-black flex flex-col"
     >
-      {/* Video Area - takes most of the screen */}
-      <div className="relative flex-1 flex items-center justify-center bg-black min-h-0">
-        {/* Close button overlay */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 left-4 z-10 h-10 w-10 rounded-full flex items-center justify-center bg-black/60 backdrop-blur-md hover:bg-black/80 text-white/80 hover:text-white transition-all duration-200 ring-1 ring-white/10"
-        >
-          <X className="h-5 w-5" />
-        </button>
+      {/* Close button - always visible */}
+      <button
+        onClick={onClose}
+        className="absolute top-3 left-3 z-20 h-9 w-9 rounded-full flex items-center justify-center bg-black/70 backdrop-blur-sm text-white/80 hover:text-white active:scale-95 transition-all ring-1 ring-white/10"
+      >
+        <X className="h-4 w-4" />
+      </button>
 
+      {/* Video Area */}
+      <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0">
         {isDirectVideo ? (
           <video
             src={videoSrc}
@@ -157,53 +157,48 @@ function PlayerView({
             style={{ border: 'none' }}
           />
         ) : (
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center ring-1 ring-white/10">
-              <Film className="h-7 w-7 text-white/30" />
-            </div>
-            <p className="text-white/40 text-sm font-mono">Nenhum link disponível</p>
+          <div className="flex flex-col items-center gap-2">
+            <Film className="h-8 w-8 text-white/20" />
+            <p className="text-white/30 text-xs font-mono">Nenhum link disponível</p>
           </div>
         )}
       </div>
 
-      {/* Info Panel - compact bottom bar */}
+      {/* Info Panel - scrollable */}
       <motion.div
-        initial={{ y: 40, opacity: 0 }}
+        initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 30 }}
-        className="bg-gradient-to-t from-black via-black/95 to-transparent px-4 pt-6 pb-5 space-y-3 -mt-16 relative z-10"
+        transition={{ delay: 0.1, duration: 0.25 }}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-base font-bold text-white truncate">{item.titulo}</h2>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-primary/20 text-primary ring-1 ring-primary/30">
-                {item.tipo === "filme" ? "Filme" : "Série"}
-              </span>
-              {item.idioma && (
-                <span className="text-[10px] font-mono text-white/50">{item.idioma}</span>
-              )}
-              {item.temporadas > 0 && (
-                <span className="text-[10px] text-white/50 font-mono flex items-center gap-1">
-                  <Tv className="h-3 w-3" /> {item.temporadas} temp.
-                </span>
-              )}
-              <ViewsBadge views={item.views} />
-            </div>
-          </div>
+        <h2 className="text-base font-bold text-white leading-tight">{item.titulo}</h2>
+        
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-primary/20 text-primary ring-1 ring-primary/30">
+            {item.tipo === "filme" ? "Filme" : "Série"}
+          </span>
+          {item.idioma && (
+            <span className="text-[10px] font-mono text-white/50">{item.idioma}</span>
+          )}
+          {item.temporadas > 0 && (
+            <span className="text-[10px] text-white/50 font-mono flex items-center gap-1">
+              <Tv className="h-3 w-3" /> {item.temporadas} temp.
+            </span>
+          )}
+          <ViewsBadge views={item.views} />
         </div>
 
         {/* Categories */}
         <div className="flex gap-1.5 flex-wrap">
           {item.categoria.split(",").map((cat) => (
-            <span key={cat.trim()} className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/8 text-white/60 ring-1 ring-white/10">
+            <span key={cat.trim()} className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/50 ring-1 ring-white/10">
               {cat.trim()}
             </span>
           ))}
         </div>
 
         {item.sinopse && (
-          <p className="text-xs text-white/50 leading-relaxed line-clamp-2">
+          <p className="text-xs text-white/40 leading-relaxed">
             {item.sinopse}
           </p>
         )}

@@ -246,7 +246,7 @@ const Belinha = () => {
           </div>
           {messages.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearChat} className="gap-1.5 text-muted-foreground">
-              <Trash2 className="h-3.5 w-3.5" /> Limpar
+              <Trash2 className="h-3.5 w-3.5" /> Novo chat
             </Button>
           )}
         </div>

@@ -136,10 +136,10 @@ export function AppSidebar() {
               </button>
               {isMobile && (
                 <button
-                  onClick={() => setOpenMobile(false)}
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setOpenMobile(false); }}
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors z-50"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               )}
             </div>

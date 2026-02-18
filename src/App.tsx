@@ -32,6 +32,7 @@ import OrdenarPassos from "./pages/OrdenarPassos";
 import Audiobooks from "./pages/Audiobooks";
 import Auth from "./pages/Auth";
 import Notificacoes from "./pages/Notificacoes";
+import PlayPage from "./pages/Play";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const AppRoutes = () => (
     <Route path="/ordenar-passos" element={<ProtectedRoute><OrdenarPassos /></ProtectedRoute>} />
     <Route path="/audiobooks" element={<ProtectedRoute><Audiobooks /></ProtectedRoute>} />
     <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
+    <Route path="/play" element={<ProtectedRoute><PlayPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

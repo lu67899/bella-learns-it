@@ -21,6 +21,22 @@ serve(async (req) => {
     const { table_id } = await req.json().catch(() => ({ table_id: null }));
     const authHeaders = { 'Authorization': `Token ${token}` };
     
+    // Debug: test token by listing workspaces
+    if (!table_id) {
+      const wsRes = await fetch('https://api.baserow.io/api/workspaces/', { headers: authHeaders });
+      const wsBody = await wsRes.text();
+      if (wsRes.status !== 200) {
+        return new Response(JSON.stringify({ 
+          error: 'Token test failed', 
+          status: wsRes.status, 
+          body: wsBody,
+          hint: 'Use a Personal API Token from Settings > Account > API Token (not a Database Token)'
+        }, null, 2), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+    
     // If table_id provided, get fields and rows for that table
     if (table_id) {
       const [fieldsRes, rowsRes] = await Promise.all([

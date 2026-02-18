@@ -363,8 +363,7 @@ const Belinha = () => {
               placeholder="Digite sua pergunta..."
               disabled={isLoading}
               className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
-              autoComplete="one-time-code"
-              data-form-type="other"
+              autoComplete="nope"
               data-1p-ignore
               data-lpignore="true"
             />

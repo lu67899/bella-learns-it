@@ -139,9 +139,9 @@ const CodeBlock = ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>)
 };
 
 
-const BelinhaAvatar = ({ avatarUrl, size = "sm" }: { avatarUrl: string | null; size?: "sm" | "lg" }) => {
-  const dims = size === "lg" ? "h-10 w-10" : "h-7 w-7";
-  const iconDims = size === "lg" ? "h-5 w-5" : "h-3.5 w-3.5";
+const BelinhaAvatar = ({ avatarUrl, size = "sm" }: { avatarUrl: string | null; size?: "sm" | "lg" | "xl" }) => {
+  const dims = size === "xl" ? "h-20 w-20" : size === "lg" ? "h-12 w-12" : "h-7 w-7";
+  const iconDims = size === "xl" ? "h-8 w-8" : size === "lg" ? "h-6 w-6" : "h-3.5 w-3.5";
   if (avatarUrl) {
     return <img src={avatarUrl} alt="Belinha" className={`${dims} rounded-full object-cover shrink-0`} />;
   }
@@ -276,14 +276,16 @@ const Belinha = () => {
         {/* Profile Dialog */}
         <Dialog open={showProfile} onOpenChange={setShowProfile}>
           <DialogContent className="max-w-sm p-0 overflow-hidden border-border">
-            <div className="bg-gradient-to-b from-primary/20 to-transparent pt-8 pb-4 flex flex-col items-center gap-3">
-              <BelinhaAvatar avatarUrl={avatarUrl} size="lg" />
-              <h2 className="font-mono font-bold text-xl">Belinha</h2>
-              <p className="text-xs text-muted-foreground">Assistente de estudos</p>
+            <div className="bg-gradient-to-b from-primary/10 to-transparent pt-10 pb-6 flex flex-col items-center gap-4">
+              <BelinhaAvatar avatarUrl={avatarUrl} size="xl" />
+              <div className="text-center space-y-1">
+                <h2 className="font-mono font-bold text-2xl">Belinha</h2>
+                <p className="text-xs text-muted-foreground">Assistente de estudos</p>
+              </div>
             </div>
-            <div className="px-5 pb-5 space-y-3">
-              <div className="rounded-lg bg-secondary/50 p-3">
-                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Recado</p>
+            <div className="px-5 pb-6 space-y-3">
+              <div className="rounded-xl bg-secondary/40 p-4">
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5">Recado</p>
                 <p className="text-sm leading-relaxed">
                   {recado || "Olá! Estou aqui para te ajudar nos estudos 💜"}
                 </p>

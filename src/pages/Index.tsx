@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Terminal, Send, X, ChevronRight, Braces, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Code } from "lucide-react";
+import { Terminal, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Code } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
@@ -339,7 +339,7 @@ const Index = () => {
                 </Button>
                 <Link to="/notificacoes">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
-                    <Braces className="h-4 w-4" />
+                    <Bell className="h-4 w-4" />
                     {notifNaoLidas > 0 && (
                       <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                         {notifNaoLidas}

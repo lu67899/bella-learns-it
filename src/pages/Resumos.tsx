@@ -80,10 +80,12 @@ const Resumos = () => {
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar resumos..." className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        </div>
+        <form role="presentation" autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Buscar resumos..." className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} />
+          </div>
+        </form>
 
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>

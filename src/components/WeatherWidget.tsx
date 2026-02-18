@@ -101,7 +101,7 @@ export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps)
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 4 }}
             transition={{ duration: 0.4 }}
-            className="text-[10px] text-muted-foreground tracking-wide truncate"
+            className="text-[10px] text-muted-foreground tracking-wide truncate italic"
           >
             {displayText}
           </motion.p>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Trash2, Copy, Check } from "lucide-react";
+import { Send, Bot, User, Trash2, Copy, Check, MessageSquarePlus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import BackButton from "@/components/BackButton";
@@ -9,6 +9,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StoryRing, BelinhaStoriesViewer, useBelinhaStories } from "@/components/BelinhaStories";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -245,9 +246,30 @@ const Belinha = () => {
             </button>
           </div>
           {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearChat} className="gap-1.5 text-muted-foreground">
-              <Trash2 className="h-3.5 w-3.5" /> Novo chat
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                  <MessageSquarePlus className="h-3.5 w-3.5" /> Novo chat
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-[280px] p-5 backdrop-blur-xl">
+                <AlertDialogHeader className="flex flex-col items-center gap-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </div>
+                  <AlertDialogTitle className="text-sm font-semibold text-center">Novo chat</AlertDialogTitle>
+                  <AlertDialogDescription className="text-xs text-center">
+                    A conversa atual será apagada. Deseja continuar?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-row gap-2 sm:justify-center">
+                  <AlertDialogCancel className="h-8 text-xs flex-1 mt-0">Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={clearChat} className="h-8 text-xs flex-1 bg-destructive hover:bg-destructive/90">
+                    Apagar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
 

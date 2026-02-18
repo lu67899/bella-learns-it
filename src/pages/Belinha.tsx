@@ -263,7 +263,7 @@ const Belinha = () => {
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="prose prose-sm prose-invert max-w-none break-words overflow-hidden [&>*]:my-1 [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1">
+                      <div className="max-w-none break-words overflow-hidden text-sm leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2 [&>ul]:pl-4 [&>ol]:pl-4 [&>ul]:list-disc [&>ol]:list-decimal [&_li]:mb-1 [&_strong]:font-semibold [&_em]:italic [&>h1]:text-base [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-sm [&>h2]:font-bold [&>h2]:mb-1.5 [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:mb-1 [&>pre]:bg-secondary/50 [&>pre]:rounded [&>pre]:p-2 [&>pre]:text-xs [&>pre]:overflow-x-auto [&>pre]:my-2 [&_code]:text-xs [&_code]:bg-secondary/50 [&_code]:px-1 [&_code]:rounded">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (

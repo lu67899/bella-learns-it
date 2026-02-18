@@ -43,6 +43,9 @@ export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps)
   useEffect(() => {
     const fetchWeather = async () => {
       try {
+        // Wait for auth session to be ready so the token is sent
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Weather fetch - session:", session?.user?.id || "none");
         const { data, error } = await supabase.functions.invoke("weather");
         if (error) throw error;
         setWeather(data);

@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, CheckCheck } from "lucide-react";
 import BackButton from "@/components/BackButton";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { format, differenceInHours } from "date-fns";
 
@@ -24,6 +25,7 @@ const Notificacoes = () => {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [filtro, setFiltro] = useState<"nao_lidas" | "todas">("nao_lidas");
   const [loading, setLoading] = useState(true);
+  const [selectedNotif, setSelectedNotif] = useState<Notificacao | null>(null);
 
   useEffect(() => {
     const fetchNotifs = async () => {
@@ -45,7 +47,11 @@ const Notificacoes = () => {
       await supabase.from("notificacoes").update({ lida: true }).eq("id", notif.id);
       setNotificacoes((prev) => prev.map((n) => (n.id === notif.id ? { ...n, lida: true } : n)));
     }
-    if (notif.link) navigate(notif.link);
+    if (notif.link) {
+      navigate(notif.link);
+    } else {
+      setSelectedNotif(notif);
+    }
   };
 
   const marcarTodasLidas = async () => {
@@ -149,7 +155,7 @@ const Notificacoes = () => {
                         </span>
                       </div>
                       {n.mensagem && (
-                        <p className="text-xs text-muted-foreground mt-1">{n.mensagem}</p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.mensagem}</p>
                       )}
                     </div>
                   </div>
@@ -159,6 +165,23 @@ const Notificacoes = () => {
           )}
         </div>
       </motion.div>
+
+      {/* Dialog for notifications without link */}
+      <Dialog open={!!selectedNotif} onOpenChange={(open) => !open && setSelectedNotif(null)}>
+        <DialogContent className="max-w-[280px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-mono">{selectedNotif?.titulo}</DialogTitle>
+          </DialogHeader>
+          {selectedNotif?.mensagem ? (
+            <p className="text-xs text-muted-foreground leading-relaxed">{selectedNotif.mensagem}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">Sem detalhes adicionais.</p>
+          )}
+          <p className="text-[10px] text-muted-foreground/50 font-mono">
+            {selectedNotif && formatTime(selectedNotif.created_at)}
+          </p>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

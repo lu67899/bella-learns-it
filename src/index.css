@@ -283,13 +283,13 @@ h1, h2, h3, p, span, button {
 
 /* Belinha chat markdown — ChatGPT-style */
 .belinha-md {
-  font-size: 0.875rem;
-  line-height: 1.75;
-  color: hsl(var(--foreground) / 0.9);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: hsl(var(--foreground) / 0.88);
   word-break: break-word;
   overflow-wrap: anywhere;
   max-width: 100%;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
 }
 .belinha-md * {
   max-width: 100%;

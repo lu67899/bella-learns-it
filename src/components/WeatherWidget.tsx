@@ -43,14 +43,27 @@ export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps)
   const navigate = useNavigate();
 
   useEffect(() => {
+    const CACHE_KEY = "weather_cache";
+    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const { data: cachedData, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL) {
+          setWeather(cachedData);
+          setLoading(false);
+          return;
+        }
+      } catch { /* ignore invalid cache */ }
+    }
+
     const fetchWeather = async () => {
       try {
-        // Wait for auth session to be ready so the token is sent
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Weather fetch - session:", session?.user?.id || "none");
         const { data, error } = await supabase.functions.invoke("weather");
         if (error) throw error;
         setWeather(data);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
       } catch (e) {
         console.error("Weather fetch error:", e);
       } finally {

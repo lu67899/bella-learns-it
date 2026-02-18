@@ -275,18 +275,18 @@ const Belinha = () => {
 
         {/* Profile Dialog */}
         <Dialog open={showProfile} onOpenChange={setShowProfile}>
-          <DialogContent className="max-w-[280px] p-0 overflow-hidden border-border">
-            <div className="bg-gradient-to-b from-primary/10 to-transparent pt-7 pb-4 flex flex-col items-center gap-3">
+          <DialogContent className="max-w-[320px] p-0 overflow-hidden border-border">
+            <div className="bg-gradient-to-b from-primary/10 to-transparent pt-8 pb-5 flex flex-col items-center gap-3">
               <BelinhaAvatar avatarUrl={avatarUrl} size="xl" />
               <div className="text-center space-y-0.5">
-                <h2 className="font-mono font-bold text-lg">Belinha</h2>
-                <p className="text-[10px] text-muted-foreground">Assistente de estudos</p>
+                <h2 className="font-mono font-bold text-xl">Belinha</h2>
+                <p className="text-[11px] text-muted-foreground">Assistente de estudos</p>
               </div>
             </div>
-            <div className="px-4 pb-4">
-              <div className="rounded-lg bg-secondary/40 p-3">
-                <p className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Recado</p>
-                <p className="text-xs leading-relaxed">
+            <div className="px-5 pb-5">
+              <div className="rounded-lg bg-secondary/40 p-3.5">
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Recado</p>
+                <p className="text-sm leading-relaxed">
                   {recado || "Olá! Estou aqui para te ajudar nos estudos 💜"}
                 </p>
               </div>

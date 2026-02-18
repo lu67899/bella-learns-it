@@ -228,8 +228,8 @@ const Belinha = () => {
         </Dialog>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 pr-2">
-          <div className="space-y-4 pb-4">
+        <ScrollArea className="flex-1 pr-2 overflow-hidden">
+          <div className="space-y-4 pb-4 overflow-hidden">
             {/* Recado inicial - some quando há mensagens */}
             {messages.length === 0 && recado && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2.5 justify-start">
@@ -256,13 +256,19 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`min-w-0 max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    className={`min-w-0 max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed overflow-hidden ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "assistant" ? (
+                      <div className="prose prose-sm prose-invert max-w-none break-words overflow-hidden [&>*]:my-1 [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                    )}
                   </Card>
                   {msg.role === "user" && (
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary mt-0.5">

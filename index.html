@@ -20,6 +20,11 @@
   </head>
 
   <body>
+    <!-- Honeypot to prevent password managers from hijacking real inputs -->
+    <form aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none">
+      <input type="text" name="username" tabindex="-1" />
+      <input type="password" name="password" tabindex="-1" />
+    </form>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

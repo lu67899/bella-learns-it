@@ -67,6 +67,21 @@ const Clima = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const CACHE_KEY = "forecast_cache";
+    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const { data: cachedData, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL) {
+          setData(cachedData);
+          setLoading(false);
+          return;
+        }
+      } catch { /* ignore invalid cache */ }
+    }
+
     const fetchForecast = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -84,6 +99,7 @@ const Clima = () => {
         if (!res.ok) throw new Error("Forecast fetch failed");
         const forecastData = await res.json();
         setData(forecastData);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: forecastData, timestamp: Date.now() }));
       } catch (e) {
         console.error("Forecast fetch error:", e);
       } finally {

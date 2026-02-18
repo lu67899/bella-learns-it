@@ -185,7 +185,7 @@ const Belinha = () => {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-2rem)]">
+      <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-2rem)] overflow-x-hidden w-full min-w-0">
         {/* Header */}
         <div className="flex items-center justify-between pb-4">
           <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ const Belinha = () => {
                         <BelinhaAvatar avatarUrl={avatarUrl} />
                         <span className="text-xs font-mono text-muted-foreground">Belinha</span>
                       </div>
-                      <article className="prose prose-sm dark:prose-invert max-w-none break-words
+                      <article className="prose prose-sm dark:prose-invert max-w-none break-words [overflow-wrap:anywhere]
                         prose-p:text-[13px] prose-p:leading-[1.7] prose-p:mb-3 prose-p:text-foreground/85
                         prose-headings:text-foreground prose-headings:font-semibold
                         prose-h1:text-base prose-h1:mb-2 prose-h2:text-sm prose-h2:mb-2 prose-h3:text-[13px] prose-h3:mb-1.5

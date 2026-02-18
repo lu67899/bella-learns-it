@@ -15,10 +15,7 @@ const BackButton = ({ to, label = "Voltar", onClick, openMenu }: BackButtonProps
     if (onClick) {
       onClick();
     } else if (openMenu) {
-      navigate("/");
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("open-sidebar"));
-      }, 100);
+      navigate("/", { state: { openSidebar: true }, replace: true });
     } else if (to) {
       navigate(to);
     } else {

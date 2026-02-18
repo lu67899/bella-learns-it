@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { StickyNote, Search, Loader2, Plus, Edit2, Trash2 } from "lucide-react";
+import { FileText, Search, Loader2, Plus, Edit2, Trash2 } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -157,7 +157,7 @@ const Anotacoes = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
-              <StickyNote className="h-6 w-6 text-neon-green" /> Anotações
+              <FileText className="h-5 w-5 text-primary" /> Anotações
             </h1>
             <p className="text-sm text-muted-foreground">Suas notas de estudo</p>
           </div>
@@ -175,7 +175,7 @@ const Anotacoes = () => {
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
         ) : filtradas.length === 0 ? (
           <div className="text-center py-16 space-y-2">
-            <StickyNote className="h-12 w-12 mx-auto text-muted-foreground/30" />
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground/30" />
             <p className="text-muted-foreground">Nenhuma anotação encontrada</p>
             <p className="text-xs text-muted-foreground/60">Clique em "Nova Anotação" para começar</p>
           </div>

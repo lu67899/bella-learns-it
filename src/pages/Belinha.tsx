@@ -285,10 +285,6 @@ const Belinha = () => {
                 >
                   {msg.role === "assistant" ? (
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <BelinhaAvatar avatarUrl={avatarUrl} />
-                        <span className="text-xs font-mono text-muted-foreground">Belinha</span>
-                      </div>
                       <div className="belinha-md">
                         <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ pre: CodeBlock }}>{msg.content}</ReactMarkdown>
                       </div>
@@ -305,10 +301,6 @@ const Belinha = () => {
 
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <BelinhaAvatar avatarUrl={avatarUrl} />
-                  <span className="text-xs font-mono text-muted-foreground">Belinha</span>
-                </div>
                 <div className="flex gap-1">
                   <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:0ms]" />
                   <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:150ms]" />

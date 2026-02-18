@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Cloud, CloudRain, Sun, CloudSun, Snowflake, CloudLightning, Wind, Droplets, Thermometer, Eye, Gauge, Sunrise, Sunset, ArrowLeft } from "lucide-react";
+import { Cloud, CloudRain, Sun, CloudSun, Snowflake, CloudLightning, Wind, Droplets, Eye, Gauge, Sunrise, Sunset } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PageContainer } from "@/components/PageContainer";
+import BackButton from "@/components/BackButton";
 
 interface DailyForecast {
   date: string;
@@ -96,12 +97,8 @@ const Clima = () => {
     return (
       <PageContainer>
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-card border border-border">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <h1 className="text-lg font-bold">Previsão do Tempo</h1>
-          </div>
+          <BackButton label="Voltar" />
+          <h1 className="text-base font-bold">Previsão do Tempo</h1>
           <div className="animate-pulse space-y-3">
             <div className="h-40 bg-card rounded-xl" />
             <div className="h-24 bg-card rounded-xl" />
@@ -116,12 +113,8 @@ const Clima = () => {
     return (
       <PageContainer>
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-card border border-border">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <h1 className="text-lg font-bold">Previsão do Tempo</h1>
-          </div>
+          <BackButton label="Voltar" />
+          <h1 className="text-base font-bold">Previsão do Tempo</h1>
           <p className="text-muted-foreground text-sm">Não foi possível carregar a previsão.</p>
         </div>
       </PageContainer>
@@ -129,18 +122,13 @@ const Clima = () => {
   }
 
   return (
-    <PageContainer>
-      <div className="space-y-4 pb-6 w-full overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-card border border-border hover:bg-secondary transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
+      <PageContainer>
+        <div className="space-y-4 pb-6 w-full overflow-hidden">
+          <BackButton label="Voltar" />
           <div>
-            <h1 className="text-lg font-bold">Previsão do Tempo</h1>
+            <h1 className="text-base font-bold">Previsão do Tempo</h1>
             <p className="text-xs text-muted-foreground font-mono">{data.city}</p>
           </div>
-        </div>
 
         {/* Current Weather Card */}
         <motion.div

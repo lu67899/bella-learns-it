@@ -71,12 +71,11 @@ const LivrosPdf = () => {
               <X className="h-4 w-4" />
             </button>
           </div>
-          {/* PDF viewer via Google Docs */}
+          {/* PDF viewer via proxy */}
           <iframe
-            src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedBook.pdf_url)}&embedded=true`}
+            src={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pdf-proxy?id=${selectedBook.id}`}
             className="flex-1 w-full border-none"
             title={selectedBook.titulo}
-            allow="autoplay"
           />
         </div>
       </Layout>

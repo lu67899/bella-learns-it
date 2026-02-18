@@ -228,17 +228,16 @@ const Belinha = () => {
         </Dialog>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 pr-2">
-          <div className="space-y-4 pb-4">
-            {/* Recado inicial - some quando há mensagens */}
+        <ScrollArea className="flex-1">
+          <div className="space-y-6 pb-4 px-1">
+            {/* Recado inicial */}
             {messages.length === 0 && recado && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2.5 justify-start">
-                <div className="mt-0.5">
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="flex items-center gap-2 mb-2">
                   <BelinhaAvatar avatarUrl={avatarUrl} />
+                  <span className="text-xs font-mono text-muted-foreground">Belinha</span>
                 </div>
-                <Card className="max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed bg-card border-border">
-                  <p className="whitespace-pre-wrap">{recado}</p>
-                </Card>
+                <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-wrap">{recado}</p>
               </motion.div>
             )}
 
@@ -248,42 +247,32 @@ const Belinha = () => {
                   key={i}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex gap-2.5 min-w-0 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={msg.role === "user" ? "flex justify-end" : ""}
                 >
-                  {msg.role === "assistant" && (
-                    <div className="mt-0.5">
-                      <BelinhaAvatar avatarUrl={avatarUrl} />
-                    </div>
-                  )}
-                  <Card
-                    className={`min-w-0 max-w-[80%] px-3 py-2.5 text-[13px] leading-[1.6] ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card border-border"
-                    }`}
-                  >
-                    {msg.role === "assistant" ? (
+                  {msg.role === "assistant" ? (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <BelinhaAvatar avatarUrl={avatarUrl} />
+                        <span className="text-xs font-mono text-muted-foreground">Belinha</span>
+                      </div>
                       <article className="prose prose-sm dark:prose-invert max-w-none break-words
-                        prose-p:text-[13px] prose-p:leading-[1.6] prose-p:mb-2 prose-p:text-foreground/85
+                        prose-p:text-[13px] prose-p:leading-[1.7] prose-p:mb-3 prose-p:text-foreground/85
                         prose-headings:text-foreground prose-headings:font-semibold
-                        prose-h1:text-sm prose-h1:mb-2 prose-h2:text-[13px] prose-h2:mb-1.5 prose-h3:text-[13px] prose-h3:mb-1
+                        prose-h1:text-base prose-h1:mb-2 prose-h2:text-sm prose-h2:mb-2 prose-h3:text-[13px] prose-h3:mb-1.5
                         prose-strong:text-foreground prose-strong:font-semibold
-                        prose-li:text-[13px] prose-li:leading-[1.6] prose-li:text-foreground/85
-                        prose-ul:my-2 prose-ol:my-2 prose-ul:pl-4 prose-ol:pl-4
-                        prose-code:bg-secondary/60 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[11px]
-                        prose-pre:bg-secondary/50 prose-pre:rounded prose-pre:p-2 prose-pre:text-[11px] prose-pre:overflow-x-auto
-                        prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r prose-blockquote:py-0.5 prose-blockquote:px-3
-                        prose-table:text-[12px] prose-th:bg-secondary/50 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-border prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-border
+                        prose-li:text-[13px] prose-li:leading-[1.7] prose-li:text-foreground/85
+                        prose-ul:my-2 prose-ol:my-2 prose-ul:pl-5 prose-ol:pl-5
+                        prose-code:bg-secondary/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
+                        prose-pre:bg-secondary/50 prose-pre:rounded-lg prose-pre:p-3 prose-pre:text-xs prose-pre:overflow-x-auto
+                        prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4
+                        prose-table:text-xs prose-th:bg-secondary/50 prose-th:px-2 prose-th:py-1.5 prose-th:border prose-th:border-border prose-td:px-2 prose-td:py-1.5 prose-td:border prose-td:border-border
                       ">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </article>
-                    ) : (
-                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                    )}
-                  </Card>
-                  {msg.role === "user" && (
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary mt-0.5">
-                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="inline-block bg-primary text-primary-foreground rounded-2xl px-4 py-2 max-w-[85%]">
+                      <p className="text-[13px] whitespace-pre-wrap break-words">{msg.content}</p>
                     </div>
                   )}
                 </motion.div>
@@ -291,17 +280,16 @@ const Belinha = () => {
             </AnimatePresence>
 
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2.5">
-                <div className="mt-0.5">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="flex items-center gap-2 mb-1.5">
                   <BelinhaAvatar avatarUrl={avatarUrl} />
+                  <span className="text-xs font-mono text-muted-foreground">Belinha</span>
                 </div>
-                <Card className="bg-card border-border px-4 py-3">
-                  <div className="flex gap-1">
-                    <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:0ms]" />
-                    <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:150ms]" />
-                    <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:300ms]" />
-                  </div>
-                </Card>
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:300ms]" />
+                </div>
               </motion.div>
             )}
 

@@ -280,3 +280,15 @@ h1, h2, h3, p, span, button {
     line-height: 1;
   }
 }
+
+/* Belinha chat prose overflow fix */
+.prose pre,
+.prose code,
+.prose table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+}

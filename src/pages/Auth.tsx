@@ -196,12 +196,13 @@ const Auth = () => {
                   Senha
                 </label>
                 <div className="relative">
-                  <Input
+                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Mínimo 6 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     maxLength={72}
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
                     className="h-10 text-sm pr-10 bg-background/40 border-border/20 rounded-xl focus:border-primary/50 focus:bg-background/60 focus:ring-1 focus:ring-primary/15 transition-all placeholder:text-muted-foreground/25"
                   />
                   <button

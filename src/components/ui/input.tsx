@@ -8,12 +8,15 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
     const safeName = name || `field-${neutralId.replace(/:/g, "")}`;
     const safeId = id || `input-${neutralId.replace(/:/g, "")}`;
 
+    // "new-password" is the most aggressive blocker for Chrome/Android autofill
+    const safeAutoComplete = autoComplete ?? "new-password";
+
     return (
       <input
         type={type || "text"}
         name={safeName}
         id={safeId}
-        autoComplete={autoComplete ?? "off"}
+        autoComplete={safeAutoComplete}
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
@@ -22,6 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         data-protonpass-ignore="true"
         data-bwignore=""
         data-form-type="other"
+        data-credential="false"
         aria-autocomplete="none"
         inputMode={type === "number" ? "numeric" : undefined}
         className={cn(

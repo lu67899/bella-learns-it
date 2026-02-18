@@ -153,7 +153,12 @@ const BelinhaAvatar = ({ avatarUrl, size = "sm" }: { avatarUrl: string | null; s
 
 const Belinha = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useState<Msg[]>(() => {
+    try {
+      const saved = localStorage.getItem("belinha-chat");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -171,6 +176,10 @@ const Belinha = () => {
         if (data?.recado) setRecado(data.recado);
       });
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("belinha-chat", JSON.stringify(messages));
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

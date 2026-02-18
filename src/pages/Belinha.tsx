@@ -231,7 +231,7 @@ const Belinha = () => {
     <Layout>
       <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-2rem)] overflow-x-hidden w-full min-w-0">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 sticky top-0 z-10 bg-background">
+        <div className="flex items-center justify-between pb-4 shrink-0">
           <div className="flex items-center gap-3">
             <BackButton to="/" label="" />
             <StoryRing
@@ -343,7 +343,7 @@ const Belinha = () => {
         </div>
 
         {/* Input */}
-        <div className="pt-3 pb-1 border-t border-border sticky bottom-0 bg-background">
+        <div className="pt-3 pb-1 border-t border-border shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();

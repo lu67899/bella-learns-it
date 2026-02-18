@@ -114,7 +114,7 @@ function PlayerView({
   const url = item.video_url || '';
   const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
   const isHttp = url.startsWith('http://');
-  const proxyBase = `https://fizcmvavzgoaznzindwl.supabase.co/functions/v1/video-proxy`;
+  const proxyBase = `https://bold-block-8917.denysouzah7.workers.dev`;
   const videoSrc = isDirectVideo && isHttp
     ? `${proxyBase}?url=${encodeURIComponent(url)}`
     : url;

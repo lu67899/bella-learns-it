@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, User, Trash2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+
 import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
@@ -101,6 +101,23 @@ async function streamChat({
 
   onDone();
 }
+
+/** Lightweight markdown: bold, italic, inline code only. No external lib. */
+const renderSimpleMd = (text: string) => {
+  // Escape HTML
+  let safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // Bold **text** or __text__
+  safe = safe.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  safe = safe.replace(/__(.+?)__/g, "<strong>$1</strong>");
+  // Italic *text* or _text_
+  safe = safe.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  safe = safe.replace(/(?<!\w)_(.+?)_(?!\w)/g, "<em>$1</em>");
+  // Inline code `text`
+  safe = safe.replace(/`(.+?)`/g, '<code class="bg-secondary/60 px-1 py-0.5 rounded text-xs">$1</code>');
+  // Line breaks
+  safe = safe.replace(/\n/g, "<br />");
+  return safe;
+};
 
 const BelinhaAvatar = ({ avatarUrl, size = "sm" }: { avatarUrl: string | null; size?: "sm" | "lg" }) => {
   const dims = size === "lg" ? "h-10 w-10" : "h-7 w-7";
@@ -253,9 +270,11 @@ const Belinha = () => {
                         <BelinhaAvatar avatarUrl={avatarUrl} />
                         <span className="text-xs font-mono text-muted-foreground">Belinha</span>
                       </div>
-                      <div className="belinha-md text-[13px] leading-[1.7] text-foreground/85">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
+                      <div
+                        className="text-[13px] leading-[1.7] text-foreground/85 break-words"
+                        style={{ overflowWrap: "anywhere" }}
+                        dangerouslySetInnerHTML={{ __html: renderSimpleMd(msg.content) }}
+                      />
                     </div>
                   ) : (
                     <div className="inline-block bg-primary text-primary-foreground rounded-2xl px-4 py-2 max-w-[85%]">

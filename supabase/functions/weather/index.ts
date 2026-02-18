@@ -42,8 +42,8 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     // Get API key from admin_config first, fallback to env
     const { data: adminConfig } = await supabase
@@ -57,22 +57,26 @@ serve(async (req) => {
       throw new Error("Weather API key not configured");
     }
 
-    // Check if user sent a city via auth token
+    // Get user city from profile via auth token
     let userCity: string | null = null;
     const authHeader = req.headers.get("authorization");
     if (authHeader) {
       const token = authHeader.replace("Bearer ", "");
-      const { data: { user } } = await supabase.auth.getUser(token);
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      console.log("Auth user:", user?.id, "error:", userError?.message);
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("cidade")
           .eq("user_id", user.id)
           .single();
+        console.log("Profile cidade:", (profile as any)?.cidade);
         if ((profile as any)?.cidade) {
           userCity = (profile as any).cidade.toLowerCase().trim();
         }
       }
+    } else {
+      console.log("No auth header received");
     }
 
     // Resolve coordinates

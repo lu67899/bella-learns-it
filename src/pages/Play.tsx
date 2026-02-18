@@ -140,13 +140,18 @@ function PlayerView({
         {(() => {
           const url = item.video_url || '';
           const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
-          // Try upgrading http to https to avoid mixed content blocking
-          const safeUrl = url.replace(/^http:\/\//i, 'https://');
+          const isHttp = url.startsWith('http://');
+          
+          // For direct video files served over HTTP, proxy through our edge function
+          const proxyBase = `https://fizcmvavzgoaznzindwl.supabase.co/functions/v1/video-proxy`;
+          const videoSrc = isDirectVideo && isHttp
+            ? `${proxyBase}?url=${encodeURIComponent(url)}`
+            : url;
           
           if (isDirectVideo) {
             return (
               <video
-                src={safeUrl}
+                src={videoSrc}
                 controls
                 autoPlay
                 className="w-full h-full max-h-[70vh] object-contain"
@@ -159,7 +164,7 @@ function PlayerView({
           } else if (url) {
             return (
               <iframe
-                src={safeUrl}
+                src={url}
                 className="w-full h-full max-h-[70vh]"
                 allowFullScreen
                 allow="autoplay; encrypted-media; fullscreen"

@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.baserow-list-tables]
 verify_jwt = false
+
+[functions.video-proxy]
+verify_jwt = false

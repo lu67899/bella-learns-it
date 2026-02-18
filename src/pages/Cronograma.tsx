@@ -98,7 +98,7 @@ const Cronograma = () => {
   return (
     <Layout>
       <div className="max-w-5xl mx-auto space-y-6">
-        <BackButton />
+        <BackButton openMenu />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">

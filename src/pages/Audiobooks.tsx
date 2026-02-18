@@ -128,7 +128,7 @@ const Audiobooks = () => {
   const handleBack = () => {
     if (view === "detail") setView("books");
     else if (view === "books") { setView("categories"); setSelectedCategory(null); }
-    else navigate("/");
+    else navigate("/", { state: { openSidebar: true } });
   };
 
   const selectCategory = (cat: Categoria) => { setSelectedCategory(cat); setView("books"); };

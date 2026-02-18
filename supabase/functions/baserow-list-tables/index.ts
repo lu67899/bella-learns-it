@@ -19,8 +19,6 @@ serve(async (req) => {
 
   try {
     const { table_id } = await req.json().catch(() => ({ table_id: null }));
-    
-    // Database tokens use TokenAuth header
     const authHeaders = { 'Authorization': `Token ${token}` };
     
     // If table_id provided, get fields and rows for that table
@@ -33,9 +31,6 @@ serve(async (req) => {
       const fieldsBody = await fieldsRes.text();
       const rowsBody = await rowsRes.text();
       
-      console.log('Fields status:', fieldsRes.status);
-      console.log('Rows status:', rowsRes.status);
-      
       return new Response(JSON.stringify({
         table_id,
         fields_status: fieldsRes.status,
@@ -46,79 +41,30 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-    
-    // Try common table IDs to discover tables (brute force a small range)
-    // This is a workaround since database tokens can't list workspaces
-    const found: any[] = [];
-    const testIds = Array.from({ length: 20 }, (_, i) => i + 1);
-    
-    const promises = testIds.map(async (id) => {
-      try {
-        const res = await fetch(`https://api.baserow.io/api/database/rows/table/${id}/?size=1`, {
-          headers: authHeaders
-        });
-        if (res.status === 200) {
-          const data = await res.json();
-          const fieldsRes = await fetch(`https://api.baserow.io/api/database/fields/table/${id}/`, {
-            headers: authHeaders
-          });
-          const fields = fieldsRes.status === 200 ? await fieldsRes.json() : [];
-          found.push({
-            table_id: id,
-            row_count: data.count,
-            fields: Array.isArray(fields) ? fields.map((f: any) => ({ id: f.id, name: f.name, type: f.type })) : [],
-            sample: data.results?.[0] || null
-          });
-        } else {
-          await res.text();
-        }
-      } catch {
-        // skip
-      }
-    });
-    
-    await Promise.all(promises);
-    
-    // Also try higher ranges
-    const highIds = [100, 200, 300, 400, 500, 1000, 50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000];
-    const highPromises = highIds.map(async (baseId) => {
-      for (let i = baseId; i < baseId + 5; i++) {
-        try {
-          const res = await fetch(`https://api.baserow.io/api/database/rows/table/${i}/?size=1`, {
-            headers: authHeaders
-          });
-          if (res.status === 200) {
-            const data = await res.json();
-            const fieldsRes = await fetch(`https://api.baserow.io/api/database/fields/table/${i}/`, {
-              headers: authHeaders
-            });
-            const fields = fieldsRes.status === 200 ? await fieldsRes.json() : [];
-            found.push({
-              table_id: i,
-              row_count: data.count,
-              fields: Array.isArray(fields) ? fields.map((f: any) => ({ id: f.id, name: f.name, type: f.type })) : [],
-              sample: data.results?.[0] || null
-            });
-          } else {
-            await res.text();
-          }
-        } catch {
-          // skip
-        }
-      }
-    });
-    
-    await Promise.all(highPromises);
-    
-    found.sort((a, b) => a.table_id - b.table_id);
 
-    return new Response(JSON.stringify({
-      message: found.length > 0 
-        ? `Encontrei ${found.length} tabela(s)` 
-        : 'Nenhuma tabela encontrada nos IDs testados. Por favor forneça o table_id manualmente.',
-      token_type: 'database_token',
-      tables: found
-    }, null, 2), {
+    // List all tables in the known database (204452)
+    const dbId = 204452;
+    const tablesRes = await fetch(`https://api.baserow.io/api/database/tables/database/${dbId}/`, { headers: authHeaders });
+    
+    if (tablesRes.status === 200) {
+      const tables = await tablesRes.json();
+      const detailed = await Promise.all(tables.map(async (t: any) => {
+        const fRes = await fetch(`https://api.baserow.io/api/database/fields/table/${t.id}/`, { headers: authHeaders });
+        const fields = fRes.status === 200 ? await fRes.json() : [];
+        return {
+          table_id: t.id,
+          name: t.name,
+          order: t.order,
+          fields: Array.isArray(fields) ? fields.map((f: any) => ({ id: f.id, name: f.name, type: f.type })) : []
+        };
+      }));
+      return new Response(JSON.stringify({ database_id: dbId, tables: detailed }, null, 2), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const tablesBody = await tablesRes.text();
+    return new Response(JSON.stringify({ error: 'Could not list tables', status: tablesRes.status, body: tablesBody }, null, 2), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {

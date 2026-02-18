@@ -41,6 +41,9 @@ serve(async (req) => {
   }
 
   try {
+    const url = new URL(req.url);
+    const mode = url.searchParams.get("mode") || "current"; // "current" or "forecast"
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
@@ -62,25 +65,21 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization");
     if (authHeader) {
       const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-      console.log("Auth user:", user?.id, "error:", userError?.message);
+      const { data: { user } } = await supabase.auth.getUser(token);
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("cidade")
           .eq("user_id", user.id)
           .single();
-        console.log("Profile cidade:", (profile as any)?.cidade);
         if ((profile as any)?.cidade) {
           userCity = (profile as any).cidade.toLowerCase().trim();
         }
       }
-    } else {
-      console.log("No auth header received");
     }
 
     // Resolve coordinates
-    let lat = -22.9068; // Default: Rio de Janeiro
+    let lat = -22.9068;
     let lon = -43.1729;
     let cityName = "Rio de Janeiro";
 
@@ -89,7 +88,6 @@ serve(async (req) => {
       lon = cityCoords[userCity].lon;
       cityName = userCity.charAt(0).toUpperCase() + userCity.slice(1);
     } else if (userCity) {
-      // Try geocoding API for unknown cities
       try {
         const geoRes = await fetch(
           `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(userCity)},BR&limit=1&appid=${apiKey}`
@@ -105,6 +103,78 @@ serve(async (req) => {
       }
     }
 
+    if (mode === "forecast") {
+      // 7-day forecast using One Call API 3.0 or fallback to 5-day/3h forecast
+      const forecastRes = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br&cnt=56`
+      );
+
+      if (!forecastRes.ok) {
+        throw new Error(`OpenWeatherMap forecast error: ${forecastRes.status}`);
+      }
+
+      const forecastData = await forecastRes.json();
+
+      // Also get current weather
+      const currentRes = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br`
+      );
+      const currentData = await currentRes.json();
+
+      // Group forecast by day
+      const dailyMap: Record<string, any> = {};
+      for (const item of forecastData.list) {
+        const date = item.dt_txt.split(" ")[0];
+        if (!dailyMap[date]) {
+          dailyMap[date] = {
+            date,
+            temps: [],
+            icons: [],
+            descriptions: [],
+            humidity: [],
+            wind: [],
+          };
+        }
+        dailyMap[date].temps.push(item.main.temp);
+        dailyMap[date].icons.push(item.weather[0].icon);
+        dailyMap[date].descriptions.push(item.weather[0].description);
+        dailyMap[date].humidity.push(item.main.humidity);
+        dailyMap[date].wind.push(item.wind.speed);
+      }
+
+      const daily = Object.values(dailyMap).slice(0, 7).map((day: any) => ({
+        date: day.date,
+        temp_min: Math.round(Math.min(...day.temps)),
+        temp_max: Math.round(Math.max(...day.temps)),
+        icon: day.icons[Math.floor(day.icons.length / 2)], // midday icon
+        description: day.descriptions[Math.floor(day.descriptions.length / 2)],
+        humidity: Math.round(day.humidity.reduce((a: number, b: number) => a + b, 0) / day.humidity.length),
+        wind: Math.round((day.wind.reduce((a: number, b: number) => a + b, 0) / day.wind.length) * 3.6),
+      }));
+
+      const result = {
+        city: cityName,
+        current: {
+          temp: Math.round(currentData.main.temp),
+          feels_like: Math.round(currentData.main.feels_like),
+          description: currentData.weather[0].description,
+          icon: currentData.weather[0].icon,
+          humidity: currentData.main.humidity,
+          wind: Math.round(currentData.wind.speed * 3.6),
+          pressure: currentData.main.pressure,
+          visibility: currentData.visibility,
+          sunrise: currentData.sys.sunrise,
+          sunset: currentData.sys.sunset,
+        },
+        daily,
+      };
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Current weather (default)
     const res = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br`
     );

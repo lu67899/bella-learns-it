@@ -358,6 +358,10 @@ const Belinha = () => {
               placeholder="Digite sua pergunta..."
               disabled={isLoading}
               className="flex-1"
+              autoComplete="off"
+              autoCorrect="off"
+              name="belinha-chat-input"
+              type="search"
             />
             <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
               <Send className="h-4 w-4" />

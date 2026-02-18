@@ -45,6 +45,36 @@ const LivrosPdf = () => {
     return matchSearch && matchCat;
   });
 
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  // Fetch PDF as blob to avoid CORS/blocking issues
+  useEffect(() => {
+    if (!selectedBook) {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+        setBlobUrl(null);
+      }
+      return;
+    }
+    let cancelled = false;
+    setPdfLoading(true);
+    setBlobUrl(null);
+
+    fetch(selectedBook.pdf_url)
+      .then((res) => res.blob())
+      .then((blob) => {
+        if (!cancelled) {
+          const url = URL.createObjectURL(blob);
+          setBlobUrl(url);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setPdfLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [selectedBook]);
+
   // Full-screen PDF viewer
   if (selectedBook) {
     return (
@@ -53,7 +83,7 @@ const LivrosPdf = () => {
           {/* Viewer header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card shrink-0">
             <button
-              onClick={() => setSelectedBook(null)}
+              onClick={() => { setSelectedBook(null); }}
               className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -65,18 +95,28 @@ const LivrosPdf = () => {
               )}
             </div>
             <button
-              onClick={() => setSelectedBook(null)}
+              onClick={() => { setSelectedBook(null); }}
               className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          {/* PDF viewer via proxy */}
-          <iframe
-            src={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pdf-proxy?id=${selectedBook.id}`}
-            className="flex-1 w-full border-none"
-            title={selectedBook.titulo}
-          />
+          {/* PDF viewer via blob URL */}
+          {pdfLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
+          ) : blobUrl ? (
+            <iframe
+              src={blobUrl}
+              className="flex-1 w-full border-none"
+              title={selectedBook.titulo}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm font-mono">
+              Erro ao carregar PDF
+            </div>
+          )}
         </div>
       </Layout>
     );

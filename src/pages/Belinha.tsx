@@ -267,10 +267,6 @@ const Belinha = () => {
             {/* Recado inicial */}
             {messages.length === 0 && recado && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <BelinhaAvatar avatarUrl={avatarUrl} />
-                  <span className="text-xs font-mono text-muted-foreground">Belinha</span>
-                </div>
                 <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-wrap">{recado}</p>
               </motion.div>
             )}

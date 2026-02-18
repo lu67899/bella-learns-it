@@ -111,94 +111,103 @@ function PlayerView({
   item: ContentItem;
   onClose: () => void;
 }) {
+  const url = item.video_url || '';
+  const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
+  const isHttp = url.startsWith('http://');
+  const proxyBase = `https://fizcmvavzgoaznzindwl.supabase.co/functions/v1/video-proxy`;
+  const videoSrc = isDirectVideo && isHttp
+    ? `${proxyBase}?url=${encodeURIComponent(url)}`
+    : url;
+
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-background/98 backdrop-blur-xl flex flex-col"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden"
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            onClick={onClose}
-            className="h-8 w-8 rounded-full flex items-center justify-center bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+      {/* Video Area - takes most of the screen */}
+      <div className="relative flex-1 flex items-center justify-center bg-black min-h-0">
+        {/* Close button overlay */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 z-10 h-10 w-10 rounded-full flex items-center justify-center bg-black/60 backdrop-blur-md hover:bg-black/80 text-white/80 hover:text-white transition-all duration-200 ring-1 ring-white/10"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {isDirectVideo ? (
+          <video
+            src={videoSrc}
+            controls
+            autoPlay
+            className="w-full h-full object-contain"
+            controlsList="nodownload"
+            playsInline
           >
-            <X className="h-4 w-4" />
-          </button>
-          <div className="min-w-0">
-            <p className="text-sm font-bold font-mono text-foreground truncate">{item.titulo}</p>
-            <p className="text-[10px] text-muted-foreground font-mono">
-              {item.categoria} · {item.idioma}
-            </p>
+            Seu navegador não suporta vídeo.
+          </video>
+        ) : url ? (
+          <iframe
+            src={url}
+            className="w-full h-full"
+            allowFullScreen
+            allow="autoplay; encrypted-media; fullscreen"
+            style={{ border: 'none' }}
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center ring-1 ring-white/10">
+              <Film className="h-7 w-7 text-white/30" />
+            </div>
+            <p className="text-white/40 text-sm font-mono">Nenhum link disponível</p>
+          </div>
+        )}
+      </div>
+
+      {/* Info Panel - compact bottom bar */}
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 30 }}
+        className="bg-gradient-to-t from-black via-black/95 to-transparent px-4 pt-6 pb-5 space-y-3 -mt-16 relative z-10"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-bold text-white truncate">{item.titulo}</h2>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-primary/20 text-primary ring-1 ring-primary/30">
+                {item.tipo === "filme" ? "Filme" : "Série"}
+              </span>
+              {item.idioma && (
+                <span className="text-[10px] font-mono text-white/50">{item.idioma}</span>
+              )}
+              {item.temporadas > 0 && (
+                <span className="text-[10px] text-white/50 font-mono flex items-center gap-1">
+                  <Tv className="h-3 w-3" /> {item.temporadas} temp.
+                </span>
+              )}
+              <ViewsBadge views={item.views} />
+            </div>
           </div>
         </div>
-        <ViewsBadge views={item.views} />
-      </div>
 
-      <div className="flex-1 flex items-center justify-center bg-black">
-        {(() => {
-          const url = item.video_url || '';
-          const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
-          const isHttp = url.startsWith('http://');
-          
-          // For direct video files served over HTTP, proxy through our edge function
-          const proxyBase = `https://fizcmvavzgoaznzindwl.supabase.co/functions/v1/video-proxy`;
-          const videoSrc = isDirectVideo && isHttp
-            ? `${proxyBase}?url=${encodeURIComponent(url)}`
-            : url;
-          
-          if (isDirectVideo) {
-            return (
-              <video
-                src={videoSrc}
-                controls
-                autoPlay
-                className="w-full h-full max-h-[70vh] object-contain"
-                controlsList="nodownload"
-                playsInline
-              >
-                Seu navegador não suporta vídeo.
-              </video>
-            );
-          } else if (url) {
-            return (
-              <iframe
-                src={url}
-                className="w-full h-full max-h-[70vh]"
-                allowFullScreen
-                allow="autoplay; encrypted-media; fullscreen"
-                style={{ border: 'none', minHeight: '300px' }}
-              />
-            );
-          } else {
-            return (
-              <p className="text-muted-foreground text-sm font-mono">Nenhum link de vídeo disponível</p>
-            );
-          }
-        })()}
-      </div>
-
-      <div className="px-4 py-4 space-y-2 border-t border-border/30">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="text-[10px] font-mono">
-            {item.tipo === "filme" ? "Filme" : "Série"}
-          </Badge>
+        {/* Categories */}
+        <div className="flex gap-1.5 flex-wrap">
           {item.categoria.split(",").map((cat) => (
-            <Badge key={cat.trim()} variant="outline" className="text-[10px] font-mono">
+            <span key={cat.trim()} className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/8 text-white/60 ring-1 ring-white/10">
               {cat.trim()}
-            </Badge>
-          ))}
-          {item.temporadas > 0 && (
-            <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-              <Tv className="h-3 w-3" /> {item.temporadas} temporadas
             </span>
-          )}
+          ))}
         </div>
-        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-          {item.sinopse}
-        </p>
-      </div>
+
+        {item.sinopse && (
+          <p className="text-xs text-white/50 leading-relaxed line-clamp-2">
+            {item.sinopse}
+          </p>
+        )}
+      </motion.div>
     </motion.div>
   );
 }

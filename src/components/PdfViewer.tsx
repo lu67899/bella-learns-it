@@ -19,6 +19,78 @@ const PdfViewer = ({ url, title }: PdfViewerProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // Swipe state
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [swipeDelta, setSwipeDelta] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const goNext = useCallback(() => {
+    if (page < totalPages) {
+      setIsAnimating(true);
+      setSwipeDelta(-window.innerWidth);
+      setTimeout(() => {
+        setPage((p) => Math.min(totalPages, p + 1));
+        setSwipeDelta(0);
+        setIsAnimating(false);
+      }, 200);
+    }
+  }, [page, totalPages]);
+
+  const goPrev = useCallback(() => {
+    if (page > 1) {
+      setIsAnimating(true);
+      setSwipeDelta(window.innerWidth);
+      setTimeout(() => {
+        setPage((p) => Math.max(1, p - 1));
+        setSwipeDelta(0);
+        setIsAnimating(false);
+      }, 200);
+    }
+  }, [page]);
+
+  // Touch handlers for swipe
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (scale > 1) return; // disable swipe when zoomed
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+    setSwipeDelta(0);
+  }, [scale]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current || scale > 1) return;
+    const dx = e.touches[0].clientX - touchStartRef.current.x;
+    const dy = e.touches[0].clientY - touchStartRef.current.y;
+    // Only horizontal swipe
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      setSwipeDelta(dx);
+    }
+  }, [scale]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!touchStartRef.current || scale > 1) return;
+    const threshold = 60;
+    if (swipeDelta < -threshold) {
+      goNext();
+    } else if (swipeDelta > threshold) {
+      goPrev();
+    } else {
+      setSwipeDelta(0);
+    }
+    touchStartRef.current = null;
+  }, [swipeDelta, goNext, goPrev, scale]);
+
+  // Tap on left/right side to navigate
+  const handleTap = useCallback((e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const zone = rect.width * 0.25;
+    if (x < zone) goPrev();
+    else if (x > rect.width - zone) goNext();
+  }, [goNext, goPrev]);
+
   // Load PDF document
   useEffect(() => {
     let cancelled = false;
@@ -83,7 +155,6 @@ const PdfViewer = ({ url, title }: PdfViewerProps) => {
     renderPage();
   }, [renderPage]);
 
-  // Re-render on resize
   useEffect(() => {
     const handleResize = () => renderPage();
     window.addEventListener("resize", handleResize);
@@ -119,49 +190,59 @@ const PdfViewer = ({ url, title }: PdfViewerProps) => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Controls */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-card/50 shrink-0">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors disabled:opacity-30"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="text-xs font-mono text-muted-foreground min-w-[60px] text-center">
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages}
-            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors disabled:opacity-30"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
+      {/* Compact top bar: page indicator + zoom */}
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-card/50 shrink-0">
+        <span className="text-xs font-mono text-muted-foreground">
+          {page} / {totalPages}
+        </span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
-            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors"
+            className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors"
           >
-            <ZoomOut className="h-4 w-4" />
+            <ZoomOut className="h-3.5 w-3.5" />
           </button>
-          <span className="text-xs font-mono text-muted-foreground min-w-[40px] text-center">
+          <span className="text-[10px] font-mono text-muted-foreground min-w-[32px] text-center">
             {Math.round(scale * 100)}%
           </span>
           <button
             onClick={() => setScale((s) => Math.min(3, s + 0.25))}
-            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors"
+            className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors"
           >
-            <ZoomIn className="h-4 w-4" />
+            <ZoomIn className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Canvas */}
-      <div ref={containerRef} className="flex-1 overflow-auto bg-muted/20 flex justify-center p-2">
-        <canvas ref={canvasRef} className="max-w-full" />
+      {/* Canvas with swipe + tap zones */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-auto bg-muted/20 flex justify-center p-2 relative select-none touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={handleTap}
+      >
+        <canvas
+          ref={canvasRef}
+          className="max-w-full"
+          style={{
+            transform: `translateX(${swipeDelta}px)`,
+            transition: isAnimating ? "transform 0.2s ease-out" : "none",
+          }}
+        />
+
+        {/* Visual swipe hint arrows (show on edges) */}
+        {page > 1 && (
+          <div className="absolute left-1 top-1/2 -translate-y-1/2 h-12 w-6 rounded-r-full bg-foreground/5 flex items-center justify-center pointer-events-none">
+            <ChevronLeft className="h-4 w-4 text-muted-foreground/40" />
+          </div>
+        )}
+        {page < totalPages && (
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 h-12 w-6 rounded-l-full bg-foreground/5 flex items-center justify-center pointer-events-none">
+            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+          </div>
+        )}
       </div>
     </div>
   );

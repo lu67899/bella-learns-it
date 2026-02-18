@@ -168,7 +168,7 @@ const Anotacoes = () => {
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar anotações..." className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} autoComplete="nope" data-1p-ignore data-lpignore="true" />
+          <Input placeholder="Buscar anotações..." className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} />
         </div>
 
         {loading ? (
@@ -225,10 +225,10 @@ const Anotacoes = () => {
         <DialogContent>
           <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Anotação</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} autoComplete="nope" data-1p-ignore data-lpignore="true" />
-            <Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} autoComplete="nope" data-1p-ignore data-lpignore="true" />
-            <Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} autoComplete="nope" />
-            <Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} autoComplete="nope" data-1p-ignore data-lpignore="true" />
+            <Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+            <Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} />
+            <Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} />
+            <Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
             <Button onClick={save} className="w-full">Salvar</Button>
           </div>
         </DialogContent>

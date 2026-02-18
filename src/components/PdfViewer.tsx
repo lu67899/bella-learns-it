@@ -50,26 +50,34 @@ const PdfViewer = ({ url, title }: PdfViewerProps) => {
 
   // Touch handlers for swipe
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (scale > 1) return; // disable swipe when zoomed
     touchStartRef.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY,
     };
     setSwipeDelta(0);
-  }, [scale]);
+  }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current || scale > 1) return;
+    if (!touchStartRef.current) return;
     const dx = e.touches[0].clientX - touchStartRef.current.x;
     const dy = e.touches[0].clientY - touchStartRef.current.y;
-    // Only horizontal swipe
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-      setSwipeDelta(dx);
+      if (scale > 1 && containerRef.current) {
+        const el = containerRef.current;
+        const atLeft = el.scrollLeft <= 1;
+        const atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+        // Only allow swipe delta if at scroll edge in swipe direction
+        if ((dx > 0 && atLeft) || (dx < 0 && atRight)) {
+          setSwipeDelta(dx);
+        }
+      } else {
+        setSwipeDelta(dx);
+      }
     }
   }, [scale]);
 
   const handleTouchEnd = useCallback(() => {
-    if (!touchStartRef.current || scale > 1) return;
+    if (!touchStartRef.current) return;
     const threshold = 60;
     if (swipeDelta < -threshold) {
       goNext();

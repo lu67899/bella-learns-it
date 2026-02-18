@@ -522,84 +522,41 @@ const Index = () => {
       <AnimatePresence>
         {chatAberto && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            className={`fixed right-4 left-4 sm:left-auto sm:w-[340px] z-50 ${chatMinimizado ? "bottom-4 left-auto !w-auto" : "bottom-16"}`}
-            style={{ transformOrigin: "bottom right" }}
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed inset-0 z-50"
           >
-            <div className={`overflow-hidden ${chatMinimizado ? "rounded-full" : "rounded-2xl"} bg-background/80 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_hsl(var(--primary)/0.15)]`}>
-              {chatMinimizado ? (
-                <button
-                  onClick={() => setChatMinimizado(false)}
-                  className="flex items-center gap-2 px-3 py-2 cursor-pointer"
-                >
+            <div className="h-full w-full bg-background/95 backdrop-blur-2xl flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/20">
+                <div className="flex items-center gap-2.5">
                   {adminConfig.avatar_url ? (
-                    <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                    <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border/30" />
                   ) : (
                     <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
                       <Code className="h-3 w-3 text-primary" />
                     </div>
                   )}
-                  <span className="text-[10px] font-mono text-muted-foreground">chat</span>
+                  <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
                   {naoLidas > 0 && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">
                       {naoLidas}
                     </span>
                   )}
-                  <span
-                    className="ml-1 text-muted-foreground/50 hover:text-foreground transition-colors"
-                    onClick={(e) => { e.stopPropagation(); setChatAberto(false); setChatMinimizado(false); }}
-                  >
-                    <X className="h-3 w-3" />
-                  </span>
+                </div>
+                <button
+                  className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
+                  onClick={() => setChatAberto(false)}
+                >
+                  <X className="h-3.5 w-3.5" />
                 </button>
-              ) : (
-                <>
-                  {/* Header */}
-                  <div
-                    className="flex items-center justify-between px-5 py-3.5 cursor-pointer border-b border-border/20"
-                    onClick={() => setChatMinimizado(true)}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      {adminConfig.avatar_url ? (
-                        <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border/30" />
-                      ) : (
-                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Code className="h-3 w-3 text-primary" />
-                        </div>
-                      )}
-                      <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
-                      {naoLidas > 0 && (
-                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1.5 text-[9px] font-bold text-primary-foreground">
-                          {naoLidas}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setChatMinimizado(true); }}
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setChatAberto(false); }}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
+              </div>
 
               {/* Body */}
-              <AnimatePresence>
-                {!chatMinimizado && (
-                  <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                    <ScrollArea className="h-72 px-4 py-3" onClick={() => setLongPressMsg(null)}>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <ScrollArea className="flex-1 px-4 py-3" onClick={() => setLongPressMsg(null)}>
                       <div className="space-y-2.5">
                         {mensagens.length === 0 && (
                           <div className="flex flex-col items-center justify-center py-12 gap-2">
@@ -785,9 +742,7 @@ const Index = () => {
                         </button>
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              </div>
             </div>
           </motion.div>
         )}

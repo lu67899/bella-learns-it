@@ -137,16 +137,41 @@ function PlayerView({
       </div>
 
       <div className="flex-1 flex items-center justify-center bg-black">
-        <video
-          src={item.video_url}
-          controls
-          autoPlay
-          className="w-full h-full max-h-[70vh] object-contain"
-          controlsList="nodownload"
-          playsInline
-        >
-          Seu navegador não suporta vídeo.
-        </video>
+        {(() => {
+          const url = item.video_url || '';
+          const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
+          // Try upgrading http to https to avoid mixed content blocking
+          const safeUrl = url.replace(/^http:\/\//i, 'https://');
+          
+          if (isDirectVideo) {
+            return (
+              <video
+                src={safeUrl}
+                controls
+                autoPlay
+                className="w-full h-full max-h-[70vh] object-contain"
+                controlsList="nodownload"
+                playsInline
+              >
+                Seu navegador não suporta vídeo.
+              </video>
+            );
+          } else if (url) {
+            return (
+              <iframe
+                src={safeUrl}
+                className="w-full h-full max-h-[70vh]"
+                allowFullScreen
+                allow="autoplay; encrypted-media; fullscreen"
+                style={{ border: 'none', minHeight: '300px' }}
+              />
+            );
+          } else {
+            return (
+              <p className="text-muted-foreground text-sm font-mono">Nenhum link de vídeo disponível</p>
+            );
+          }
+        })()}
       </div>
 
       <div className="px-4 py-4 space-y-2 border-t border-border/30">

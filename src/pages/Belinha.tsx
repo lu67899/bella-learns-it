@@ -228,8 +228,8 @@ const Belinha = () => {
         </Dialog>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 pr-2 overflow-hidden">
-          <div className="space-y-4 pb-4 overflow-hidden">
+        <ScrollArea className="flex-1 pr-2">
+          <div className="space-y-4 pb-4">
             {/* Recado inicial - some quando há mensagens */}
             {messages.length === 0 && recado && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2.5 justify-start">
@@ -256,16 +256,27 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`min-w-0 max-w-[75%] px-3 py-2 text-[13px] leading-[1.5] overflow-hidden ${
+                    className={`min-w-0 max-w-[80%] px-3 py-2.5 text-[13px] leading-[1.6] ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="break-words overflow-hidden [&>p]:mb-1.5 [&>p:last-child]:mb-0 [&>ul]:mb-1.5 [&>ol]:mb-1.5 [&>ul]:pl-3.5 [&>ol]:pl-3.5 [&>ul]:list-disc [&>ol]:list-decimal [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&>h1]:text-sm [&>h1]:font-bold [&>h1]:mb-1.5 [&>h2]:text-[13px] [&>h2]:font-bold [&>h2]:mb-1 [&>h3]:text-[13px] [&>h3]:font-semibold [&>h3]:mb-1 [&>pre]:bg-secondary/50 [&>pre]:rounded [&>pre]:p-1.5 [&>pre]:text-[11px] [&>pre]:overflow-x-auto [&>pre]:my-1.5 [&_code]:text-[11px] [&_code]:bg-secondary/50 [&_code]:px-1 [&_code]:rounded">
+                      <article className="prose prose-sm dark:prose-invert max-w-none break-words
+                        prose-p:text-[13px] prose-p:leading-[1.6] prose-p:mb-2 prose-p:text-foreground/85
+                        prose-headings:text-foreground prose-headings:font-semibold
+                        prose-h1:text-sm prose-h1:mb-2 prose-h2:text-[13px] prose-h2:mb-1.5 prose-h3:text-[13px] prose-h3:mb-1
+                        prose-strong:text-foreground prose-strong:font-semibold
+                        prose-li:text-[13px] prose-li:leading-[1.6] prose-li:text-foreground/85
+                        prose-ul:my-2 prose-ol:my-2 prose-ul:pl-4 prose-ol:pl-4
+                        prose-code:bg-secondary/60 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[11px]
+                        prose-pre:bg-secondary/50 prose-pre:rounded prose-pre:p-2 prose-pre:text-[11px] prose-pre:overflow-x-auto
+                        prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:rounded-r prose-blockquote:py-0.5 prose-blockquote:px-3
+                        prose-table:text-[12px] prose-th:bg-secondary/50 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-border prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-border
+                      ">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
+                      </article>
                     ) : (
                       <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                     )}

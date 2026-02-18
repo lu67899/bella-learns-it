@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Terminal, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Code } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
@@ -29,16 +29,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAppFeatures } from "@/contexts/AppFeaturesContext";
 
 function AutoOpenSidebar() {
+  const location = useLocation();
   const { setOpenMobile, isMobile } = useSidebar();
-  useEffect(() => {
-    const handler = () => {
-      if (isMobile) {
-        requestAnimationFrame(() => setOpenMobile(true));
-      }
-    };
-    window.addEventListener("open-sidebar", handler);
-    return () => window.removeEventListener("open-sidebar", handler);
-  }, [isMobile, setOpenMobile]);
+  useLayoutEffect(() => {
+    if (location.state?.openSidebar && isMobile) {
+      setOpenMobile(true);
+      window.history.replaceState({}, "");
+    }
+  }, [location.state, isMobile, setOpenMobile]);
   return null;
 }
 

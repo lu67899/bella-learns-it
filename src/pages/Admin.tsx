@@ -32,7 +32,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
   | "quiz" | "forca" | "memoria" | "cruzadas" | "ordenar" | "videos" | "desafios" | "frases" 
-  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks";
+  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks" | "livros-pdf";
 
 const adminSections = [
   {
@@ -42,6 +42,7 @@ const adminSections = [
       { key: "modulos" as AdminSection, label: "Módulos", icon: GraduationCap, desc: "Módulos e tópicos" },
       { key: "videos" as AdminSection, label: "Vídeos", icon: PlayCircle, desc: "Videoaulas e mix" },
       { key: "audiobooks" as AdminSection, label: "Audiobooks", icon: Headphones, desc: "Gerenciar audiobooks" },
+      { key: "livros-pdf" as AdminSection, label: "Livros PDF", icon: BookOpen, desc: "Gerenciar livros PDF" },
     ],
   },
   {
@@ -202,6 +203,7 @@ const Admin = () => {
       case "resgates": return <ResgatesTab />;
       case "gerador-ia": return <GeradorIATab />;
       case "audiobooks": return <AudiobooksTab />;
+      case "livros-pdf": return <LivrosPdfTab />;
       default: return null;
     }
   };
@@ -3219,6 +3221,142 @@ function AudiobooksTab() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// ─── LIVROS PDF TAB ─────────────────────────────────────────
+function LivrosPdfTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState({ titulo: "", autor: "", categoria: "", capa_url: "", pdf_url: "" });
+  const [uploading, setUploading] = useState(false);
+
+  const load = async () => {
+    const { data } = await supabase.from("livros_pdf").select("*").order("ordem");
+    if (data) setItems(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const uploadFile = async (file: File, folder: string) => {
+    const ext = file.name.split(".").pop();
+    const path = `${folder}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("livros-pdf").upload(path, file);
+    if (error) { toast.error("Erro no upload: " + error.message); return null; }
+    const { data: pub } = supabase.storage.from("livros-pdf").getPublicUrl(path);
+    return pub.publicUrl;
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadFile(file, "pdfs");
+    if (url) setForm((f) => ({ ...f, pdf_url: url }));
+    setUploading(false);
+  };
+
+  const handleCapaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadFile(file, "capas");
+    if (url) setForm((f) => ({ ...f, capa_url: url }));
+    setUploading(false);
+  };
+
+  const save = async () => {
+    if (!form.titulo || !form.pdf_url) { toast.error("Título e PDF são obrigatórios"); return; }
+    const payload = {
+      titulo: form.titulo,
+      autor: form.autor || null,
+      categoria: form.categoria || null,
+      capa_url: form.capa_url || null,
+      pdf_url: form.pdf_url,
+      ordem: editing ? editing.ordem : items.length,
+    };
+    if (editing) {
+      await supabase.from("livros_pdf").update(payload).eq("id", editing.id);
+    } else {
+      await supabase.from("livros_pdf").insert(payload);
+    }
+    toast.success("Livro salvo!"); setDialogOpen(false); setEditing(null);
+    setForm({ titulo: "", autor: "", categoria: "", capa_url: "", pdf_url: "" }); load();
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("livros_pdf").delete().eq("id", id);
+    toast.success("Livro removido!"); load();
+  };
+
+  const removeAll = async () => {
+    const ids = items.map((i) => i.id);
+    if (ids.length === 0) return;
+    await supabase.from("livros_pdf").delete().in("id", ids);
+    toast.success("Todos os livros removidos!"); load();
+  };
+
+  return (
+    <CrudSection title="Livros PDF" count={items.length} onAdd={() => { setEditing(null); setForm({ titulo: "", autor: "", categoria: "", capa_url: "", pdf_url: "" }); setDialogOpen(true); }} onRemoveAll={items.length > 0 ? removeAll : undefined}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-16">#</TableHead>
+            <TableHead>Título</TableHead>
+            <TableHead>Autor</TableHead>
+            <TableHead>Categoria</TableHead>
+            <TableHead className="w-24">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="font-mono text-sm">{item.ordem + 1}</TableCell>
+              <TableCell className="font-mono text-sm">{item.titulo}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.autor || "—"}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{item.categoria || "—"}</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setEditing(item); setForm({ titulo: item.titulo, autor: item.autor || "", categoria: item.categoria || "", capa_url: item.capa_url || "", pdf_url: item.pdf_url }); setDialogOpen(true); }}>
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                  <ConfirmDeleteButton onConfirm={() => remove(item.id)} />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-mono">{editing ? "Editar" : "Novo"} Livro PDF</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Título *" value={form.titulo} onChange={(e) => setForm((f) => ({ ...f, titulo: e.target.value }))} />
+            <Input placeholder="Autor" value={form.autor} onChange={(e) => setForm((f) => ({ ...f, autor: e.target.value }))} />
+            <Input placeholder="Categoria" value={form.categoria} onChange={(e) => setForm((f) => ({ ...f, categoria: e.target.value }))} />
+            
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-muted-foreground">Capa (imagem)</label>
+              <Input type="file" accept="image/*" onChange={handleCapaUpload} />
+              {form.capa_url && <img src={form.capa_url} alt="Capa" className="h-20 rounded-lg object-cover" />}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-muted-foreground">Arquivo PDF *</label>
+              <Input type="file" accept=".pdf" onChange={handlePdfUpload} />
+              {form.pdf_url && <p className="text-[10px] text-primary font-mono truncate">✓ PDF carregado</p>}
+            </div>
+
+            <Button onClick={save} disabled={uploading} className="w-full">
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CrudSection>
   );
 }
 

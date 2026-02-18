@@ -683,6 +683,39 @@ export type Database = {
           },
         ]
       }
+      livros_pdf: {
+        Row: {
+          autor: string | null
+          capa_url: string | null
+          categoria: string | null
+          created_at: string
+          id: string
+          ordem: number
+          pdf_url: string
+          titulo: string
+        }
+        Insert: {
+          autor?: string | null
+          capa_url?: string | null
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          ordem?: number
+          pdf_url: string
+          titulo: string
+        }
+        Update: {
+          autor?: string | null
+          capa_url?: string | null
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          ordem?: number
+          pdf_url?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       materias: {
         Row: {
           created_at: string

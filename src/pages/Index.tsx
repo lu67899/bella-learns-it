@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Terminal, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Code } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SegmentProgress } from "@/components/SegmentProgress";
@@ -27,18 +27,6 @@ import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppFeatures } from "@/contexts/AppFeaturesContext";
-
-function AutoOpenSidebar() {
-  const location = useLocation();
-  const { setOpenMobile, isMobile } = useSidebar();
-  useLayoutEffect(() => {
-    if (location.state?.openSidebar && isMobile) {
-      setOpenMobile(true);
-      window.history.replaceState({}, "");
-    }
-  }, [location.state, isMobile, setOpenMobile]);
-  return null;
-}
 
 const container = {
   hidden: { opacity: 0 },
@@ -325,7 +313,7 @@ const Index = () => {
 
   return (
     <Layout>
-      <AutoOpenSidebar />
+      
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-10 pb-20">
 
         {/* Header */}

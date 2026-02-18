@@ -6,6 +6,7 @@ import {
   Shield,
   Newspaper,
   Headphones,
+  Play,
   LogOut,
   Moon,
   Sparkles,
@@ -46,6 +47,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const items = [
   { title: "Notícias", url: "/noticias", icon: Newspaper },
+  { title: "Play", url: "/play", icon: Play },
   { title: "Cronograma", url: "/cronograma", icon: CalendarDays },
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
   { title: "Audiobooks", url: "/audiobooks", icon: Headphones },

@@ -103,7 +103,7 @@ async function streamChat({
   onDone();
 }
 
-const CopyButton = ({ text }: { text: string }) => {
+const CopyButton = ({ text, label = "Copiar" }: { text: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text);
@@ -113,12 +113,27 @@ const CopyButton = ({ text }: { text: string }) => {
   return (
     <button
       onClick={handleCopy}
-      className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-      aria-label="Copiar resposta"
+      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+      aria-label={label}
     >
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-      {copied ? "Copiado!" : "Copiar"}
+      {copied ? "Copiado!" : label}
     </button>
+  );
+};
+
+const CodeBlock = ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => {
+  const code = typeof children === "object" && children !== null
+    ? (children as React.ReactElement<{ children?: string }>)?.props?.children || ""
+    : String(children || "");
+  const text = String(code).replace(/\n$/, "");
+  return (
+    <div className="relative group">
+      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <CopyButton text={text} label="Copiar código" />
+      </div>
+      <pre {...props}>{children}</pre>
+    </div>
   );
 };
 
@@ -275,9 +290,9 @@ const Belinha = () => {
                         <span className="text-xs font-mono text-muted-foreground">Belinha</span>
                       </div>
                       <div className="belinha-md">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ pre: CodeBlock }}>{msg.content}</ReactMarkdown>
                       </div>
-                      <CopyButton text={msg.content} />
+                      <CopyButton text={msg.content} label="Copiar" />
                     </div>
                   ) : (
                     <div className="inline-block bg-primary text-primary-foreground rounded-2xl px-4 py-2 max-w-[85%]">

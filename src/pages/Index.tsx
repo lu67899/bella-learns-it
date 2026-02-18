@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones } from "lucide-react";
+import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Menu } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Layout } from "@/components/Layout";
+import { useSidebar } from "@/components/ui/sidebar";
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +59,7 @@ interface Notificacao {
 const Index = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { toggleSidebar } = useSidebar();
   const { features } = useAppFeatures();
   const reduceMotion = useReducedMotion();
   const [cursos, setCursos] = useState<CursoDB[]>([]);
@@ -318,6 +320,9 @@ const Index = () => {
                 </h1>
               </div>
               <div className="shrink-0 flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full md:hidden" onClick={toggleSidebar}>
+                  <Menu className="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" onClick={abrirChat}>
                   <MessageCircle className="h-4 w-4" />
                   {naoLidas > 0 && (

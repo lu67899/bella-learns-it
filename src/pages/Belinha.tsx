@@ -256,14 +256,14 @@ const Belinha = () => {
                     </div>
                   )}
                   <Card
-                    className={`min-w-0 max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed overflow-hidden ${
+                    className={`min-w-0 max-w-[75%] px-3 py-2 text-[13px] leading-[1.5] overflow-hidden ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border"
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="max-w-none break-words overflow-hidden text-sm leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2 [&>ul]:pl-4 [&>ol]:pl-4 [&>ul]:list-disc [&>ol]:list-decimal [&_li]:mb-1 [&_strong]:font-semibold [&_em]:italic [&>h1]:text-base [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-sm [&>h2]:font-bold [&>h2]:mb-1.5 [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:mb-1 [&>pre]:bg-secondary/50 [&>pre]:rounded [&>pre]:p-2 [&>pre]:text-xs [&>pre]:overflow-x-auto [&>pre]:my-2 [&_code]:text-xs [&_code]:bg-secondary/50 [&_code]:px-1 [&_code]:rounded">
+                      <div className="break-words overflow-hidden [&>p]:mb-1.5 [&>p:last-child]:mb-0 [&>ul]:mb-1.5 [&>ol]:mb-1.5 [&>ul]:pl-3.5 [&>ol]:pl-3.5 [&>ul]:list-disc [&>ol]:list-decimal [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&>h1]:text-sm [&>h1]:font-bold [&>h1]:mb-1.5 [&>h2]:text-[13px] [&>h2]:font-bold [&>h2]:mb-1 [&>h3]:text-[13px] [&>h3]:font-semibold [&>h3]:mb-1 [&>pre]:bg-secondary/50 [&>pre]:rounded [&>pre]:p-1.5 [&>pre]:text-[11px] [&>pre]:overflow-x-auto [&>pre]:my-1.5 [&_code]:text-[11px] [&_code]:bg-secondary/50 [&_code]:px-1 [&_code]:rounded">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (

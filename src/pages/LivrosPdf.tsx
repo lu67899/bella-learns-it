@@ -71,28 +71,13 @@ const LivrosPdf = () => {
               <X className="h-4 w-4" />
             </button>
           </div>
-          {/* PDF iframe */}
-          <object
-            data={`${selectedBook.pdf_url}#toolbar=0&navpanes=0`}
-            type="application/pdf"
+          {/* PDF viewer via Google Docs */}
+          <iframe
+            src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedBook.pdf_url)}&embedded=true`}
             className="flex-1 w-full border-none"
             title={selectedBook.titulo}
-          >
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
-              <BookOpen className="h-12 w-12 text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground font-mono text-center">
-                Não foi possível exibir o PDF inline.
-              </p>
-              <a
-                href={selectedBook.pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-mono"
-              >
-                Baixar PDF
-              </a>
-            </div>
-          </object>
+            allow="autoplay"
+          />
         </div>
       </Layout>
     );

@@ -12,22 +12,27 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [idade, setIdade] = useState("");
+  const [codigo, setCodigo] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [nomeApp, setNomeApp] = useState("Bella Space");
   const [subtituloApp, setSubtituloApp] = useState("Plataforma de estudos");
+  const [codigoAutorizacao, setCodigoAutorizacao] = useState<string | null>(null);
 
   useEffect(() => {
     supabase
       .from("admin_config")
-      .select("logo_url, nome_app, subtitulo")
+      .select("logo_url, nome_app, subtitulo, codigo_autorizacao")
       .eq("id", 1)
       .single()
       .then(({ data }) => {
         if (data?.logo_url) setLogoUrl(data.logo_url);
         if ((data as any)?.nome_app) setNomeApp((data as any).nome_app);
         if ((data as any)?.subtitulo) setSubtituloApp((data as any).subtitulo);
+        if ((data as any)?.codigo_autorizacao) setCodigoAutorizacao((data as any).codigo_autorizacao);
       });
   }, []);
 
@@ -41,6 +46,23 @@ const Auth = () => {
     if (password.length < 6) {
       toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
+    }
+
+    // Validate authorization code on signup
+    if (isSignUp && codigoAutorizacao) {
+      if (codigo.trim() !== codigoAutorizacao) {
+        toast.error("Código de autorização inválido");
+        return;
+      }
+    }
+
+    // Validate age
+    if (isSignUp && idade) {
+      const idadeNum = parseInt(idade);
+      if (isNaN(idadeNum) || idadeNum < 1 || idadeNum > 120) {
+        toast.error("Idade inválida");
+        return;
+      }
     }
 
     setLoading(true);
@@ -58,6 +80,17 @@ const Auth = () => {
 
         const userId = data.user?.id;
         if (!userId) throw new Error("Erro ao criar conta");
+
+        // Update profile with city and age after creation
+        const updates: Record<string, any> = {};
+        if (cidade.trim()) updates.cidade = cidade.trim();
+        if (idade) updates.idade = parseInt(idade);
+        if (Object.keys(updates).length > 0) {
+          // Small delay to let trigger create profile
+          setTimeout(async () => {
+            await supabase.from("profiles").update(updates).eq("user_id", userId);
+          }, 1000);
+        }
 
         toast.success("Conta criada com sucesso! 🎉");
       } else {
@@ -95,17 +128,15 @@ const Auth = () => {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-[340px] relative z-10"
       >
-        {/* Auth Card with integrated branding */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.5 }}
         >
           <Card className="p-0 bg-card/60 backdrop-blur-2xl border-border/20 shadow-2xl shadow-black/40 overflow-hidden rounded-2xl">
-            {/* Top accent line */}
             <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-            {/* Logo + Title inside card */}
+            {/* Logo + Title */}
             <div className="flex items-center gap-4 px-5 pt-6 pb-4">
               <div className="relative shrink-0">
                 {logoUrl ? (
@@ -144,33 +175,21 @@ const Auth = () => {
 
             <form onSubmit={handleSubmit} className="px-5 pb-5 pt-3 space-y-3">
               {isSignUp && (
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono font-semibold text-muted-foreground/60 uppercase tracking-[0.15em] ml-0.5">
-                    Nome
-                  </label>
-                  <Input
-                    placeholder="Como quer ser chamada?"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    maxLength={100}
-                    className="h-10 text-sm bg-background/40 border-border/20 rounded-xl focus:border-primary/50 focus:bg-background/60 focus:ring-1 focus:ring-primary/15 transition-all placeholder:text-muted-foreground/25"
-                  />
-                </div>
+                <>
+                  <FormField label="Nome" placeholder="Como quer ser chamada?" value={displayName} onChange={setDisplayName} maxLength={100} />
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField label="Cidade (opcional)" placeholder="Sua cidade" value={cidade} onChange={setCidade} maxLength={100} />
+                    <FormField label="Idade (opcional)" placeholder="Ex: 25" value={idade} onChange={setIdade} maxLength={3} type="number" />
+                  </div>
+
+                  {codigoAutorizacao && (
+                    <FormField label="Código de autorização" placeholder="Digite o código" value={codigo} onChange={setCodigo} maxLength={50} />
+                  )}
+                </>
               )}
 
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-mono font-semibold text-muted-foreground/60 uppercase tracking-[0.15em] ml-0.5">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  maxLength={255}
-                  className="h-10 text-sm bg-background/40 border-border/20 rounded-xl focus:border-primary/50 focus:bg-background/60 focus:ring-1 focus:ring-primary/15 transition-all placeholder:text-muted-foreground/25"
-                />
-              </div>
+              <FormField label="Email" placeholder="seu@email.com" value={email} onChange={setEmail} maxLength={255} type="email" />
 
               <div className="space-y-1.5">
                 <label className="text-[9px] font-mono font-semibold text-muted-foreground/60 uppercase tracking-[0.15em] ml-0.5">
@@ -236,5 +255,25 @@ const Auth = () => {
     </div>
   );
 };
+
+function FormField({ label, placeholder, value, onChange, maxLength, type = "text" }: {
+  label: string; placeholder: string; value: string; onChange: (v: string) => void; maxLength: number; type?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[9px] font-mono font-semibold text-muted-foreground/60 uppercase tracking-[0.15em] ml-0.5">
+        {label}
+      </label>
+      <Input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={maxLength}
+        className="h-10 text-sm bg-background/40 border-border/20 rounded-xl focus:border-primary/50 focus:bg-background/60 focus:ring-1 focus:ring-primary/15 transition-all placeholder:text-muted-foreground/25"
+      />
+    </div>
+  );
+}
 
 export default Auth;

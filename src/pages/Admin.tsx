@@ -1606,6 +1606,8 @@ function AdminConfigTab() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [nomeApp, setNomeApp] = useState("Bella Space");
   const [subtitulo, setSubtitulo] = useState("Plataforma de estudos");
+  const [codigoAuth, setCodigoAuth] = useState("");
+  const [weatherApiKey, setWeatherApiKey] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1618,6 +1620,8 @@ function AdminConfigTab() {
       setLogoUrl((data as any).logo_url);
       setNomeApp((data as any).nome_app || "Bella Space");
       setSubtitulo((data as any).subtitulo || "Plataforma de estudos");
+      setCodigoAuth((data as any).codigo_autorizacao || "");
+      setWeatherApiKey((data as any).weather_api_key || "");
     }
     setLoading(false);
   };
@@ -1773,6 +1777,32 @@ function AdminConfigTab() {
               if (!subtitulo.trim()) return;
               await supabase.from("admin_config").update({ subtitulo: subtitulo.trim() } as any).eq("id", 1);
               toast.success("Subtítulo atualizado!");
+            }} size="sm">Salvar</Button>
+          </div>
+        </div>
+
+        {/* Código de Autorização */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Código de autorização</p>
+          <p className="text-xs text-muted-foreground">Se preenchido, será exigido no cadastro de novos usuários</p>
+          <div className="flex gap-2">
+            <Input value={codigoAuth} onChange={(e) => setCodigoAuth(e.target.value)} placeholder="Deixe vazio para desativar" className="max-w-xs" />
+            <Button onClick={async () => {
+              await supabase.from("admin_config").update({ codigo_autorizacao: codigoAuth.trim() || null } as any).eq("id", 1);
+              toast.success("Código de autorização atualizado!");
+            }} size="sm">Salvar</Button>
+          </div>
+        </div>
+
+        {/* Weather API Key */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Chave da API de clima</p>
+          <p className="text-xs text-muted-foreground">OpenWeatherMap API Key para o widget de clima</p>
+          <div className="flex gap-2">
+            <Input value={weatherApiKey} onChange={(e) => setWeatherApiKey(e.target.value)} placeholder="Cole a API key aqui" className="max-w-xs" type="password" />
+            <Button onClick={async () => {
+              await supabase.from("admin_config").update({ weather_api_key: weatherApiKey.trim() || null } as any).eq("id", 1);
+              toast.success("API key de clima atualizada!");
             }} size="sm">Salvar</Button>
           </div>
         </div>

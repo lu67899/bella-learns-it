@@ -10,6 +10,7 @@ interface WeatherData {
   icon: string;
   humidity: number;
   wind: number;
+  city?: string;
 }
 
 const getWeatherIcon = (icon: string) => {
@@ -105,7 +106,7 @@ export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps)
         </motion.p>
       </AnimatePresence>
 
-      <p className="text-[9px] text-muted-foreground/50 mt-1 font-mono">Rio de Janeiro</p>
+      <p className="text-[9px] text-muted-foreground/50 mt-1 font-mono">{weather.city || "Rio de Janeiro"}</p>
     </motion.div>
   );
 };

@@ -17,6 +17,7 @@ export type Database = {
       admin_config: {
         Row: {
           avatar_url: string | null
+          codigo_autorizacao: string | null
           created_at: string
           id: number
           logo_url: string | null
@@ -24,9 +25,11 @@ export type Database = {
           nome_app: string
           subtitulo: string
           updated_at: string
+          weather_api_key: string | null
         }
         Insert: {
           avatar_url?: string | null
+          codigo_autorizacao?: string | null
           created_at?: string
           id?: number
           logo_url?: string | null
@@ -34,9 +37,11 @@ export type Database = {
           nome_app?: string
           subtitulo?: string
           updated_at?: string
+          weather_api_key?: string | null
         }
         Update: {
           avatar_url?: string | null
+          codigo_autorizacao?: string | null
           created_at?: string
           id?: number
           logo_url?: string | null
@@ -44,6 +49,7 @@ export type Database = {
           nome_app?: string
           subtitulo?: string
           updated_at?: string
+          weather_api_key?: string | null
         }
         Relationships: []
       }
@@ -929,28 +935,34 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          cidade: string | null
           coins: number
           created_at: string
           display_name: string
           id: string
+          idade: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
+          cidade?: string | null
           coins?: number
           created_at?: string
           display_name: string
           id?: string
+          idade?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
+          cidade?: string | null
           coins?: number
           created_at?: string
           display_name?: string
           id?: string
+          idade?: number | null
           updated_at?: string
           user_id?: string
         }

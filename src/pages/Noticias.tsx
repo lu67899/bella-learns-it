@@ -73,7 +73,7 @@ const Noticias = () => {
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6 pb-20">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <BackButton to="/" />
+          <BackButton />
           <div className="flex items-center gap-2 mb-1 mt-3">
             <Newspaper className="h-5 w-5 text-primary" />
             <h1 className="text-2xl font-bold font-mono">Notícias</h1>

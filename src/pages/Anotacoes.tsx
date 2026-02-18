@@ -168,7 +168,7 @@ const Anotacoes = () => {
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar anotações..." className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} />
+          <Input placeholder="Buscar anotações..." className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} autoComplete="off" autoCorrect="off" data-1p-ignore data-lpignore="true" />
         </div>
 
         {loading ? (

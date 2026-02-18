@@ -343,7 +343,7 @@ const Index = () => {
 
         {/* Weather Widget */}
         <motion.div variants={item}>
-          <WeatherWidget />
+          <WeatherWidget frases={frases} fraseIdx={fraseIdx} />
         </motion.div>
 
         {/* Progress & Desafios - side by side */}

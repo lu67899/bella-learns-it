@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Cloud, CloudRain, Sun, CloudSun, Snowflake, CloudLightning, Wind, Droplets } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WeatherData {
   temp: number;
@@ -30,7 +30,12 @@ const getStudyTip = (temp: number, icon: string): string => {
   return "Clima agradável, bora estudar! 💪";
 };
 
-export const WeatherWidget = () => {
+interface WeatherWidgetProps {
+  frases?: string[];
+  fraseIdx?: number;
+}
+
+export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,6 +64,8 @@ export const WeatherWidget = () => {
 
   if (!weather) return null;
 
+  const displayText = frases.length > 0 ? frases[fraseIdx] : getStudyTip(weather.temp, weather.icon);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -85,9 +92,18 @@ export const WeatherWidget = () => {
         </div>
       </div>
 
-      <p className="text-xs text-foreground/60 mt-2 italic">
-        {getStudyTip(weather.temp, weather.icon)}
-      </p>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={frases.length > 0 ? fraseIdx : "tip"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-xs text-foreground/60 mt-2 italic"
+        >
+          {displayText}
+        </motion.p>
+      </AnimatePresence>
 
       <p className="text-[9px] text-muted-foreground/50 mt-1 font-mono">Rio de Janeiro</p>
     </motion.div>

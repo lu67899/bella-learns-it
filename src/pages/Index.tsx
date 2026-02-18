@@ -4,7 +4,7 @@ import { Terminal, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, Pla
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SegmentProgress } from "@/components/SegmentProgress";
@@ -21,6 +21,18 @@ function SidebarMenuButton() {
       <Terminal className="h-4 w-4" />
     </Button>
   );
+}
+
+function useAutoOpenSidebar() {
+  const location = useLocation();
+  const { setOpenMobile, isMobile } = useSidebar();
+  useEffect(() => {
+    if (location.state?.openSidebar && isMobile) {
+      setOpenMobile(true);
+      // Clear the state so it doesn't re-trigger
+      window.history.replaceState({}, "");
+    }
+  }, [location.state, isMobile, setOpenMobile]);
 }
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +78,7 @@ interface Notificacao {
 }
 
 const Index = () => {
+  useAutoOpenSidebar();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { features } = useAppFeatures();

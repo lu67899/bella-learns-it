@@ -241,7 +241,7 @@ const Admin = () => {
             {activeSection !== "dashboard" ? (
               <BackButton onClick={() => setActiveSection("dashboard")} label="Dashboard" />
             ) : (
-              <BackButton />
+              <BackButton openMenu />
             )}
             <div>
               <h1 className="text-xl font-mono font-bold flex items-center gap-2">

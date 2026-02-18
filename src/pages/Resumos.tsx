@@ -71,7 +71,7 @@ const Resumos = () => {
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="space-y-4">
-          <BackButton />
+          <BackButton openMenu />
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-primary" /> Resumos

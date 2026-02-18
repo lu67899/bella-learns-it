@@ -531,15 +531,17 @@ export default function PlayPage() {
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-          <Input
-            placeholder="Buscar títulos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10 rounded-xl bg-card/50 border-border/30 text-sm font-mono"
-          />
-        </div>
+        <form role="presentation" autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+            <Input
+              placeholder="Buscar títulos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-10 rounded-xl bg-card/50 border-border/30 text-sm font-mono"
+            />
+          </div>
+        </form>
 
         <div className="space-y-3">
           {/* Tipo filter */}

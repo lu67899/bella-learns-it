@@ -294,7 +294,7 @@ export default function Perfil() {
                   {!hasPendingResgate && (
                     <>
                       {canRequestResgate ? (
-                        <div className="space-y-3">
+                        <form role="presentation" autoComplete="off" onSubmit={(e) => { e.preventDefault(); requestResgate(); }} className="space-y-3">
                           <p className="text-sm text-primary font-medium">🎉 Você pode resgatar {minCoins} moedas!</p>
                           <div>
                             <label className="text-xs text-muted-foreground mb-1 block">Chave PIX</label>
@@ -305,11 +305,11 @@ export default function Perfil() {
                               maxLength={100}
                             />
                           </div>
-                          <Button onClick={requestResgate} disabled={requestingResgate || !chavePix.trim()} className="gap-1.5">
+                          <Button type="submit" disabled={requestingResgate || !chavePix.trim()} className="gap-1.5">
                             {requestingResgate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             Solicitar Resgate
                           </Button>
-                        </div>
+                        </form>
                       ) : (
                         <p className="text-xs text-muted-foreground">
                           Alcance {minCoins} moedas para solicitar um resgate. Continue estudando!

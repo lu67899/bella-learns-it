@@ -720,7 +720,7 @@ const Index = () => {
                     </AnimatePresence>
 
                     {/* Input */}
-                    <div className="p-3 border-t border-border/10">
+                    <form role="presentation" autoComplete="off" onSubmit={(e) => { e.preventDefault(); enviarMensagem(); }} className="p-3 border-t border-border/10">
                       <div className="flex items-center gap-2 rounded-xl bg-secondary/30 px-3 py-1">
                         <Input
                           ref={inputRef}
@@ -728,20 +728,19 @@ const Index = () => {
                           value={novaMensagem}
                           onChange={(e) => setNovaMensagem(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") enviarMensagem();
                             if (e.key === "Escape") { setReplyTo(null); cancelEdit(); }
                           }}
                           className="flex-1 h-8 text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/30"
                         />
                         <button
-                          onClick={enviarMensagem}
+                          type="submit"
                           disabled={!novaMensagem.trim()}
                           className="h-7 w-7 rounded-full flex items-center justify-center text-primary hover:bg-primary/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent"
                         >
                           {editingMsg ? <Check className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
                         </button>
                       </div>
-                    </div>
+                    </form>
               </div>
             </div>
           </motion.div>

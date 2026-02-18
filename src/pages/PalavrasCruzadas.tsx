@@ -344,6 +344,15 @@ const PalavrasCruzadas = () => {
                       type="text"
                       inputMode="text"
                       maxLength={2}
+                      autoComplete="new-password"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      data-1p-ignore=""
+                      data-lpignore="true"
+                      data-form-type="other"
+                      data-credential="false"
+                      aria-autocomplete="none"
                       value={userInput[key] || ""}
                       onChange={(e) => handleInput(r, c, e.target.value)}
                       disabled={gameWon}

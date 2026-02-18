@@ -82,7 +82,7 @@ const LivrosPdf = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
-        <BackButton openMenu />
+        <BackButton to="/" />
 
         <div className="space-y-1">
           <h1 className="text-xl font-mono font-bold flex items-center gap-2">

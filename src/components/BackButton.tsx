@@ -1,23 +1,19 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSidebar } from "@/components/ui/sidebar";
+import { Link } from "react-router-dom";
 
 interface BackButtonProps {
   to?: string;
   label?: string;
   onClick?: () => void;
-  openMenu?: boolean;
 }
 
-const BackButton = ({ to, label = "Voltar", onClick, openMenu }: BackButtonProps) => {
+const BackButton = ({ to, label = "Voltar", onClick }: BackButtonProps) => {
   const navigate = useNavigate();
-  const { setOpenMobile } = useSidebar();
 
   const handleClick = () => {
     if (onClick) {
       onClick();
-    } else if (openMenu) {
-      setOpenMobile(true);
     } else if (to) {
       navigate(to);
     } else {

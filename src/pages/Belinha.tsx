@@ -233,7 +233,7 @@ const Belinha = () => {
         {/* Header */}
         <div className="flex items-center justify-between pb-4 shrink-0">
           <div className="flex items-center gap-3">
-            <BackButton label="" openMenu />
+            <BackButton to="/" label="" />
             <StoryRing
               avatarUrl={avatarUrl}
               hasStories={hasStories}

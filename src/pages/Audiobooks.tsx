@@ -4,7 +4,6 @@ import { Headphones, Play, Pause, ChevronRight, Clock, User, BookOpen, Heart, Ro
 import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -68,7 +67,6 @@ const formatDuration = (seconds: number) => {
 
 const Audiobooks = () => {
   const navigate = useNavigate();
-  const { setOpenMobile } = useSidebar();
   const { session } = useAuth();
   const player = useAudioPlayer();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -130,7 +128,7 @@ const Audiobooks = () => {
   const handleBack = () => {
     if (view === "detail") setView("books");
     else if (view === "books") { setView("categories"); setSelectedCategory(null); }
-    else setOpenMobile(true);
+    else navigate("/");
   };
 
   const selectCategory = (cat: Categoria) => { setSelectedCategory(cat); setView("books"); };

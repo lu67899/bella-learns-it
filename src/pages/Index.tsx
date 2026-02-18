@@ -22,7 +22,6 @@ function SidebarMenuButton() {
     </Button>
   );
 }
-
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,7 +66,6 @@ interface Notificacao {
 }
 
 const Index = () => {
-  
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { features } = useAppFeatures();
@@ -313,7 +311,6 @@ const Index = () => {
 
   return (
     <Layout>
-      
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-10 pb-20">
 
         {/* Header */}

@@ -138,7 +138,7 @@ export default function Perfil() {
     <Layout>
       <PageContainer>
         <div className="mb-4">
-          <BackButton openMenu />
+          <BackButton to="/" />
         </div>
         <div className="mb-6">
           <h1 className="text-2xl font-mono font-bold text-foreground flex items-center gap-2">

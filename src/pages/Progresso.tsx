@@ -119,7 +119,7 @@ const Progresso = () => {
     <Layout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto space-y-6">
         <div className="space-y-4">
-          <BackButton openMenu />
+          <BackButton to="/" />
           <div>
             <h1 className="text-2xl font-mono font-bold">Progresso Geral</h1>
             <p className="text-sm text-muted-foreground">Acompanhe sua evolução por curso</p>

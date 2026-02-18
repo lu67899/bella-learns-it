@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones } from "lucide-react";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
 import { Link, useNavigate } from "react-router-dom";
@@ -373,6 +374,11 @@ const Index = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Weather Widget */}
+        <motion.div variants={item}>
+          <WeatherWidget />
+        </motion.div>
 
         {/* Progress & Desafios - side by side */}
         <div className="grid grid-cols-2 gap-3">

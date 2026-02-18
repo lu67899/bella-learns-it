@@ -23,21 +23,22 @@ function SidebarMenuButton() {
   );
 }
 
-function useAutoOpenSidebar() {
+import { PageContainer } from "@/components/PageContainer";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAppFeatures } from "@/contexts/AppFeaturesContext";
+
+function AutoOpenSidebar() {
   const location = useLocation();
   const { setOpenMobile, isMobile } = useSidebar();
   useEffect(() => {
     if (location.state?.openSidebar && isMobile) {
       setOpenMobile(true);
-      // Clear the state so it doesn't re-trigger
       window.history.replaceState({}, "");
     }
   }, [location.state, isMobile, setOpenMobile]);
+  return null;
 }
-import { PageContainer } from "@/components/PageContainer";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAppFeatures } from "@/contexts/AppFeaturesContext";
 
 const container = {
   hidden: { opacity: 0 },
@@ -78,7 +79,7 @@ interface Notificacao {
 }
 
 const Index = () => {
-  useAutoOpenSidebar();
+  
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { features } = useAppFeatures();
@@ -324,6 +325,7 @@ const Index = () => {
 
   return (
     <Layout>
+      <AutoOpenSidebar />
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto space-y-10 pb-20">
 
         {/* Header */}

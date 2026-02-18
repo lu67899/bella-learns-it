@@ -93,20 +93,21 @@ export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps)
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={frases.length > 0 ? fraseIdx : "tip"}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-xs text-foreground/60 mt-2 italic"
-        >
-          {displayText}
-        </motion.p>
-      </AnimatePresence>
-
-      <p className="text-[9px] text-muted-foreground/50 mt-1 font-mono">{weather.city || "Rio de Janeiro"}</p>
+      <div className="flex items-center justify-between mt-2 gap-2">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={frases.length > 0 ? fraseIdx : "tip"}
+            initial={{ opacity: 0, x: -4 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 4 }}
+            transition={{ duration: 0.4 }}
+            className="text-[10px] text-muted-foreground tracking-wide truncate"
+          >
+            {displayText}
+          </motion.p>
+        </AnimatePresence>
+        <span className="text-[9px] text-muted-foreground/40 font-mono whitespace-nowrap">{weather.city || "Rio de Janeiro"}</span>
+      </div>
     </motion.div>
   );
 };

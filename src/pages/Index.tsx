@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { MessageCircle, Send, X, ChevronRight, Bell, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Menu } from "lucide-react";
+import { Terminal, Send, X, ChevronRight, Braces, CheckCircle2, Trophy, Minus, PlayCircle, Reply, Pencil, Check, Trash2, Bot, Headphones, Code } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { format, differenceInHours, differenceInMilliseconds } from "date-fns";
 import { CircularProgress } from "@/components/CircularProgress";
@@ -18,7 +18,7 @@ function SidebarMenuButton() {
   const { toggleSidebar } = useSidebar();
   return (
     <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full md:hidden" onClick={toggleSidebar}>
-      <Menu className="h-4 w-4" />
+      <Terminal className="h-4 w-4" />
     </Button>
   );
 }
@@ -330,7 +330,7 @@ const Index = () => {
               <div className="shrink-0 flex items-center gap-1">
                 <SidebarMenuButton />
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" onClick={abrirChat}>
-                  <MessageCircle className="h-4 w-4" />
+                  <Code className="h-4 w-4" />
                   {naoLidas > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                       {naoLidas}
@@ -339,7 +339,7 @@ const Index = () => {
                 </Button>
                 <Link to="/notificacoes">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
-                    <Bell className="h-4 w-4" />
+                    <Braces className="h-4 w-4" />
                     {notifNaoLidas > 0 && (
                       <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                         {notifNaoLidas}
@@ -539,7 +539,7 @@ const Index = () => {
                     <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
                   ) : (
                     <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                      <MessageCircle className="h-3 w-3 text-primary" />
+                      <Code className="h-3 w-3 text-primary" />
                     </div>
                   )}
                   <span className="text-[10px] font-mono text-muted-foreground">chat</span>
@@ -567,7 +567,7 @@ const Index = () => {
                         <img src={adminConfig.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border/30" />
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                          <MessageCircle className="h-3 w-3 text-primary" />
+                          <Code className="h-3 w-3 text-primary" />
                         </div>
                       )}
                       <span className="text-xs font-medium text-foreground">{adminConfig.nome}</span>
@@ -604,7 +604,7 @@ const Index = () => {
                         {mensagens.length === 0 && (
                           <div className="flex flex-col items-center justify-center py-12 gap-2">
                             <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center">
-                              <MessageCircle className="h-4 w-4 text-muted-foreground/30" />
+                              <Code className="h-4 w-4 text-muted-foreground/30" />
                             </div>
                             <p className="text-[11px] text-muted-foreground/40">Nenhuma mensagem ainda</p>
                           </div>

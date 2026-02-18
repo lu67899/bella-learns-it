@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Cloud, CloudRain, Sun, CloudSun, Snowflake, CloudLightning, Wind, Droplets } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface WeatherData {
   temp: number;
@@ -39,6 +40,7 @@ interface WeatherWidgetProps {
 export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -74,7 +76,8 @@ export const WeatherWidget = ({ frases = [], fraseIdx = 0 }: WeatherWidgetProps)
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl bg-card border border-border p-4 overflow-hidden relative"
+      onClick={() => navigate("/clima")}
+      className="rounded-xl bg-card border border-border p-4 overflow-hidden relative cursor-pointer hover:border-primary/30 transition-colors"
     >
       <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-primary/5 blur-xl pointer-events-none" />
       

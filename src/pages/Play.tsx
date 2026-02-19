@@ -455,10 +455,21 @@ export default function PlayPage() {
         const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
         const { data, error: fnError } = await supabase.functions.invoke(functionName);
         if (fnError) throw fnError;
-        setContent(data.items || []);
-        setCategorias(data.categorias || []);
-        setSessoes(data.sessoes || []);
-        setPlataformas(data.plataformas || []);
+        
+        // Check for API-level errors (e.g. Xtream auth issues)
+        if (data?.error) {
+          setError(data.error);
+          setContent(data.items || []);
+          setCategorias(data.categorias || []);
+          setSessoes(data.sessoes || []);
+          setPlataformas(data.plataformas || []);
+          return;
+        }
+        
+        setContent(data?.items || []);
+        setCategorias(data?.categorias || []);
+        setSessoes(data?.sessoes || []);
+        setPlataformas(data?.plataformas || []);
       } catch (err: any) {
         console.error('Error fetching content:', err);
         setError('Erro ao carregar conteúdo');

@@ -35,6 +35,10 @@ serve(async (req) => {
     const apiUrl = (params: string) =>
       `${baseUrl}/player_api.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&${params}`;
 
+    // First, validate credentials by checking auth
+    const authCheckUrl = `${baseUrl}/player_api.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+    console.log('Xtream auth check URL:', authCheckUrl.replace(password, '***'));
+
     // Action: episodes for a series
     if (action === 'episodes') {
       const seriesId = body.series_id;
@@ -44,9 +48,26 @@ serve(async (req) => {
         });
       }
 
-      const res = await fetch(apiUrl(`action=get_series_info&series_id=${seriesId}`));
-      if (!res.ok) throw new Error(`Xtream API error: ${res.status}`);
-      const data = await res.json();
+      const url = apiUrl(`action=get_series_info&series_id=${seriesId}`);
+      console.log('Fetching series info for:', seriesId);
+      const res = await fetch(url);
+      const resText = await res.text();
+      console.log('Series info response status:', res.status, 'length:', resText.length);
+
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: `Xtream API error: ${res.status}`, detail: resText.slice(0, 200) }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      let data;
+      try {
+        data = JSON.parse(resText);
+      } catch {
+        return new Response(JSON.stringify({ error: 'Resposta inválida do servidor Xtream', detail: resText.slice(0, 200) }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
 
       const episodes: any[] = [];
       const episodesMap = data.episodes || {};
@@ -75,21 +96,101 @@ serve(async (req) => {
     }
 
     // Default: full catalog
-    const [vodCatRes, vodRes, seriesCatRes, seriesRes] = await Promise.all([
-      fetch(apiUrl('action=get_vod_categories')),
-      fetch(apiUrl('action=get_vod_streams')),
-      fetch(apiUrl('action=get_series_categories')),
-      fetch(apiUrl('action=get_series')),
-    ]);
+    console.log('Fetching full catalog from Xtream...');
+    const urls = [
+      { name: 'vod_categories', url: apiUrl('action=get_vod_categories') },
+      { name: 'vod_streams', url: apiUrl('action=get_vod_streams') },
+      { name: 'series_categories', url: apiUrl('action=get_series_categories') },
+      { name: 'series', url: apiUrl('action=get_series') },
+    ];
 
-    const vodCategories = vodCatRes.ok ? await vodCatRes.json() : [];
-    const vodStreams = vodRes.ok ? await vodRes.json() : [];
-    const seriesCategories = seriesCatRes.ok ? await seriesCatRes.json() : [];
-    const seriesStreams = seriesRes.ok ? await seriesRes.json() : [];
+    const results = await Promise.all(urls.map(async ({ name, url }) => {
+      try {
+        console.log(`Fetching ${name}...`);
+        const res = await fetch(url);
+        const text = await res.text();
+        console.log(`${name}: status=${res.status}, length=${text.length}, preview=${text.slice(0, 100)}`);
+        
+        if (!res.ok) {
+          console.error(`${name} failed with status ${res.status}`);
+          return [];
+        }
+
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) {
+            console.error(`${name} returned non-array:`, typeof parsed, Object.keys(parsed || {}).slice(0, 5));
+            // Check if it's an auth error object
+            if (parsed && parsed.user_info === undefined && parsed.server_info === undefined) {
+              return Array.isArray(parsed) ? parsed : [];
+            }
+            return [];
+          }
+          return parsed;
+        } catch {
+          console.error(`${name} JSON parse failed, text preview:`, text.slice(0, 200));
+          return [];
+        }
+      } catch (err) {
+        console.error(`${name} fetch error:`, err.message);
+        return [];
+      }
+    }));
+
+    const [vodCategories, vodStreams, seriesCategories, seriesStreams] = results;
+
+    console.log(`Results: vodCats=${vodCategories.length}, vod=${vodStreams.length}, seriesCats=${seriesCategories.length}, series=${seriesStreams.length}`);
+
+    // If everything is empty, likely an auth issue
+    if (vodCategories.length === 0 && vodStreams.length === 0 && seriesCategories.length === 0 && seriesStreams.length === 0) {
+      // Try auth check
+      try {
+        const authRes = await fetch(authCheckUrl);
+        const authText = await authRes.text();
+        console.log('Auth check response:', authText.slice(0, 300));
+        
+        let authData;
+        try { authData = JSON.parse(authText); } catch { authData = null; }
+        
+        if (authData && authData.user_info) {
+          const status = authData.user_info.status;
+          if (status === 'Disabled' || status === 'Banned') {
+            return new Response(JSON.stringify({ 
+              error: `Conta Xtream desativada (${status}). Verifique suas credenciais.`,
+              items: [], categorias: [], sessoes: [], plataformas: [], total: 0 
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          if (status === 'Expired') {
+            return new Response(JSON.stringify({ 
+              error: 'Conta Xtream expirada. Renove sua assinatura.',
+              items: [], categorias: [], sessoes: [], plataformas: [], total: 0 
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+        } else {
+          return new Response(JSON.stringify({ 
+            error: 'Falha ao conectar ao servidor Xtream. Verifique a URL e credenciais.',
+            items: [], categorias: [], sessoes: [], plataformas: [], total: 0 
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      } catch (authErr) {
+        return new Response(JSON.stringify({ 
+          error: `Servidor Xtream inacessível: ${authErr.message}`,
+          items: [], categorias: [], sessoes: [], plataformas: [], total: 0 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
     // Build category map
     const catMap: Record<string, string> = {};
-    for (const cat of [...(Array.isArray(vodCategories) ? vodCategories : []), ...(Array.isArray(seriesCategories) ? seriesCategories : [])]) {
+    for (const cat of [...vodCategories, ...seriesCategories]) {
       catMap[String(cat.category_id)] = cat.category_name || '';
     }
 
@@ -119,12 +220,12 @@ serve(async (req) => {
       idioma: '',
       views: Number(s.rating) || 0,
       temporadas: Number(s.num) || 0,
-      _series_id: s.series_id, // used for fetching episodes
+      _series_id: s.series_id,
     }));
 
     const items = [...vodItems, ...seriesItems];
 
-    // Extract unique categories
+    // Extract unique categories from items (auto from server)
     const categorias = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
 
     // Build sessoes from categories (one per type)
@@ -134,10 +235,13 @@ serve(async (req) => {
     filmeCats.forEach(c => sessoes.push({ categoria: c, tipo: 'Filme' }));
     serieCats.forEach(c => sessoes.push({ categoria: c, tipo: 'Série' }));
 
+    console.log(`Final: ${items.length} items, ${categorias.length} categories, ${sessoes.length} sessions`);
+
     return new Response(JSON.stringify({ items, categorias, sessoes, plataformas: [], total: items.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error('Xtream content error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

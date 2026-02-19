@@ -224,16 +224,18 @@ const Anotacoes = () => {
 
       {/* Create/Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Anotação</DialogTitle></DialogHeader>
-          <form autoComplete="off" onSubmit={(e) => { e.preventDefault(); save(); }} role="presentation">
-            <div className="space-y-4">
-              <div role="presentation"><Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} role="presentation" /></div>
-              <div role="presentation"><Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} role="presentation" /></div>
-              <div role="presentation"><Textarea placeholder="Conteúdo" rows={6} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} autoComplete="off" role="presentation" /></div>
-              <div role="presentation"><Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} role="presentation" /></div>
-              <Button type="submit" className="w-full">Salvar</Button>
-            </div>
+        <DialogContent className="max-w-[380px] p-0 overflow-hidden rounded-2xl border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/5">
+          <div className="px-5 pt-5 pb-3">
+            <DialogHeader>
+              <DialogTitle className="font-mono text-sm tracking-tight">{editing ? "Editar" : "Nova"} Anotação</DialogTitle>
+            </DialogHeader>
+          </div>
+          <form autoComplete="off" onSubmit={(e) => { e.preventDefault(); save(); }} role="presentation" className="px-5 pb-5 space-y-3">
+            <div role="presentation"><Input placeholder="Título" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} role="presentation" className="h-9 text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30" /></div>
+            <div role="presentation"><Input placeholder="Matéria (opcional)" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} role="presentation" className="h-9 text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30" /></div>
+            <div role="presentation"><Textarea placeholder="Conteúdo" rows={5} value={form.conteudo} onChange={(e) => setForm({ ...form, conteudo: e.target.value })} autoComplete="off" role="presentation" className="text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30 resize-none" /></div>
+            <div role="presentation"><Input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} role="presentation" className="h-9 text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30" /></div>
+            <Button type="submit" className="w-full h-9 text-sm font-medium rounded-xl mt-1">Salvar</Button>
           </form>
         </DialogContent>
       </Dialog>

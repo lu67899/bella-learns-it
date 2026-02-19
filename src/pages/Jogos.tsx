@@ -71,7 +71,7 @@ const Jogos = () => {
         className="max-w-2xl mx-auto space-y-6 pb-20"
       >
         <motion.div variants={item}>
-          <div className="mb-4">
+          <div className="mb-5">
             <BackButton to="/" />
           </div>
           <div className="flex items-center gap-3 mb-2">

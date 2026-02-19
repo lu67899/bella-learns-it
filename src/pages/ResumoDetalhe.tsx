@@ -33,7 +33,9 @@ const ResumoDetalhe = () => {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto space-y-6">
-        <BackButton to="/resumos" label="Voltar aos resumos" />
+        <div className="mb-5">
+          <BackButton to="/resumos" label="Voltar aos resumos" />
+        </div>
 
         {loading ? (
           <div className="flex justify-center py-16">

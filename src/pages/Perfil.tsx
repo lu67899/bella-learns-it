@@ -137,7 +137,7 @@ export default function Perfil() {
   return (
     <Layout>
       <PageContainer>
-        <div className="mb-4">
+        <div className="mb-5">
           <BackButton to="/" />
         </div>
         <div className="mb-6">

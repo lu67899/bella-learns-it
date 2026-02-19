@@ -519,8 +519,9 @@ export default function PlayPage() {
   return (
     <Layout>
       <div className="space-y-6 pb-8">
-        <BackButton />
-
+        <div className="mb-5">
+          <BackButton />
+        </div>
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center ring-1 ring-primary/20">
             <PlayIcon className="h-5 w-5 text-primary" />

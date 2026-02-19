@@ -70,7 +70,7 @@ const Resumos = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="space-y-4">
+        <div className="space-y-5">
           <BackButton to="/" />
           <div>
             <h1 className="text-2xl font-mono font-bold flex items-center gap-2">

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { isNativeApp, fetchXtreamCatalogDirect, fetchXtreamEpisodesDirect } from "@/lib/xtreamClient";
 
 // ── Types ──
 interface ContentItem {
@@ -261,11 +262,16 @@ function PlayerView({
     setLoadingEps(true);
 
     if (playSource === 'xtream') {
-      // For Xtream, use series_id from the item id (series_XXX)
       const seriesId = item.id.replace('series_', '');
-      supabase.functions.invoke('xtream-content', {
-        body: { action: 'episodes', series_id: seriesId },
-      }).then(({ data }) => {
+      
+      // Native app → direct call; web → edge function
+      const fetchEps = isNativeApp()
+        ? fetchXtreamEpisodesDirect(seriesId)
+        : supabase.functions.invoke('xtream-content', {
+            body: { action: 'episodes', series_id: seriesId },
+          }).then(({ data }) => data);
+
+      fetchEps.then((data: any) => {
         const eps = data?.episodes || [];
         setEpisodes(eps);
         if (eps.length > 0) {
@@ -452,9 +458,17 @@ export default function PlayPage() {
         const source = (configData as any)?.play_source || "baserow";
         setPlaySource(source);
 
-        const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
-        const { data, error: fnError } = await supabase.functions.invoke(functionName);
-        if (fnError) throw fnError;
+        let data: any;
+
+        // If Xtream + native app → call API directly (avoids Cloudflare block)
+        if (source === "xtream" && isNativeApp()) {
+          data = await fetchXtreamCatalogDirect();
+        } else {
+          const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
+          const { data: fnData, error: fnError } = await supabase.functions.invoke(functionName);
+          if (fnError) throw fnError;
+          data = fnData;
+        }
         
         // Check for API-level errors (e.g. Xtream auth issues)
         if (data?.error) {

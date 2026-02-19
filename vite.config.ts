@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "pwa-192.png", "pwa-512.png"],
       manifest: {
-        name: "Bella Estuda",
-        short_name: "Bella Estuda",
+        name: "Bella Space",
+        short_name: "Bella Space",
         description: "Plataforma de estudos para Sistemas de Informação",
         theme_color: "#7c3aed",
         background_color: "#0f0d17",

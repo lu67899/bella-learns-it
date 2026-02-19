@@ -61,7 +61,7 @@ export function StoryRing({
         {avatarUrl ? (
           <img
             src={avatarUrl}
-            alt="Belinha"
+            alt="Bellinha"
             className={`${dims} rounded-full object-cover`}
           />
         ) : (

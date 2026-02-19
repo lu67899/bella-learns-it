@@ -31,6 +31,8 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'catalog';
+    const limit = Number(body.limit) || 500;
+    const offset = Number(body.offset) || 0;
 
     const apiUrl = (params: string) =>
       `${baseUrl}/player_api.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&${params}`;
@@ -223,10 +225,11 @@ serve(async (req) => {
       _series_id: s.series_id,
     }));
 
-    const items = [...vodItems, ...seriesItems];
+    const allItems = [...vodItems, ...seriesItems];
+    const total = allItems.length;
 
-    // Extract unique categories from items (auto from server)
-    const categorias = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
+    // Extract unique categories from ALL items (before pagination)
+    const categorias = [...new Set(allItems.map(i => i.categoria).filter(Boolean))].sort();
 
     // Build sessoes from categories (one per type)
     const sessoes: any[] = [];
@@ -235,9 +238,12 @@ serve(async (req) => {
     filmeCats.forEach(c => sessoes.push({ categoria: c, tipo: 'Filme' }));
     serieCats.forEach(c => sessoes.push({ categoria: c, tipo: 'Série' }));
 
-    console.log(`Final: ${items.length} items, ${categorias.length} categories, ${sessoes.length} sessions`);
+    // Paginate items
+    const paginatedItems = allItems.slice(offset, offset + limit);
 
-    return new Response(JSON.stringify({ items, categorias, sessoes, plataformas: [], total: items.length }), {
+    console.log(`Final: ${total} total items, returning ${paginatedItems.length} (offset=${offset}, limit=${limit})`);
+
+    return new Response(JSON.stringify({ items: paginatedItems, categorias, sessoes, plataformas: [], total }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {

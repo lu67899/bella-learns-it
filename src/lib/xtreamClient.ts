@@ -35,9 +35,10 @@ async function fetchJson(url: string): Promise<any> {
 }
 
 /**
- * Fetches full Xtream catalog directly from the server (native app only).
+ * Fetches Xtream catalog directly from the server (native app only).
+ * Supports pagination with limit/offset.
  */
-export async function fetchXtreamCatalogDirect() {
+export async function fetchXtreamCatalogDirect(limit = 500, offset = 0) {
   const config = await getXtreamConfig();
   if (!config) {
     return { error: "Xtream Codes não configurado.", items: [], categorias: [], sessoes: [], plataformas: [], total: 0 };
@@ -109,8 +110,9 @@ export async function fetchXtreamCatalogDirect() {
       _series_id: s.series_id,
     }));
 
-    const items = [...vodItems, ...seriesItems];
-    const categorias = [...new Set(items.map((i) => i.categoria).filter(Boolean))].sort();
+    const allItems = [...vodItems, ...seriesItems];
+    const total = allItems.length;
+    const categorias = [...new Set(allItems.map((i) => i.categoria).filter(Boolean))].sort();
 
     const sessoes: any[] = [];
     const filmeCats = [...new Set(vodItems.map((i: any) => i.categoria).filter(Boolean))];
@@ -118,7 +120,10 @@ export async function fetchXtreamCatalogDirect() {
     filmeCats.forEach((c) => sessoes.push({ categoria: c, tipo: "Filme" }));
     serieCats.forEach((c) => sessoes.push({ categoria: c, tipo: "Série" }));
 
-    return { items, categorias, sessoes, plataformas: [], total: items.length };
+    // Paginate
+    const paginatedItems = allItems.slice(offset, offset + limit);
+
+    return { items: paginatedItems, categorias, sessoes, plataformas: [], total };
   } catch (err: any) {
     return { error: `Erro ao conectar: ${err.message}`, items: [], categorias: [], sessoes: [], plataformas: [], total: 0 };
   }

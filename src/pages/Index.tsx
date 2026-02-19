@@ -26,6 +26,7 @@ import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppFeatures } from "@/contexts/AppFeaturesContext";
+import { toast } from "sonner";
 
 const container = {
   hidden: { opacity: 0 },
@@ -238,8 +239,8 @@ const Index = () => {
     setNovaMensagem("");
 
     if (editingMsg) {
-      // Edit mode
-      await supabase.from("mensagens").update({ conteudo: texto, editado: true }).eq("id", editingMsg.id);
+      const { error } = await supabase.from("mensagens").update({ conteudo: texto, editado: true }).eq("id", editingMsg.id);
+      if (error) { console.error("Edit error:", error); toast.error("Erro ao editar mensagem"); }
       setEditingMsg(null);
       return;
     }
@@ -249,7 +250,11 @@ const Index = () => {
       payload.reply_to = replyTo.id;
       setReplyTo(null);
     }
-    await supabase.from("mensagens").insert(payload).select().single();
+    const { error } = await supabase.from("mensagens").insert(payload).select().single();
+    if (error) {
+      console.error("Send error:", error);
+      toast.error("Erro ao enviar mensagem");
+    }
   };
 
   const canEdit = (msg: Mensagem) => {

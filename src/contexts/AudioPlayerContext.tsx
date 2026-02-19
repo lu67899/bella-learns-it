@@ -3,6 +3,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Media Session API helper for lock screen / notification controls
+function updateMediaSession(book: { titulo: string; autor: string | null; capa_url: string | null } | null, handlers: { play?: () => void; pause?: () => void; prev?: () => void; next?: () => void }) {
+  if (!("mediaSession" in navigator)) return;
+  if (!book) {
+    navigator.mediaSession.metadata = null;
+    navigator.mediaSession.playbackState = "none";
+    return;
+  }
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: book.titulo,
+    artist: book.autor || "Audiobook",
+    album: "Bella Estuda",
+    artwork: book.capa_url ? [{ src: book.capa_url, sizes: "512x512", type: "image/jpeg" }] : [],
+  });
+  if (handlers.play) navigator.mediaSession.setActionHandler("play", handlers.play);
+  if (handlers.pause) navigator.mediaSession.setActionHandler("pause", handlers.pause);
+  if (handlers.prev) navigator.mediaSession.setActionHandler("previoustrack", handlers.prev);
+  if (handlers.next) navigator.mediaSession.setActionHandler("nexttrack", handlers.next);
+  navigator.mediaSession.setActionHandler("seekbackward", () => handlers.prev?.());
+  navigator.mediaSession.setActionHandler("seekforward", () => handlers.next?.());
+}
+
 interface Capitulo {
   id: string;
   audiobook_id: string;
@@ -176,6 +198,15 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       const idx = allCaps.findIndex((c) => c.id === cap.id);
       if (idx < allCaps.length - 1) setTimeout(() => playCapitulo(allCaps[idx + 1], allCaps, book), 1000);
     });
+
+    // Media Session: notification / lock screen controls
+    const capIdx = allCaps.findIndex((c) => c.id === cap.id);
+    updateMediaSession(book, {
+      play: () => { audioRef.current?.play(); setIsPlaying(true); },
+      pause: () => { audioRef.current?.pause(); setIsPlaying(false); },
+      prev: capIdx > 0 ? () => playCapitulo(allCaps[capIdx - 1], allCaps, book) : undefined,
+      next: capIdx < allCaps.length - 1 ? () => playCapitulo(allCaps[capIdx + 1], allCaps, book) : undefined,
+    });
   };
 
   useEffect(() => {
@@ -186,7 +217,9 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (isPlaying) { audioRef.current.pause(); saveProgress(); } else { audioRef.current.play(); }
-    setIsPlaying(!isPlaying);
+    const newState = !isPlaying;
+    setIsPlaying(newState);
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = newState ? "playing" : "paused";
   };
 
   const seek = (value: number[]) => {
@@ -232,6 +265,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
+    updateMediaSession(null, {});
   }, []);
 
   return (

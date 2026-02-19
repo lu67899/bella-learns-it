@@ -38,9 +38,18 @@ export default function NativeVideoPlayer({
         const { VideoPlayer } = await import("@capgo/capacitor-video-player");
         if (!active) return;
 
-        remoteLog.info(TAG, "Iniciando ExoPlayer", { url: src });
+        remoteLog.info(TAG, "Chamando initPlayer", { url: src });
 
-        await VideoPlayer.initPlayer({
+        // Ouvir eventos nativos via capacitor plugin bridge
+        const vp = VideoPlayer as any;
+        if (typeof vp.addListener === "function") {
+          vp.addListener("jeepCapVideoPlayerPlay",  (i: unknown) => remoteLog.info(TAG, "Evento: Play",  { info: JSON.stringify(i) }));
+          vp.addListener("jeepCapVideoPlayerEnded", (i: unknown) => remoteLog.info(TAG, "Evento: Ended", { info: JSON.stringify(i) }));
+          vp.addListener("jeepCapVideoPlayerExit",  (i: unknown) => remoteLog.info(TAG, "Evento: Exit",  { info: JSON.stringify(i) }));
+          vp.addListener("jeepCapVideoPlayerReady", (i: unknown) => remoteLog.info(TAG, "Evento: Ready", { info: JSON.stringify(i) }));
+        }
+
+        const result = await VideoPlayer.initPlayer({
           mode: "fullscreen",
           url: src,
           playerId: "fullscreen",
@@ -58,10 +67,13 @@ export default function NativeVideoPlayer({
           chromecast: false,
         });
 
-        remoteLog.info(TAG, "ExoPlayer iniciado com sucesso");
+        remoteLog.info(TAG, "initPlayer retornou", { result: JSON.stringify(result) });
+
+
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        remoteLog.error(TAG, "initPlayer FALHOU", { error: msg, url: src });
+        const stack = err instanceof Error ? err.stack : "";
+        remoteLog.error(TAG, "initPlayer EXCEPTION", { error: msg, stack, url: src });
       }
     };
 

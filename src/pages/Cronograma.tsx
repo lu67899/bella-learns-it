@@ -169,17 +169,21 @@ const Cronograma = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle className="font-mono">{editing ? "Editar" : "Nova"} Tarefa</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <Input placeholder="Título da tarefa" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
-            <Input placeholder="Matéria" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} />
+        <DialogContent className="max-w-[340px] p-0 overflow-hidden rounded-2xl border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/5">
+          <div className="px-5 pt-5 pb-3">
+            <DialogHeader>
+              <DialogTitle className="font-mono text-sm tracking-tight">{editing ? "Editar" : "Nova"} Tarefa</DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="px-5 pb-5 space-y-3">
+            <Input placeholder="Título da tarefa" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="h-9 text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30" />
+            <Input placeholder="Matéria" value={form.materia} onChange={(e) => setForm({ ...form, materia: e.target.value })} className="h-9 text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30" />
             <Select value={form.dia_semana} onValueChange={(v) => setForm({ ...form, dia_semana: v })}>
-              <SelectTrigger><SelectValue placeholder="Dia da semana" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-sm bg-secondary/30 border-border/50"><SelectValue placeholder="Dia da semana" /></SelectTrigger>
               <SelectContent>{diasSemana.map((d, i) => <SelectItem key={i} value={String(i)}>{d}</SelectItem>)}</SelectContent>
             </Select>
-            <Input placeholder="Horário (ex: 08:00)" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} />
-            <Button onClick={save} className="w-full">Salvar</Button>
+            <Input placeholder="Horário (ex: 08:00)" value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} className="h-9 text-sm bg-secondary/30 border-border/50 focus-visible:ring-primary/30" />
+            <Button onClick={save} className="w-full h-9 text-sm font-medium rounded-xl mt-1">Salvar</Button>
           </div>
         </DialogContent>
       </Dialog>

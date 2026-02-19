@@ -1,144 +1,101 @@
-import { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
-import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Film } from "lucide-react";
 
 interface NativeVideoPlayerProps {
   src: string;
-  /** Cloudflare Worker proxy URL for HTTP→HTTPS conversion */
+  /** Cloudflare Worker proxy URL for HTTP→HTTPS conversion (web only) */
   proxyUrl?: string;
   autoPlay?: boolean;
+  title?: string;
 }
 
 /**
- * Robust in-app video player that works inside Capacitor's Android WebView.
+ * Video player adaptativo:
+ * - Android nativo → CapacitorVideoPlayer.initPlayer() com ExoPlayer fullscreen (sem Cast)
+ * - Web / fallback  → <video> HTML5
  *
- * Strategy:
- *  1. If the URL is HLS (.m3u8) → use hls.js (supports adaptive streams, ts segments)
- *  2. If the URL is a direct file (mp4, mkv, ts, webm) → use native <video> src
- *  3. HTTP URLs are proxied through Cloudflare Worker to avoid mixed-content blocks
- *
- * No external plugins required → no crashes.
+ * O Cast SDK é excluído via gradle (veja instruções no README).
  */
 export default function NativeVideoPlayer({
   src,
   proxyUrl = "https://bold-block-8917.denysouzah7.workers.dev",
   autoPlay = true,
+  title = "",
 }: NativeVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryKey, setRetryKey] = useState(0);
+  const isNative = Capacitor.isNativePlatform();
 
-  // Determine final URL: proxy HTTP to avoid mixed-content block
-  const isHttp = src.startsWith("http://");
-  const finalUrl = isHttp ? `${proxyUrl}?url=${encodeURIComponent(src)}` : src;
-
-  const isHls = /\.m3u8/i.test(src) || /\.m3u8/i.test(finalUrl);
-
+  // ── Native: ExoPlayer fullscreen via @capgo/capacitor-video-player ──
   useEffect(() => {
-    if (!src) return;
-    const video = videoRef.current;
-    if (!video) return;
+    if (!isNative || !src) return;
 
-    setLoading(true);
-    setError(null);
+    let active = true;
 
-    // Destroy any previous HLS instance
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
+    const play = async () => {
+      try {
+        const { VideoPlayer } = await import("@capgo/capacitor-video-player");
+        if (!active) return;
 
-    const onCanPlay = () => setLoading(false);
-    const onError = () => {
-      setLoading(false);
-      setError("Não foi possível reproduzir este conteúdo.");
-    };
-
-    video.addEventListener("canplay", onCanPlay);
-    video.addEventListener("error", onError);
-
-    if (isHls) {
-      if (Hls.isSupported()) {
-        // Use hls.js — handles ts segments, adaptive bitrate
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: false,
-          maxBufferLength: 30,
-          maxMaxBufferLength: 60,
+        await VideoPlayer.initPlayer({
+          mode: "fullscreen",
+          url: src,
+          playerId: "fullscreen",
+          componentTag: "app-video",
+          title,
+          smallTitle: "",
+          accentColor: "#7c3aed",
+          exitOnEnd: false,
+          loopOnEnd: false,
+          showControls: true,
+          displayMode: "all",
+          rate: 1,
+          pipEnabled: false,
+          bkmodeEnabled: false,
+          chromecast: false,   // ← desabilita Cast SDK, sem crash
         });
-        hlsRef.current = hls;
-        hls.loadSource(finalUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          setLoading(false);
-          if (autoPlay) video.play().catch(() => {});
-        });
-        hls.on(Hls.Events.ERROR, (_evt, data) => {
-          if (data.fatal) {
-            setLoading(false);
-            setError("Erro ao carregar stream HLS.");
-          }
-        });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        // Safari / iOS native HLS support
-        video.src = finalUrl;
-        if (autoPlay) video.play().catch(() => {});
-      } else {
-        setLoading(false);
-        setError("HLS não suportado neste dispositivo.");
-      }
-    } else {
-      // Direct video file (mp4, mkv, ts, webm)
-      video.src = finalUrl;
-      if (autoPlay) video.play().catch(() => {});
-    }
-
-    return () => {
-      video.removeEventListener("canplay", onCanPlay);
-      video.removeEventListener("error", onError);
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
+      } catch (err) {
+        console.error("[NativeVideoPlayer] initPlayer error:", err);
       }
     };
-  }, [src, retryKey]);
 
-  return (
-    <div className="relative w-full h-full bg-black flex items-center justify-center">
-      {/* Loading overlay */}
-      {loading && !error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-black/80">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-xs font-mono text-white/50">Carregando stream...</p>
+    play();
+    return () => { active = false; };
+  }, [src, isNative]);
+
+  // ── Web: HTML5 <video> with optional proxy for HTTP urls ──
+  if (!isNative) {
+    const isHttp = src.startsWith("http://");
+    const finalSrc = isHttp ? `${proxyUrl}?url=${encodeURIComponent(src)}` : src;
+
+    if (!src) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-2 bg-black">
+          <Film className="h-8 w-8 text-white/20" />
+          <p className="text-white/30 text-xs font-mono">Nenhum link disponível</p>
         </div>
-      )}
+      );
+    }
 
-      {/* Error overlay */}
-      {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-black/90 p-6 text-center">
-          <AlertCircle className="h-8 w-8 text-destructive" />
-          <p className="text-xs font-mono text-white/60">{error}</p>
-          <button
-            onClick={() => setRetryKey((k) => k + 1)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-mono font-semibold"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Tentar novamente
-          </button>
-        </div>
-      )}
-
+    return (
       <video
         ref={videoRef}
-        key={`${src}-${retryKey}`}
+        key={finalSrc}
+        src={finalSrc}
         controls
-        playsInline
         autoPlay={autoPlay}
+        playsInline
         controlsList="nodownload"
-        className="w-full h-full object-contain"
-        style={{ background: "black" }}
+        className="w-full h-full object-contain bg-black"
       />
+    );
+  }
+
+  // ── Native: show poster while ExoPlayer fullscreen opens ──
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-3 bg-black">
+      <Film className="h-10 w-10 text-white/20" />
+      <p className="text-xs font-mono text-white/40">Abrindo player nativo...</p>
     </div>
   );
 }

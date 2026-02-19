@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   //   cleartext: true,
   // },
   android: {
-    // Inject JS to aggressively block autofill popups
+    allowMixedContent: true,   // ← permite HTTP streams (IPTV http://)
     webContentsDebuggingEnabled: false,
   },
 };

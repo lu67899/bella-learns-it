@@ -28,8 +28,12 @@ export default function NativeVideoPlayer({
 
   // ── Native: ExoPlayer fullscreen via @capgo/capacitor-video-player ──
   useEffect(() => {
+    console.log("[NativeVideoPlayer] src recebido:", JSON.stringify(src), "| isNative:", isNative);
     // Guard: don't attempt play without a valid URL
-    if (!isNative || !src || src.trim() === "") return;
+    if (!isNative || !src || src.trim() === "") {
+      console.warn("[NativeVideoPlayer] URL inválida ou não-nativo, abortando initPlayer");
+      return;
+    }
 
     let active = true;
 
@@ -37,6 +41,9 @@ export default function NativeVideoPlayer({
       try {
         const { VideoPlayer } = await import("@capgo/capacitor-video-player");
         if (!active) return;
+
+        // Log the exact URL being sent to ExoPlayer
+        console.log("[NativeVideoPlayer] Iniciando ExoPlayer com URL:", src);
 
         await VideoPlayer.initPlayer({
           mode: "fullscreen",
@@ -53,10 +60,13 @@ export default function NativeVideoPlayer({
           rate: 1,
           pipEnabled: false,
           bkmodeEnabled: false,
-          chromecast: false,   // ← desabilita Cast SDK, sem crash
+          chromecast: false,
         });
-      } catch (err) {
-        console.error("[NativeVideoPlayer] initPlayer error:", err);
+
+        console.log("[NativeVideoPlayer] ExoPlayer iniciado com sucesso");
+      } catch (err: any) {
+        console.error("[NativeVideoPlayer] initPlayer ERRO:", err?.message || err);
+        console.error("[NativeVideoPlayer] URL que causou erro:", src);
       }
     };
 

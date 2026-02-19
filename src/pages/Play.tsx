@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import BackButton from "@/components/BackButton";
-import { Play as PlayIcon, Star, Search, X, Film, Tv, Loader2, ChevronDown, List } from "lucide-react";
+import { Play as PlayIcon, Star, Search, X, Film, Tv, Loader2, ChevronDown, List, RefreshCw, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
@@ -255,6 +255,11 @@ function PlayerView({
   const [showEpisodes, setShowEpisodes] = useState(false);
   const [activeVideoUrl, setActiveVideoUrl] = useState(item.video_url || '');
   const [selectedEpId, setSelectedEpId] = useState<string | undefined>();
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [useProxy, setUseProxy] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Fetch episodes for series
   useEffect(() => {
@@ -264,7 +269,6 @@ function PlayerView({
     if (playSource === 'xtream') {
       const seriesId = item.id.replace('series_', '');
       
-      // Native app → direct call; web → edge function
       const fetchEps = isNativeApp()
         ? fetchXtreamEpisodesDirect(seriesId)
         : supabase.functions.invoke('xtream-content', {
@@ -295,16 +299,78 @@ function PlayerView({
     }
   }, [item, playSource]);
 
+  // Reset error state when URL changes
+  useEffect(() => {
+    setVideoError(null);
+    setRetryCount(0);
+    setUseProxy(false);
+    setVideoLoading(true);
+  }, [activeVideoUrl]);
+
   const url = activeVideoUrl;
   const isDirectVideo = /\.(mp4|mkv|webm|avi|mov|ts|m3u8)(\?.*)?$/i.test(url);
   const proxyBase = `https://bold-block-8917.denysouzah7.workers.dev`;
   
-  // For Xtream content, always proxy video URLs (CORS blocks direct access from browser)
-  // For native apps, no proxy needed (no CORS restrictions)
-  const needsProxy = isDirectVideo && !isNativeApp() && (url.startsWith('http://') || playSource === 'xtream');
-  const videoSrc = needsProxy
-    ? `${proxyBase}?url=${encodeURIComponent(url)}`
-    : url;
+  // Build video source with fallback strategy:
+  // 1. Native app: try direct URL first, fallback to video-proxy edge function
+  // 2. Web: always use Cloudflare Worker proxy for Xtream content
+  const getVideoSrc = useCallback(() => {
+    if (!isDirectVideo || !url) return url;
+    
+    // Web browser: always proxy Xtream content
+    if (!isNativeApp()) {
+      if (url.startsWith('http://') || playSource === 'xtream') {
+        return `${proxyBase}?url=${encodeURIComponent(url)}`;
+      }
+      return url;
+    }
+    
+    // Native app: try direct first, fallback to video-proxy edge function
+    if (useProxy) {
+      const supabaseUrl = (window as any).__SUPABASE_URL__ || import.meta.env.VITE_SUPABASE_URL || 'https://fizcmvavzgoaznzindwl.supabase.co';
+      return `${supabaseUrl}/functions/v1/video-proxy?url=${encodeURIComponent(url)}`;
+    }
+    
+    return url;
+  }, [url, isDirectVideo, useProxy, playSource, proxyBase]);
+
+  const videoSrc = getVideoSrc();
+
+  const handleVideoError = useCallback(() => {
+    setVideoLoading(false);
+    
+    // Strategy: on first error in native app, try proxy fallback
+    if (isNativeApp() && !useProxy && retryCount === 0) {
+      console.log('[Player] Direct URL failed, trying proxy fallback...');
+      setUseProxy(true);
+      setRetryCount(1);
+      return;
+    }
+    
+    // If proxy also failed or we're on web, show error
+    const errorMsg = isNativeApp()
+      ? 'Não foi possível reproduzir este vídeo. O formato pode não ser suportado pelo dispositivo.'
+      : 'Não foi possível reproduzir este vídeo. Verifique sua conexão.';
+    setVideoError(errorMsg);
+  }, [useProxy, retryCount]);
+
+  const handleRetry = useCallback(() => {
+    setVideoError(null);
+    setVideoLoading(true);
+    setRetryCount(0);
+    setUseProxy(false);
+    // Force re-mount by toggling a key
+    setActiveVideoUrl(prev => {
+      // Trigger re-render
+      setTimeout(() => setActiveVideoUrl(url), 50);
+      return '';
+    });
+  }, [url]);
+
+  const handleVideoLoaded = useCallback(() => {
+    setVideoLoading(false);
+    setVideoError(null);
+  }, []);
 
   const handleSelectEpisode = (ep: Episode) => {
     setActiveVideoUrl(ep.link);
@@ -328,9 +394,28 @@ function PlayerView({
       </button>
 
       {/* Video Area */}
-      <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0">
-        {isDirectVideo ? (
+      <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0 relative">
+        {videoLoading && isDirectVideo && !videoError && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+        
+        {videoError ? (
+          <div className="flex flex-col items-center gap-3 px-6 text-center">
+            <AlertTriangle className="h-10 w-10 text-yellow-500/70" />
+            <p className="text-white/60 text-xs font-mono max-w-[280px]">{videoError}</p>
+            <button
+              onClick={handleRetry}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/20 text-primary text-xs font-mono hover:bg-primary/30 active:scale-95 transition-all ring-1 ring-primary/30"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Tentar novamente
+            </button>
+          </div>
+        ) : isDirectVideo ? (
           <video
+            ref={videoRef}
             key={videoSrc}
             src={videoSrc}
             controls
@@ -338,6 +423,9 @@ function PlayerView({
             className="w-full h-full object-contain"
             controlsList="nodownload"
             playsInline
+            onError={handleVideoError}
+            onLoadedData={handleVideoLoaded}
+            onCanPlay={handleVideoLoaded}
           >
             Seu navegador não suporta vídeo.
           </video>

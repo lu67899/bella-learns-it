@@ -28,7 +28,8 @@ export default function NativeVideoPlayer({
 
   // ── Native: ExoPlayer fullscreen via @capgo/capacitor-video-player ──
   useEffect(() => {
-    if (!isNative || !src) return;
+    // Guard: don't attempt play without a valid URL
+    if (!isNative || !src || src.trim() === "") return;
 
     let active = true;
 

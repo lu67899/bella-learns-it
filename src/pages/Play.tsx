@@ -341,10 +341,15 @@ function PlayerView({
         <X className="h-4 w-4" />
       </button>
 
-      {/* Video Area — uses NativeVideoPlayer (hls.js + HTML5) */}
+      {/* Video Area — uses NativeVideoPlayer (ExoPlayer on Android / HTML5 on web) */}
       <div className="w-full aspect-video bg-black flex-shrink-0 overflow-hidden">
-        {url ? (
+        {url && url.trim() !== "" ? (
           <NativeVideoPlayer src={url} autoPlay />
+        ) : item.tipo === "serie" && loadingEps ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-white/40 text-xs font-mono">Carregando episódios...</p>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Film className="h-8 w-8 text-white/20" />

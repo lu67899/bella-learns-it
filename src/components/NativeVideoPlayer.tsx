@@ -1,22 +1,18 @@
 import { useEffect, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Film } from "lucide-react";
+import { remoteLog } from "@/lib/remoteLogger";
+
+const TAG = "[NativeVideoPlayer]";
 
 interface NativeVideoPlayerProps {
   src: string;
-  /** Cloudflare Worker proxy URL for HTTP→HTTPS conversion (web only) */
+  /** Cloudflare Worker proxy URL para HTTP→HTTPS (web only) */
   proxyUrl?: string;
   autoPlay?: boolean;
   title?: string;
 }
 
-/**
- * Video player adaptativo:
- * - Android nativo → CapacitorVideoPlayer.initPlayer() com ExoPlayer fullscreen (sem Cast)
- * - Web / fallback  → <video> HTML5
- *
- * O Cast SDK é excluído via gradle (veja instruções no README).
- */
 export default function NativeVideoPlayer({
   src,
   proxyUrl = "https://bold-block-8917.denysouzah7.workers.dev",
@@ -28,10 +24,10 @@ export default function NativeVideoPlayer({
 
   // ── Native: ExoPlayer fullscreen via @capgo/capacitor-video-player ──
   useEffect(() => {
-    console.log("[NativeVideoPlayer] src recebido:", JSON.stringify(src), "| isNative:", isNative);
-    // Guard: don't attempt play without a valid URL
+    remoteLog.info(TAG, `src recebido: "${src}" | isNative: ${isNative}`);
+
     if (!isNative || !src || src.trim() === "") {
-      console.warn("[NativeVideoPlayer] URL inválida ou não-nativo, abortando initPlayer");
+      if (isNative) remoteLog.warn(TAG, "URL vazia — initPlayer cancelado");
       return;
     }
 
@@ -42,8 +38,7 @@ export default function NativeVideoPlayer({
         const { VideoPlayer } = await import("@capgo/capacitor-video-player");
         if (!active) return;
 
-        // Log the exact URL being sent to ExoPlayer
-        console.log("[NativeVideoPlayer] Iniciando ExoPlayer com URL:", src);
+        remoteLog.info(TAG, "Iniciando ExoPlayer", { url: src });
 
         await VideoPlayer.initPlayer({
           mode: "fullscreen",
@@ -63,10 +58,10 @@ export default function NativeVideoPlayer({
           chromecast: false,
         });
 
-        console.log("[NativeVideoPlayer] ExoPlayer iniciado com sucesso");
-      } catch (err: any) {
-        console.error("[NativeVideoPlayer] initPlayer ERRO:", err?.message || err);
-        console.error("[NativeVideoPlayer] URL que causou erro:", src);
+        remoteLog.info(TAG, "ExoPlayer iniciado com sucesso");
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        remoteLog.error(TAG, "initPlayer FALHOU", { error: msg, url: src });
       }
     };
 
@@ -74,7 +69,7 @@ export default function NativeVideoPlayer({
     return () => { active = false; };
   }, [src, isNative]);
 
-  // ── Web: HTML5 <video> with optional proxy for HTTP urls ──
+  // ── Web: HTML5 <video> com proxy opcional para HTTP ──
   if (!isNative) {
     const isHttp = src.startsWith("http://");
     const finalSrc = isHttp ? `${proxyUrl}?url=${encodeURIComponent(src)}` : src;
@@ -102,7 +97,7 @@ export default function NativeVideoPlayer({
     );
   }
 
-  // ── Native: show poster while ExoPlayer fullscreen opens ──
+  // ── Native: poster enquanto ExoPlayer abre ──
   return (
     <div className="flex flex-col items-center justify-center h-full gap-3 bg-black">
       <Film className="h-10 w-10 text-white/20" />

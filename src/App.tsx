@@ -36,6 +36,7 @@ import Auth from "./pages/Auth";
 import Notificacoes from "./pages/Notificacoes";
 import PlayPage from "./pages/Play";
 import Clima from "./pages/Clima";
+import AdminLogs from "./pages/AdminLogs";
 
 import NotFound from "./pages/NotFound";
 
@@ -86,6 +87,7 @@ const AppRoutes = () => (
     <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
     <Route path="/play" element={<ProtectedRoute><PlayPage /></ProtectedRoute>} />
     <Route path="/clima" element={<ProtectedRoute><Clima /></ProtectedRoute>} />
+    <Route path="/admin-logs" element={<ProtectedRoute><AdminLogs /></ProtectedRoute>} />
     
     <Route path="*" element={<NotFound />} />
   </Routes>

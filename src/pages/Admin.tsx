@@ -32,7 +32,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
   | "quiz" | "forca" | "memoria" | "cruzadas" | "ordenar" | "videos" | "desafios" | "frases" 
-  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks" | "livros-pdf";
+  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks" | "livros-pdf" | "jogos-iframe";
 
 const adminSections = [
   {
@@ -55,6 +55,7 @@ const adminSections = [
       { key: "memoria" as AdminSection, label: "Memória", icon: BrainCircuit, desc: "Pares do jogo da memória" },
       { key: "cruzadas" as AdminSection, label: "Cruzadas", icon: Gamepad2, desc: "Palavras cruzadas" },
       { key: "ordenar" as AdminSection, label: "Ordenar", icon: Gamepad2, desc: "Ordene os passos" },
+      { key: "jogos-iframe" as AdminSection, label: "Jogos Iframe", icon: Gamepad2, desc: "Mini games externos" },
     ],
   },
   {
@@ -228,6 +229,7 @@ const Admin = () => {
       case "gerador-ia": return <GeradorIATab />;
       case "audiobooks": return <AudiobooksTab />;
       case "livros-pdf": return <LivrosPdfTab />;
+      case "jogos-iframe": return <JogosIframeTab />;
       default: return null;
     }
   };
@@ -3511,5 +3513,137 @@ function ConfirmDeleteButton({ onConfirm, label = "Tem certeza que deseja remove
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+// ─── JOGOS IFRAME TAB ─────────────────────────────────────────
+function JogosIframeTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
+  const [form, setForm] = useState({ nome: "", descricao: "", icone: "🎮", iframe_url: "", ordem: 0, ativo: true });
+
+  const fetchItems = useCallback(async () => {
+    const { data } = await supabase.from("jogos_iframe").select("*").order("ordem");
+    setItems(data || []);
+  }, []);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const openNew = () => {
+    setEditItem(null);
+    setForm({ nome: "", descricao: "", icone: "🎮", iframe_url: "", ordem: items.length, ativo: true });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (item: any) => {
+    setEditItem(item);
+    setForm({ nome: item.nome, descricao: item.descricao || "", icone: item.icone || "🎮", iframe_url: item.iframe_url, ordem: item.ordem, ativo: item.ativo });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.nome.trim() || !form.iframe_url.trim()) { toast.error("Nome e URL são obrigatórios"); return; }
+    const payload = { nome: form.nome.trim(), descricao: form.descricao.trim() || null, icone: form.icone.trim() || "🎮", iframe_url: form.iframe_url.trim(), ordem: form.ordem, ativo: form.ativo };
+    if (editItem) {
+      await supabase.from("jogos_iframe").update(payload).eq("id", editItem.id);
+      toast.success("Jogo atualizado!");
+    } else {
+      await supabase.from("jogos_iframe").insert(payload);
+      toast.success("Jogo adicionado!");
+    }
+    setDialogOpen(false);
+    fetchItems();
+  };
+
+  const handleDelete = async (id: string) => {
+    await supabase.from("jogos_iframe").delete().eq("id", id);
+    toast.success("Jogo removido!");
+    fetchItems();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground font-mono">{items.length} jogo(s) cadastrado(s)</p>
+        <Button size="sm" onClick={openNew} className="gap-1.5 text-xs"><Plus className="h-3.5 w-3.5" /> Adicionar</Button>
+      </div>
+
+      <div className="space-y-2">
+        {items.map((item) => (
+          <Card key={item.id} className="bg-card border-border">
+            <CardContent className="p-3 flex items-center gap-3">
+              <span className="text-xl">{item.icone || "🎮"}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-mono font-medium truncate">{item.nome}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{item.iframe_url}</p>
+              </div>
+              {!item.ativo && <Badge variant="secondary" className="text-[10px]">Inativo</Badge>}
+              <div className="flex gap-1">
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(item)}>
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir jogo?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="text-xs h-8">Cancelar</AlertDialogCancel>
+                      <AlertDialogAction className="text-xs h-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDelete(item.id)}>Excluir</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editItem ? "Editar Jogo" : "Novo Jogo"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome *</label>
+              <Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Ex: Tetris" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">URL do Iframe *</label>
+              <Input value={form.iframe_url} onChange={e => setForm(f => ({ ...f, iframe_url: e.target.value }))} placeholder="https://exemplo.com/jogo" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Ícone (emoji)</label>
+                <Input value={form.icone} onChange={e => setForm(f => ({ ...f, icone: e.target.value }))} placeholder="🎮" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Ordem</label>
+                <Input type="number" value={form.ordem} onChange={e => setForm(f => ({ ...f, ordem: Number(e.target.value) }))} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Descrição</label>
+              <Textarea value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} placeholder="Breve descrição do jogo..." rows={2} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={form.ativo} onCheckedChange={v => setForm(f => ({ ...f, ativo: v }))} />
+              <span className="text-xs text-muted-foreground">Ativo (visível para alunos)</span>
+            </div>
+            <Button onClick={handleSave} className="w-full gap-2">
+              <Save className="h-4 w-4" /> {editItem ? "Salvar" : "Adicionar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

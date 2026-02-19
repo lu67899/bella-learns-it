@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
+import NativeVideoPlayer from "@/components/NativeVideoPlayer";
 
 // ── Types ──
 interface ContentItem {
@@ -241,7 +242,6 @@ function PlayerView({
   const [activeVideoUrl, setActiveVideoUrl] = useState(item.video_url || "");
   const [selectedEpId, setSelectedEpId] = useState<string | undefined>();
   const isNative = Capacitor.isNativePlatform();
-  const PROXY = `https://bold-block-8917.denysouzah7.workers.dev`;
 
   // Fetch episodes for series
   useEffect(() => {
@@ -319,9 +319,6 @@ function PlayerView({
   }, [item]);
 
   const url = activeVideoUrl;
-  const isDirectVideo = /\.(mp4|mkv|webm|avi|mov|ts)(\?.*)?$/i.test(url);
-  const isHttp = url.startsWith("http://");
-  const finalSrc = isHttp ? `${PROXY}?url=${encodeURIComponent(url)}` : url;
 
   const handleSelectEpisode = (ep: Episode) => {
     setActiveVideoUrl(ep.link);
@@ -344,31 +341,12 @@ function PlayerView({
         <X className="h-4 w-4" />
       </button>
 
-      {/* Video Area */}
-      <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0">
-        {isDirectVideo ? (
-          <video
-            key={finalSrc}
-            src={finalSrc}
-            controls
-            autoPlay
-            className="w-full h-full object-contain"
-            controlsList="nodownload"
-            playsInline
-          >
-            Seu navegador não suporta vídeo.
-          </video>
-        ) : url ? (
-          <iframe
-            key={url}
-            src={url}
-            className="w-full h-full"
-            allowFullScreen
-            allow="autoplay; encrypted-media; fullscreen"
-            style={{ border: "none" }}
-          />
+      {/* Video Area — uses NativeVideoPlayer (hls.js + HTML5) */}
+      <div className="w-full aspect-video bg-black flex-shrink-0 overflow-hidden">
+        {url ? (
+          <NativeVideoPlayer src={url} autoPlay />
         ) : (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center justify-center h-full gap-2">
             <Film className="h-8 w-8 text-white/20" />
             <p className="text-white/30 text-xs font-mono">Nenhum link disponível</p>
           </div>

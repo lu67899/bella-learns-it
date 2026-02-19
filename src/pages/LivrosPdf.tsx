@@ -82,9 +82,10 @@ const LivrosPdf = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
-        <BackButton to="/" />
+        <div className="space-y-5">
+          <BackButton to="/" />
 
-        <div className="space-y-1">
+          <div className="space-y-1">
           <h1 className="text-xl font-mono font-bold flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
             Biblioteca PDF
@@ -92,6 +93,7 @@ const LivrosPdf = () => {
           <p className="text-xs text-muted-foreground">
             {livros.length} livro{livros.length !== 1 ? "s" : ""} disponível{livros.length !== 1 ? "is" : ""}
           </p>
+        </div>
         </div>
 
         {/* Search */}

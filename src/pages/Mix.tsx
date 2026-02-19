@@ -182,7 +182,7 @@ const Mix = () => {
     <Layout>
       <motion.div variants={container} initial="hidden" animate="show" className="max-w-4xl mx-auto space-y-6 pb-20">
         <motion.div variants={item}>
-          <div className="mb-3">
+          <div className="mb-5">
             <BackButton to="/" />
           </div>
           <div className="flex items-center gap-2 mb-1">

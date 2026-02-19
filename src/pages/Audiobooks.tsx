@@ -156,7 +156,7 @@ const Audiobooks = () => {
       <motion.div variants={container} initial="hidden" animate="show" className={`max-w-2xl mx-auto space-y-6 ${hasPlayer ? "pb-32" : ""}`}>
         {/* Header */}
         <motion.div variants={item}>
-          <div className="mb-4">
+          <div className="mb-5">
             <BackButton onClick={handleBack} label={backLabel} />
           </div>
 

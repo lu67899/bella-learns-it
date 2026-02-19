@@ -153,7 +153,9 @@ const Quiz = () => {
   return (
     <Layout>
       <div className="max-w-sm mx-auto space-y-5">
-        <BackButton to="/jogos" />
+        <div className="mb-5">
+          <BackButton to="/jogos" />
+        </div>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-mono font-bold flex items-center gap-2">

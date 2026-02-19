@@ -53,7 +53,7 @@ const items = [
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
   { title: "Audiobooks", url: "/audiobooks", icon: Headphones },
   { title: "Livros PDF", url: "/livros-pdf", icon: BookOpen },
-  
+  { title: "Admin", url: "/admin", icon: Shield },
 ];
 
 const themeConfig = {

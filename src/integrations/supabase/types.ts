@@ -689,6 +689,39 @@ export type Database = {
           },
         ]
       }
+      jogos_iframe: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          icone: string | null
+          id: string
+          iframe_url: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          iframe_url: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          iframe_url?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       livros_pdf: {
         Row: {
           autor: string | null

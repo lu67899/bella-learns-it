@@ -17,7 +17,7 @@ import {
   Coins,
   ChevronRight,
   X,
-  
+  Gamepad2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -54,7 +54,7 @@ const items = [
   { title: "Anotações", url: "/anotacoes", icon: StickyNote },
   { title: "Audiobooks", url: "/audiobooks", icon: Headphones },
   { title: "Livros PDF", url: "/livros-pdf", icon: BookOpen },
-  
+  { title: "Jogos", url: "/jogos", icon: Gamepad2 },
   { title: "Admin", url: "/admin", icon: Shield },
 ];
 

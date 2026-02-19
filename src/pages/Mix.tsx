@@ -84,8 +84,8 @@ function VideoCard({ video, watched }: { video: Video; watched: boolean }) {
 
 function VideoSection({ title, videos, assistidos, onVerMais }: { title: string; videos: Video[]; assistidos: Set<string>; onVerMais: () => void }) {
   if (videos.length === 0) return null;
-  const preview = videos.slice(0, 3);
-  const hasMore = videos.length > 3;
+  const preview = videos.slice(0, 2);
+  const hasMore = videos.length > 2;
 
   return (
     <motion.div variants={item} className="space-y-2.5">

@@ -190,6 +190,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       }
       audio.play();
       setIsPlaying(true);
+      if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
     });
     audio.addEventListener("timeupdate", () => setCurrentTime(audio.currentTime));
     audio.addEventListener("ended", () => {

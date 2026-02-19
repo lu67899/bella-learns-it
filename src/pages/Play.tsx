@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { isNativeApp, fetchXtreamCatalogDirect, fetchXtreamEpisodesDirect } from "@/lib/xtreamClient";
+import { playWithNativePlayer } from "@/lib/nativePlayer";
 
 // ── Types ──
 interface ContentItem {
@@ -259,6 +260,7 @@ function PlayerView({
   const [retryCount, setRetryCount] = useState(0);
   const [useProxy, setUseProxy] = useState(false);
   const [videoLoading, setVideoLoading] = useState(true);
+  const [nativePlayerActive, setNativePlayerActive] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Fetch episodes for series
@@ -305,7 +307,23 @@ function PlayerView({
     setRetryCount(0);
     setUseProxy(false);
     setVideoLoading(true);
+    setNativePlayerActive(false);
   }, [activeVideoUrl]);
+
+  // Launch native player on native apps for direct video URLs
+  useEffect(() => {
+    if (!activeVideoUrl || !isNativeApp()) return;
+    const isDirect = /\.(mp4|mkv|webm|avi|mov|ts|m3u8)(\?.*)?$/i.test(activeVideoUrl);
+    if (!isDirect) return;
+
+    setNativePlayerActive(true);
+    playWithNativePlayer(activeVideoUrl, item.titulo).then((success) => {
+      if (!success) {
+        // Native player not available, fall back to HTML video
+        setNativePlayerActive(false);
+      }
+    });
+  }, [activeVideoUrl, item.titulo]);
 
   const url = activeVideoUrl;
   const isDirectVideo = /\.(mp4|mkv|webm|avi|mov|ts|m3u8)(\?.*)?$/i.test(url);
@@ -395,15 +413,25 @@ function PlayerView({
 
       {/* Video Area */}
       <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0 relative">
-        {videoLoading && isDirectVideo && !videoError && (
+        {nativePlayerActive ? (
+          <div className="flex flex-col items-center gap-3 px-6 text-center">
+            <PlayIcon className="h-10 w-10 text-primary/70" />
+            <p className="text-white/60 text-xs font-mono max-w-[280px]">
+              Reproduzindo no player nativo...
+            </p>
+            <p className="text-white/30 text-[10px] font-mono">
+              Selecione outro episódio abaixo
+            </p>
+          </div>
+        ) : videoLoading && isDirectVideo && !videoError ? (
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        )}
+        ) : null}
         
-        {videoError ? (
+        {!nativePlayerActive && videoError ? (
           <div className="flex flex-col items-center gap-3 px-6 text-center">
-            <AlertTriangle className="h-10 w-10 text-yellow-500/70" />
+            <AlertTriangle className="h-10 w-10 text-destructive/70" />
             <p className="text-white/60 text-xs font-mono max-w-[280px]">{videoError}</p>
             <button
               onClick={handleRetry}
@@ -413,7 +441,7 @@ function PlayerView({
               Tentar novamente
             </button>
           </div>
-        ) : isDirectVideo ? (
+        ) : !nativePlayerActive && isDirectVideo ? (
           <video
             ref={videoRef}
             key={videoSrc}
@@ -429,7 +457,7 @@ function PlayerView({
           >
             Seu navegador não suporta vídeo.
           </video>
-        ) : url ? (
+        ) : !nativePlayerActive && url ? (
           <iframe
             key={url}
             src={url}
@@ -438,12 +466,12 @@ function PlayerView({
             allow="autoplay; encrypted-media; fullscreen"
             style={{ border: 'none' }}
           />
-        ) : (
+        ) : !nativePlayerActive ? (
           <div className="flex flex-col items-center gap-2">
             <Film className="h-8 w-8 text-white/20" />
             <p className="text-white/30 text-xs font-mono">Nenhum link disponível</p>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Info + Episodes Panel */}

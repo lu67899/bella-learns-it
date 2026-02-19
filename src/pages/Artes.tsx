@@ -16,33 +16,26 @@ interface Artwork {
   date_display: string;
   medium_display: string;
   dimensions: string;
-  thumbnail: { alt_text: string } | null;
-  image_id: string | null;
-  description: string | null;
-  short_description: string | null;
-  place_of_origin: string | null;
-  department_title: string | null;
+  image_url: string;
+  image_url_large: string;
+  department: string;
+  culture: string;
+  period: string;
+  external_url: string;
 }
 
 const FAMOUS_ARTISTS = [
-  "Vincent van Gogh",
-  "Claude Monet",
-  "Pierre-Auguste Renoir",
-  "Édouard Manet",
-  "Paul Cézanne",
+  "Van Gogh",
+  "Monet",
+  "Renoir",
   "Rembrandt",
-  "Gustav Klimt",
-  "Georges Seurat",
-  "Edgar Degas",
-  "Camille Pissarro",
+  "Klimt",
+  "Degas",
+  "Cézanne",
+  "Vermeer",
+  "Caravaggio",
+  "Raphael",
 ];
-
-const IIIF_BASE = "https://www.artic.edu/iiif/2";
-
-function getImageUrl(imageId: string | null, width = 843) {
-  if (!imageId) return null;
-  return `${IIIF_BASE}/${imageId}/full/${width},/0/default.jpg`;
-}
 
 export default function Artes() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -55,26 +48,17 @@ export default function Artes() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchArt = async (pageNum: number, query?: string) => {
-    const fields = "id,title,artist_display,date_display,medium_display,dimensions,thumbnail,image_id,description,short_description,place_of_origin,department_title";
-
-    let apiUrl: string;
-    if (query) {
-      apiUrl = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(query)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
-    } else {
-      const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
-      apiUrl = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artist)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
-    }
-
     try {
+      const searchTerm = query || FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
+
       const { data: json, error } = await supabase.functions.invoke("art-proxy", {
-        body: { url: apiUrl },
+        body: { query: searchTerm, page: pageNum, limit: 12 },
       });
 
       if (error) throw error;
-      const filtered = (json?.data || []).filter((a: Artwork) => a.image_id);
       return {
-        data: filtered,
-        hasMore: json?.pagination?.total_pages > pageNum,
+        data: json?.data || [],
+        hasMore: json?.hasMore || false,
       };
     } catch (err) {
       console.error("Art API error:", err);
@@ -105,11 +89,6 @@ export default function Artes() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchQuery(search);
-  };
-
-  const stripHtml = (html: string | null) => {
-    if (!html) return null;
-    return html.replace(/<[^>]*>/g, "").trim();
   };
 
   return (
@@ -162,20 +141,12 @@ export default function Artes() {
                 >
                   <div className="aspect-[3/4] overflow-hidden bg-muted flex items-center justify-center">
                     <img
-                      src={getImageUrl(art.image_id, 600) || ""}
-                      alt={art.thumbnail?.alt_text || art.title}
+                      src={art.image_url}
+                      alt={art.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = "none";
-                        const parent = target.parentElement;
-                        if (parent && !parent.querySelector(".fallback-icon")) {
-                          const div = document.createElement("div");
-                          div.className = "fallback-icon flex flex-col items-center justify-center text-muted-foreground/40 gap-1";
-                          div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><span style="font-size:10px">Imagem indisponível</span>';
-                          parent.appendChild(div);
-                        }
+                        e.currentTarget.style.display = "none";
                       }}
                     />
                   </div>
@@ -219,19 +190,13 @@ export default function Artes() {
 
               <div className="rounded-xl overflow-hidden bg-muted">
                 <img
-                  src={getImageUrl(selected.image_id, 1686) || ""}
-                  alt={selected.thumbnail?.alt_text || selected.title}
+                  src={selected.image_url_large}
+                  alt={selected.title}
                   className="w-full h-auto"
                 />
               </div>
 
               <div className="space-y-3 text-sm">
-                {(selected.description || selected.short_description) && (
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    {stripHtml(selected.short_description || selected.description)}
-                  </p>
-                )}
-
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {selected.date_display && (
                     <div>
@@ -245,16 +210,22 @@ export default function Artes() {
                       <p className="text-foreground">{selected.medium_display}</p>
                     </div>
                   )}
-                  {selected.place_of_origin && (
+                  {selected.culture && (
                     <div>
-                      <p className="text-muted-foreground/60">Origem</p>
-                      <p className="text-foreground">{selected.place_of_origin}</p>
+                      <p className="text-muted-foreground/60">Cultura</p>
+                      <p className="text-foreground">{selected.culture}</p>
                     </div>
                   )}
-                  {selected.department_title && (
+                  {selected.department && (
                     <div>
                       <p className="text-muted-foreground/60">Departamento</p>
-                      <p className="text-foreground">{selected.department_title}</p>
+                      <p className="text-foreground">{selected.department}</p>
+                    </div>
+                  )}
+                  {selected.period && (
+                    <div>
+                      <p className="text-muted-foreground/60">Período</p>
+                      <p className="text-foreground">{selected.period}</p>
                     </div>
                   )}
                   {selected.dimensions && (
@@ -266,13 +237,13 @@ export default function Artes() {
                 </div>
 
                 <a
-                  href={`https://www.artic.edu/artworks/${selected.id}`}
+                  href={selected.external_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 >
                   <ExternalLink className="h-3 w-3" />
-                  Ver no Art Institute of Chicago
+                  Ver no Metropolitan Museum of Art
                 </a>
               </div>
             </>

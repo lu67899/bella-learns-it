@@ -146,6 +146,39 @@ export type Database = {
         }
         Relationships: []
       }
+      app_logs: {
+        Row: {
+          app_version: string | null
+          context: Json | null
+          created_at: string
+          id: string
+          level: string
+          message: string
+          platform: string | null
+          tag: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message: string
+          platform?: string | null
+          tag?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          platform?: string | null
+          tag?: string | null
+        }
+        Relationships: []
+      }
       assistant_config: {
         Row: {
           avatar_url: string | null

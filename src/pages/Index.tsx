@@ -55,6 +55,7 @@ interface Mensagem {
   created_at: string;
   reply_to: string | null;
   editado: boolean;
+  lida: boolean;
 }
 
 interface Notificacao {
@@ -82,6 +83,8 @@ const Index = () => {
   const [notifAberta, setNotifAberta] = useState(false);
   const [notifFiltro, setNotifFiltro] = useState<"nao_lidas" | "todas">("nao_lidas");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const firstUnreadRef = useRef<HTMLDivElement>(null);
+  const shouldScrollToBottom = useRef(false);
   const [overallProgress, setOverallProgress] = useState(0);
   const [desafiosCount, setDesafiosCount] = useState({ total: 0, respondidos: 0 });
   const [frases, setFrases] = useState<string[]>([]);
@@ -215,8 +218,10 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    if (chatAberto && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    if (!chatAberto) return;
+    if (shouldScrollToBottom.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      shouldScrollToBottom.current = false;
     }
   }, [mensagens, chatAberto]);
 
@@ -229,6 +234,14 @@ const Index = () => {
   const abrirChat = async () => {
     setChatAberto(true);
     setChatMinimizado(false);
+    // Scroll to first unread on next render, then mark as read
+    setTimeout(() => {
+      if (firstUnreadRef.current) {
+        firstUnreadRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        bottomRef.current?.scrollIntoView({ behavior: "auto" });
+      }
+    }, 100);
     setNaoLidas(0);
     await supabase.from("mensagens").update({ lida: true }).eq("remetente", "admin").eq("lida", false);
   };
@@ -237,6 +250,7 @@ const Index = () => {
     if (!novaMensagem.trim()) return;
     const texto = novaMensagem.trim();
     setNovaMensagem("");
+    shouldScrollToBottom.current = true;
 
     if (editingMsg) {
       const { error } = await supabase.from("mensagens").update({ conteudo: texto, editado: true }).eq("id", editingMsg.id);
@@ -571,12 +585,15 @@ const Index = () => {
                             <p className="text-[11px] text-muted-foreground/40">Nenhuma mensagem ainda</p>
                           </div>
                         )}
-                        {mensagens.map((msg) => {
+                        {(() => { let foundFirstUnread = false; return mensagens.map((msg) => {
                           const isUser = msg.remetente === "bella";
                           const replyMsg = getReplyPreview(msg.reply_to);
+                          const isFirstUnread = !foundFirstUnread && msg.remetente === "admin" && !msg.lida;
+                          if (isFirstUnread) foundFirstUnread = true;
                           return (
                             <motion.div
                               key={msg.id}
+                              ref={isFirstUnread ? firstUnreadRef : undefined}
                               className={`flex flex-col ${isUser ? "items-end" : "items-start"} relative group`}
                               drag="x"
                               dragConstraints={{ left: 0, right: 0 }}
@@ -678,7 +695,7 @@ const Index = () => {
                               </div>
                             </motion.div>
                           );
-                        })}
+                        }); })()}
                         <div ref={bottomRef} />
                       </div>
                     </ScrollArea>

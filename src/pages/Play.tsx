@@ -445,45 +445,79 @@ export default function PlayPage() {
   const [sessoes, setSessoes] = useState<Sessao[]>([]);
   const [plataformas, setPlataformas] = useState<Plataforma[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loadedCount, setLoadedCount] = useState(0);
 
   const [playSource, setPlaySource] = useState<string>("baserow");
+
+  const PAGE_SIZE = 500;
+
+  const fetchPage = async (source: string, offset: number, isFirst: boolean) => {
+    let data: any;
+
+    if (source === "xtream" && isNativeApp()) {
+      data = await fetchXtreamCatalogDirect(PAGE_SIZE, offset);
+    } else {
+      const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
+      const body = source === "xtream" ? { limit: PAGE_SIZE, offset } : undefined;
+      const { data: fnData, error: fnError } = await supabase.functions.invoke(functionName, { body });
+      if (fnError) throw fnError;
+      data = fnData;
+    }
+
+    if (data?.error) {
+      setError(data.error);
+    }
+
+    const newItems: ContentItem[] = data?.items || [];
+    const total = data?.total || newItems.length;
+
+    if (isFirst) {
+      setContent(newItems);
+      setCategorias(data?.categorias || []);
+      setSessoes(data?.sessoes || []);
+      setPlataformas(data?.plataformas || []);
+    } else {
+      setContent(prev => [...prev, ...newItems]);
+    }
+
+    setTotalItems(total);
+    setLoadedCount(prev => (isFirst ? newItems.length : prev + newItems.length));
+
+    return { total, loaded: newItems.length };
+  };
 
   useEffect(() => {
     async function fetchContent() {
       try {
         setLoading(true);
-        // Check which source to use
         const { data: configData } = await supabase.from("admin_config").select("play_source").eq("id", 1).single();
         const source = (configData as any)?.play_source || "baserow";
         setPlaySource(source);
 
-        let data: any;
-
-        // If Xtream + native app → call API directly (avoids Cloudflare block)
-        if (source === "xtream" && isNativeApp()) {
-          data = await fetchXtreamCatalogDirect();
-        } else {
-          const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
-          const { data: fnData, error: fnError } = await supabase.functions.invoke(functionName);
-          if (fnError) throw fnError;
-          data = fnData;
-        }
-        
-        // Check for API-level errors (e.g. Xtream auth issues)
-        if (data?.error) {
-          setError(data.error);
-          setContent(data.items || []);
-          setCategorias(data.categorias || []);
-          setSessoes(data.sessoes || []);
-          setPlataformas(data.plataformas || []);
+        // For non-xtream sources, load everything at once (they're smaller)
+        if (source !== "xtream") {
+          await fetchPage(source, 0, true);
           return;
         }
-        
-        setContent(data?.items || []);
-        setCategorias(data?.categorias || []);
-        setSessoes(data?.sessoes || []);
-        setPlataformas(data?.plataformas || []);
+
+        // For xtream, load first page then progressively load the rest
+        const { total, loaded } = await fetchPage(source, 0, true);
+
+        // Auto-load remaining pages in background
+        if (loaded < total) {
+          setLoadingMore(true);
+          let currentOffset = loaded;
+          while (currentOffset < total) {
+            await fetchPage(source, currentOffset, false);
+            currentOffset += PAGE_SIZE;
+            // Yield to UI thread
+            await new Promise(r => setTimeout(r, 50));
+          }
+          setLoadingMore(false);
+        }
       } catch (err: any) {
         console.error('Error fetching content:', err);
         setError('Erro ao carregar conteúdo');
@@ -645,6 +679,21 @@ export default function PlayPage() {
           <div className="flex flex-col items-center justify-center py-16 space-y-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground font-mono">Carregando catálogo...</p>
+            {totalItems > 0 && (
+              <p className="text-[10px] text-muted-foreground/60 font-mono">
+                {loadedCount} de {totalItems} títulos
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Loading more in background */}
+        {loadingMore && !loading && (
+          <div className="flex items-center justify-center gap-2 py-2">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <p className="text-xs text-muted-foreground font-mono">
+              Carregando mais... {loadedCount}/{totalItems}
+            </p>
           </div>
         )}
 

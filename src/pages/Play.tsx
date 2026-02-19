@@ -239,9 +239,17 @@ function PlayerView({
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loadingEps, setLoadingEps] = useState(false);
   const [showEpisodes, setShowEpisodes] = useState(false);
-  const [activeVideoUrl, setActiveVideoUrl] = useState(item.video_url || "");
+  // Para séries, URL começa vazia — será preenchida ao carregar episódios
+  const [activeVideoUrl, setActiveVideoUrl] = useState(
+    item.tipo === "serie" ? "" : (item.video_url || "")
+  );
   const [selectedEpId, setSelectedEpId] = useState<string | undefined>();
   const isNative = Capacitor.isNativePlatform();
+
+  // Debug: logar URL sempre que mudar
+  useEffect(() => {
+    console.log("[PlayerView] activeVideoUrl:", activeVideoUrl, "| tipo:", item.tipo, "| loadingEps:", loadingEps);
+  }, [activeVideoUrl, loadingEps]);
 
   // Fetch episodes for series
   useEffect(() => {

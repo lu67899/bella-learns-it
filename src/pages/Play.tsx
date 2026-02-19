@@ -296,10 +296,13 @@ function PlayerView({
   }, [item, playSource]);
 
   const url = activeVideoUrl;
-  const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
-  const isHttp = url.startsWith('http://');
+  const isDirectVideo = /\.(mp4|mkv|webm|avi|mov|ts|m3u8)(\?.*)?$/i.test(url);
   const proxyBase = `https://bold-block-8917.denysouzah7.workers.dev`;
-  const videoSrc = isDirectVideo && isHttp
+  
+  // For Xtream content, always proxy video URLs (CORS blocks direct access from browser)
+  // For native apps, no proxy needed (no CORS restrictions)
+  const needsProxy = isDirectVideo && !isNativeApp() && (url.startsWith('http://') || playSource === 'xtream');
+  const videoSrc = needsProxy
     ? `${proxyBase}?url=${encodeURIComponent(url)}`
     : url;
 

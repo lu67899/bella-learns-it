@@ -225,7 +225,7 @@ const PdfViewer = ({ url, title }: PdfViewerProps) => {
       {/* Canvas with swipe + tap zones */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto bg-muted/20 flex justify-center p-2 relative select-none touch-pan-y"
+        className="flex-1 overflow-auto bg-muted/20 flex justify-center relative select-none touch-pan-y"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

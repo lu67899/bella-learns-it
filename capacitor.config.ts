@@ -8,9 +8,15 @@ const config: CapacitorConfig = {
   //   url: 'https://80319d5d-d90f-48b9-a65e-3ebce5a3c0cb.lovableproject.com?forceHideBadge=true',
   //   cleartext: true,
   // },
+  server: {
+    // Allow HTTP (cleartext) traffic for Xtream IPTV streams
+    cleartext: true,
+    androidScheme: 'https',
+  },
   android: {
-    // Inject JS to aggressively block autofill popups
     webContentsDebuggingEnabled: false,
+    // Allow mixed content (HTTPS page loading HTTP video streams)
+    allowMixedContent: true,
   },
 };
 

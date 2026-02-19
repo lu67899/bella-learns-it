@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Palette, ExternalLink, ChevronDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Artwork {
   id: number;
@@ -56,22 +57,24 @@ export default function Artes() {
   const fetchArt = async (pageNum: number, query?: string) => {
     const fields = "id,title,artist_display,date_display,medium_display,dimensions,thumbnail,image_id,description,short_description,place_of_origin,department_title";
 
-    let url: string;
+    let apiUrl: string;
     if (query) {
-      url = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(query)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
+      apiUrl = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(query)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
     } else {
       const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
-      url = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artist)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
+      apiUrl = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artist)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
     }
 
     try {
-      const res = await fetch(url);
-      const json = await res.json();
-      console.log("Art API response:", json?.data?.length, "items");
-      const filtered = (json.data || []).filter((a: Artwork) => a.image_id);
+      const { data: json, error } = await supabase.functions.invoke("art-proxy", {
+        body: { url: apiUrl },
+      });
+
+      if (error) throw error;
+      const filtered = (json?.data || []).filter((a: Artwork) => a.image_id);
       return {
         data: filtered,
-        hasMore: json.pagination?.total_pages > pageNum,
+        hasMore: json?.pagination?.total_pages > pageNum,
       };
     } catch (err) {
       console.error("Art API error:", err);

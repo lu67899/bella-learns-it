@@ -23,9 +23,13 @@ export type Database = {
           logo_url: string | null
           nome: string
           nome_app: string
+          play_source: string
           subtitulo: string
           updated_at: string
           weather_api_key: string | null
+          xtream_password: string | null
+          xtream_url: string | null
+          xtream_username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -35,9 +39,13 @@ export type Database = {
           logo_url?: string | null
           nome?: string
           nome_app?: string
+          play_source?: string
           subtitulo?: string
           updated_at?: string
           weather_api_key?: string | null
+          xtream_password?: string | null
+          xtream_url?: string | null
+          xtream_username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -47,9 +55,13 @@ export type Database = {
           logo_url?: string | null
           nome?: string
           nome_app?: string
+          play_source?: string
           subtitulo?: string
           updated_at?: string
           weather_api_key?: string | null
+          xtream_password?: string | null
+          xtream_url?: string | null
+          xtream_username?: string | null
         }
         Relationships: []
       }

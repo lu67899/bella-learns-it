@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import BackButton from "@/components/BackButton";
-import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones, Bell, Copy, ArrowLeft } from "lucide-react";
+import { Shield, BookOpen, BrainCircuit, Plus, Edit2, Trash2, LogOut, Lock, MessageCircle, Send, GraduationCap, ArrowUp, ArrowDown, Trophy, Sparkles, Tag, Library, PlayCircle, User, Upload, Bot, Image, Video, Clock, ChevronLeft, Award, Loader2, Reply, Pencil, Check, X, Gamepad2, Wand2, Eye, Save, Headphones, Bell, Copy, ArrowLeft, Server } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta",
 type AdminSection = 
   | "dashboard" | "cursos" | "modulos" | "materias" | "resumos" 
   | "quiz" | "forca" | "memoria" | "cruzadas" | "ordenar" | "videos" | "desafios" | "frases" 
-  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks" | "livros-pdf" | "jogos-iframe";
+  | "mensagens" | "perfil" | "belinha" | "certificados" | "resgates" | "gerador-ia" | "audiobooks" | "livros-pdf" | "jogos-iframe" | "play-config";
 
 const adminSections = [
   {
@@ -76,6 +76,7 @@ const adminSections = [
   {
     group: "⚙️ Configurações",
     items: [
+      { key: "play-config" as AdminSection, label: "Play", icon: PlayCircle, desc: "Fonte de conteúdo (Baserow / IPTV)" },
       { key: "certificados" as AdminSection, label: "Certificados", icon: Award, desc: "Solicitações e config" },
       { key: "resgates" as AdminSection, label: "Resgates", icon: Award, desc: "Solicitações de resgate PIX" },
       { key: "perfil" as AdminSection, label: "Perfil Admin", icon: User, desc: "Nome e foto do admin" },
@@ -230,6 +231,7 @@ const Admin = () => {
       case "audiobooks": return <AudiobooksTab />;
       case "livros-pdf": return <LivrosPdfTab />;
       case "jogos-iframe": return <JogosIframeTab />;
+      case "play-config": return <PlayConfigTab />;
       default: return null;
     }
   };
@@ -1873,6 +1875,132 @@ function AdminConfigTab() {
             }} size="sm">Salvar</Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── PLAY CONFIG TAB ─────────────────────────────────────
+function PlayConfigTab() {
+  const [playSource, setPlaySource] = useState<"baserow" | "xtream">("baserow");
+  const [xtreamUrl, setXtreamUrl] = useState("");
+  const [xtreamUser, setXtreamUser] = useState("");
+  const [xtreamPass, setXtreamPass] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("admin_config").select("play_source, xtream_url, xtream_username, xtream_password").eq("id", 1).single();
+      if (data) {
+        setPlaySource(((data as any).play_source || "baserow") as "baserow" | "xtream");
+        setXtreamUrl((data as any).xtream_url || "");
+        setXtreamUser((data as any).xtream_username || "");
+        setXtreamPass((data as any).xtream_password || "");
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    await supabase.from("admin_config").update({
+      play_source: playSource,
+      xtream_url: xtreamUrl.trim() || null,
+      xtream_username: xtreamUser.trim() || null,
+      xtream_password: xtreamPass.trim() || null,
+    } as any).eq("id", 1);
+    setSaving(false);
+    toast.success("Configurações do Play salvas!");
+  };
+
+  if (loading) return <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>;
+
+  return (
+    <Card className="bg-card border-border mt-4">
+      <CardHeader>
+        <CardTitle className="font-mono text-lg flex items-center gap-2">
+          <PlayCircle className="h-5 w-5 text-primary" /> Configurações do Play
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Source selector */}
+        <div className="space-y-3">
+          <p className="text-sm font-medium">Fonte de conteúdo</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setPlaySource("baserow")}
+              className={`flex flex-col items-start gap-2 p-4 rounded-xl border transition-all text-left ${
+                playSource === "baserow"
+                  ? "border-primary/50 bg-primary/10 ring-1 ring-primary/30"
+                  : "border-border bg-card hover:border-primary/30"
+              }`}
+            >
+              <Library className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-mono font-semibold">Baserow</p>
+                <p className="text-[11px] text-muted-foreground">Catálogo manual via Baserow</p>
+              </div>
+            </button>
+            <button
+              onClick={() => setPlaySource("xtream")}
+              className={`flex flex-col items-start gap-2 p-4 rounded-xl border transition-all text-left ${
+                playSource === "xtream"
+                  ? "border-primary/50 bg-primary/10 ring-1 ring-primary/30"
+                  : "border-border bg-card hover:border-primary/30"
+              }`}
+            >
+              <Server className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-mono font-semibold">Xtream / IPTV</p>
+                <p className="text-[11px] text-muted-foreground">Servidor IPTV com Xtream Codes</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Xtream fields */}
+        {playSource === "xtream" && (
+          <div className="space-y-4 pt-2 border-t border-border">
+            <p className="text-sm font-medium">Dados do servidor Xtream</p>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">URL do servidor</label>
+                <Input
+                  value={xtreamUrl}
+                  onChange={(e) => setXtreamUrl(e.target.value)}
+                  placeholder="http://servidor.com:8080"
+                  className="font-mono text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Usuário</label>
+                <Input
+                  value={xtreamUser}
+                  onChange={(e) => setXtreamUser(e.target.value)}
+                  placeholder="usuario"
+                  className="font-mono text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Senha</label>
+                <Input
+                  value={xtreamPass}
+                  onChange={(e) => setXtreamPass(e.target.value)}
+                  placeholder="senha"
+                  type="password"
+                  className="font-mono text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Button onClick={save} disabled={saving} className="w-full gap-2">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Salvar configurações
+        </Button>
       </CardContent>
     </Card>
   );

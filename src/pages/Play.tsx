@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
 import BackButton from "@/components/BackButton";
 import { Play as PlayIcon, Star, Search, X, Film, Tv, Loader2, ChevronDown, List, ChevronLeft, ChevronRight, Server } from "lucide-react";
@@ -243,18 +243,6 @@ function PlayerView({
   const isNative = Capacitor.isNativePlatform();
   const PROXY = `https://bold-block-8917.denysouzah7.workers.dev`;
 
-  // On native: open with Android system intent (avoids capgo/Cast crash)
-  const openNative = useCallback((videoUrl: string) => {
-    if (videoUrl) window.open(videoUrl, "_system");
-  }, []);
-
-  // Auto-open native player for movies
-  useEffect(() => {
-    if (isNative && item.tipo === "filme" && item.video_url) {
-      openNative(item.video_url);
-    }
-  }, []);
-
   // Fetch episodes for series
   useEffect(() => {
     if (item.tipo !== "serie") return;
@@ -290,7 +278,6 @@ function PlayerView({
               setActiveVideoUrl(eps[0].link);
               setSelectedEpId(eps[0].id);
               setShowEpisodes(true);
-              openNative(eps[0].link);
             }
           } else {
             const { data: fnData } = await supabase.functions.invoke("xtream-catalog", {
@@ -339,7 +326,6 @@ function PlayerView({
   const handleSelectEpisode = (ep: Episode) => {
     setActiveVideoUrl(ep.link);
     setSelectedEpId(ep.id);
-    if (isNative) openNative(ep.link);
   };
 
   return (
@@ -360,23 +346,7 @@ function PlayerView({
 
       {/* Video Area */}
       <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0">
-        {isNative ? (
-          /* On native: show info card + button to reopen in system player */
-          <div className="flex flex-col items-center gap-4 p-6 text-center">
-            {item.capa_url ? (
-              <img src={item.capa_url} alt={item.titulo} className="h-24 w-16 object-cover rounded-lg opacity-60" />
-            ) : (
-              <Film className="h-12 w-12 text-white/20" />
-            )}
-            <p className="text-white/50 text-xs font-mono">Abrindo no player do sistema...</p>
-            <button
-              onClick={() => openNative(url)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-mono font-semibold"
-            >
-              <PlayIcon className="h-3.5 w-3.5" /> Abrir Player
-            </button>
-          </div>
-        ) : isDirectVideo ? (
+        {isDirectVideo ? (
           <video
             key={finalSrc}
             src={finalSrc}

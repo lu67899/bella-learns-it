@@ -35,7 +35,7 @@ import Auth from "./pages/Auth";
 import Notificacoes from "./pages/Notificacoes";
 import PlayPage from "./pages/Play";
 import Clima from "./pages/Clima";
-import Artes from "./pages/Artes";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,7 +84,7 @@ const AppRoutes = () => (
     <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
     <Route path="/play" element={<ProtectedRoute><PlayPage /></ProtectedRoute>} />
     <Route path="/clima" element={<ProtectedRoute><Clima /></ProtectedRoute>} />
-    <Route path="/artes" element={<ProtectedRoute><Artes /></ProtectedRoute>} />
+    
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

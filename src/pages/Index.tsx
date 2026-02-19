@@ -414,7 +414,7 @@ const Index = () => {
               { label: "Jogos", to: "/jogos", icon: "🎮", type: "emoji" as const },
               { label: "Mix", to: "/mix", icon: PlayCircle, type: "icon" as const },
               
-              { label: "Belinha", to: "/belinha", icon: Bot, type: "icon" as const },
+              { label: "Bellinha", to: "/belinha", icon: Bot, type: "icon" as const },
             ].map((a) => {
               const IconComponent = a.type === "icon" ? a.icon as React.ComponentType<{ className?: string }> : null;
               return (

@@ -14,7 +14,7 @@ function updateMediaSession(book: { titulo: string; autor: string | null; capa_u
   navigator.mediaSession.metadata = new MediaMetadata({
     title: book.titulo,
     artist: book.autor || "Audiobook",
-    album: "Bella Estuda",
+    album: "Bella Space",
     artwork: book.capa_url ? [{ src: book.capa_url, sizes: "512x512", type: "image/jpeg" }] : [],
   });
   if (handlers.play) navigator.mediaSession.setActionHandler("play", handlers.play);

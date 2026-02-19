@@ -39,12 +39,12 @@ async function streamChat({
 
   if (!resp.ok) {
     const data = await resp.json().catch(() => ({}));
-    onError(data.error || "Erro ao conectar com a Belinha");
+    onError(data.error || "Erro ao conectar com a Bellinha");
     return;
   }
 
   if (!resp.body) {
-    onError("Sem resposta da Belinha");
+    onError("Sem resposta da Bellinha");
     return;
   }
 
@@ -143,7 +143,7 @@ const BelinhaAvatar = ({ avatarUrl, size = "sm" }: { avatarUrl: string | null; s
   const dims = size === "xl" ? "h-20 w-20" : size === "lg" ? "h-12 w-12" : "h-7 w-7";
   const iconDims = size === "xl" ? "h-8 w-8" : size === "lg" ? "h-6 w-6" : "h-3.5 w-3.5";
   if (avatarUrl) {
-    return <img src={avatarUrl} alt="Belinha" className={`${dims} rounded-full object-cover shrink-0`} />;
+    return <img src={avatarUrl} alt="Bellinha" className={`${dims} rounded-full object-cover shrink-0`} />;
   }
   return (
     <div className={`flex ${dims} shrink-0 items-center justify-center rounded-full bg-primary/20`}>
@@ -241,7 +241,7 @@ const Belinha = () => {
               size="lg"
             />
             <button onClick={() => setShowProfile(true)} className="text-left hover:opacity-80 transition-opacity">
-              <h1 className="font-mono font-bold text-lg">Belinha</h1>
+              <h1 className="font-mono font-bold text-lg">Bellinha</h1>
               <p className="text-[10px] text-muted-foreground">Toque para ver informações</p>
             </button>
           </div>
@@ -283,7 +283,7 @@ const Belinha = () => {
                 <BelinhaAvatar avatarUrl={avatarUrl} size="xl" />
               </div>
               <div className="text-center space-y-0.5">
-                <h2 className="font-mono font-bold text-lg tracking-tight">Belinha</h2>
+                <h2 className="font-mono font-bold text-lg tracking-tight">Bellinha</h2>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Assistente de estudos</p>
               </div>
             </div>

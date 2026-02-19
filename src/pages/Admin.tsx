@@ -69,7 +69,7 @@ const adminSections = [
     group: "🤖 Inteligência Artificial",
     items: [
       { key: "gerador-ia" as AdminSection, label: "Gerar Conteúdo", icon: Wand2, desc: "Criar cursos e tópicos com IA" },
-      { key: "belinha" as AdminSection, label: "Belinha IA", icon: Bot, desc: "Assistente e stories" },
+      { key: "belinha" as AdminSection, label: "Bellinha IA", icon: Bot, desc: "Assistente e stories" },
     ],
   },
   {
@@ -1937,7 +1937,7 @@ function BelinhaConfigTab() {
     await supabase.from("assistant_config").update({ avatar_url: url }).eq("id", 1);
     setAvatarUrl(url);
     setUploading(false);
-    toast.success("Foto da Belinha atualizada!");
+    toast.success("Foto da Bellinha atualizada!");
   };
 
   const save = async () => {
@@ -1950,7 +1950,7 @@ function BelinhaConfigTab() {
     if (configRes.error || keysRes.error) {
       toast.error("Erro ao salvar configuração");
     } else {
-      toast.success("Configuração da Belinha salva!");
+      toast.success("Configuração da Bellinha salva!");
     }
   };
 
@@ -1960,7 +1960,7 @@ function BelinhaConfigTab() {
     <Card className="bg-card border-border mt-4">
       <CardHeader>
         <CardTitle className="font-mono text-lg flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" /> Configuração da Belinha
+          <Bot className="h-5 w-5 text-primary" /> Configuração da Bellinha
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -1968,7 +1968,7 @@ function BelinhaConfigTab() {
         <div className="flex items-center gap-4">
           <div className="relative">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Belinha" className="h-16 w-16 rounded-full object-cover border-2 border-primary/30" />
+              <img src={avatarUrl} alt="Bellinha" className="h-16 w-16 rounded-full object-cover border-2 border-primary/30" />
             ) : (
               <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center border-2 border-border">
                 <Bot className="h-8 w-8 text-muted-foreground" />
@@ -1976,7 +1976,7 @@ function BelinhaConfigTab() {
             )}
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium">Foto de perfil da Belinha</p>
+            <p className="text-sm font-medium">Foto de perfil da Bellinha</p>
             <p className="text-xs text-muted-foreground">Aparece no chat como avatar da assistente</p>
             <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-primary hover:underline">
               <Upload className="h-3 w-3" />
@@ -2117,7 +2117,7 @@ function BelinhaConfigTab() {
         <div className="space-y-2">
           <p className="text-sm font-medium">Recado</p>
           <p className="text-xs text-muted-foreground">
-            Mensagem exibida no perfil da Belinha quando o usuário toca no nome dela.
+            Mensagem exibida no perfil da Bellinha quando o usuário toca no nome dela.
           </p>
           <Textarea
             value={recado}
@@ -2130,13 +2130,13 @@ function BelinhaConfigTab() {
         <div className="space-y-2">
           <p className="text-sm font-medium">Prompt do sistema</p>
           <p className="text-xs text-muted-foreground">
-            Define a personalidade e o comportamento da Belinha. Seja específica sobre como ela deve responder.
+            Define a personalidade e o comportamento da Bellinha. Seja específica sobre como ela deve responder.
           </p>
           <Textarea
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
             rows={10}
-            placeholder="Você é a Belinha, uma assistente de estudos..."
+            placeholder="Você é a Bellinha, uma assistente de estudos..."
           />
         </div>
 
@@ -2216,7 +2216,7 @@ function BelinhaStoriesManager() {
   return (
     <div className="space-y-4 border-t border-border pt-6">
       <div>
-        <p className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4" /> Stories da Belinha</p>
+        <p className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4" /> Stories da Bellinha</p>
         <p className="text-xs text-muted-foreground">Publique imagens ou vídeos que desaparecem em 24h</p>
       </div>
 

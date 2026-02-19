@@ -1,12 +1,11 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import BackButton from "@/components/BackButton";
-import { Play as PlayIcon, Star, Search, X, Film, Tv, Loader2, ChevronDown, List, RefreshCw, AlertTriangle } from "lucide-react";
+import { Play as PlayIcon, Star, Search, X, Film, Tv, Loader2, ChevronDown, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { isNativeApp, fetchXtreamCatalogDirect, fetchXtreamEpisodesDirect } from "@/lib/xtreamClient";
 
 // ── Types ──
 interface ContentItem {
@@ -244,133 +243,40 @@ function EpisodesList({
 function PlayerView({
   item,
   onClose,
-  playSource,
 }: {
   item: ContentItem;
   onClose: () => void;
-  playSource: string;
 }) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loadingEps, setLoadingEps] = useState(false);
   const [showEpisodes, setShowEpisodes] = useState(false);
   const [activeVideoUrl, setActiveVideoUrl] = useState(item.video_url || '');
   const [selectedEpId, setSelectedEpId] = useState<string | undefined>();
-  const [videoError, setVideoError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [useProxy, setUseProxy] = useState(false);
-  const [videoLoading, setVideoLoading] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Fetch episodes for series
   useEffect(() => {
     if (item.tipo !== 'serie') return;
     setLoadingEps(true);
-
-    if (playSource === 'xtream') {
-      const seriesId = item.id.replace('series_', '');
-      
-      const fetchEps = isNativeApp()
-        ? fetchXtreamEpisodesDirect(seriesId)
-        : supabase.functions.invoke('xtream-content', {
-            body: { action: 'episodes', series_id: seriesId },
-          }).then(({ data }) => data);
-
-      fetchEps.then((data: any) => {
-        const eps = data?.episodes || [];
-        setEpisodes(eps);
-        if (eps.length > 0) {
-          setActiveVideoUrl(eps[0].link);
-          setSelectedEpId(eps[0].id);
-          setShowEpisodes(true);
-        }
-      }).finally(() => setLoadingEps(false));
-    } else {
-      supabase.functions.invoke('baserow-content', {
-        body: { action: 'episodes', serie_name: item.titulo },
-      }).then(({ data }) => {
-        const eps = data?.episodes || [];
-        setEpisodes(eps);
-        if (eps.length > 0) {
-          setActiveVideoUrl(eps[0].link);
-          setSelectedEpId(eps[0].id);
-          setShowEpisodes(true);
-        }
-      }).finally(() => setLoadingEps(false));
-    }
-  }, [item, playSource]);
-
-  // Reset error state when URL changes
-  useEffect(() => {
-    setVideoError(null);
-    setRetryCount(0);
-    setUseProxy(false);
-    setVideoLoading(true);
-  }, [activeVideoUrl]);
+    supabase.functions.invoke('baserow-content', {
+      body: { action: 'episodes', serie_name: item.titulo },
+    }).then(({ data }) => {
+      const eps = data?.episodes || [];
+      setEpisodes(eps);
+      if (eps.length > 0) {
+        setActiveVideoUrl(eps[0].link);
+        setSelectedEpId(eps[0].id);
+        setShowEpisodes(true);
+      }
+    }).finally(() => setLoadingEps(false));
+  }, [item]);
 
   const url = activeVideoUrl;
-  const isDirectVideo = /\.(mp4|mkv|webm|avi|mov|ts|m3u8)(\?.*)?$/i.test(url);
+  const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
+  const isHttp = url.startsWith('http://');
   const proxyBase = `https://bold-block-8917.denysouzah7.workers.dev`;
-  
-  // Build video source with fallback strategy:
-  // 1. Native app: try direct URL first, fallback to video-proxy edge function
-  // 2. Web: always use Cloudflare Worker proxy for Xtream content
-  const getVideoSrc = useCallback(() => {
-    if (!isDirectVideo || !url) return url;
-    
-    // Web browser: always proxy Xtream content
-    if (!isNativeApp()) {
-      if (url.startsWith('http://') || playSource === 'xtream') {
-        return `${proxyBase}?url=${encodeURIComponent(url)}`;
-      }
-      return url;
-    }
-    
-    // Native app: try direct first, fallback to video-proxy edge function
-    if (useProxy) {
-      const supabaseUrl = (window as any).__SUPABASE_URL__ || import.meta.env.VITE_SUPABASE_URL || 'https://fizcmvavzgoaznzindwl.supabase.co';
-      return `${supabaseUrl}/functions/v1/video-proxy?url=${encodeURIComponent(url)}`;
-    }
-    
-    return url;
-  }, [url, isDirectVideo, useProxy, playSource, proxyBase]);
-
-  const videoSrc = getVideoSrc();
-
-  const handleVideoError = useCallback(() => {
-    setVideoLoading(false);
-    
-    // Strategy: on first error in native app, try proxy fallback
-    if (isNativeApp() && !useProxy && retryCount === 0) {
-      console.log('[Player] Direct URL failed, trying proxy fallback...');
-      setUseProxy(true);
-      setRetryCount(1);
-      return;
-    }
-    
-    // If proxy also failed or we're on web, show error
-    const errorMsg = isNativeApp()
-      ? 'Não foi possível reproduzir este vídeo. O formato pode não ser suportado pelo dispositivo.'
-      : 'Não foi possível reproduzir este vídeo. Verifique sua conexão.';
-    setVideoError(errorMsg);
-  }, [useProxy, retryCount]);
-
-  const handleRetry = useCallback(() => {
-    setVideoError(null);
-    setVideoLoading(true);
-    setRetryCount(0);
-    setUseProxy(false);
-    // Force re-mount by toggling a key
-    setActiveVideoUrl(prev => {
-      // Trigger re-render
-      setTimeout(() => setActiveVideoUrl(url), 50);
-      return '';
-    });
-  }, [url]);
-
-  const handleVideoLoaded = useCallback(() => {
-    setVideoLoading(false);
-    setVideoError(null);
-  }, []);
+  const videoSrc = isDirectVideo && isHttp
+    ? `${proxyBase}?url=${encodeURIComponent(url)}`
+    : url;
 
   const handleSelectEpisode = (ep: Episode) => {
     setActiveVideoUrl(ep.link);
@@ -394,28 +300,9 @@ function PlayerView({
       </button>
 
       {/* Video Area */}
-      <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0 relative">
-        {videoLoading && isDirectVideo && !videoError && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-        
-        {videoError ? (
-          <div className="flex flex-col items-center gap-3 px-6 text-center">
-            <AlertTriangle className="h-10 w-10 text-yellow-500/70" />
-            <p className="text-white/60 text-xs font-mono max-w-[280px]">{videoError}</p>
-            <button
-              onClick={handleRetry}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/20 text-primary text-xs font-mono hover:bg-primary/30 active:scale-95 transition-all ring-1 ring-primary/30"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              Tentar novamente
-            </button>
-          </div>
-        ) : isDirectVideo ? (
+      <div className="w-full aspect-video bg-black flex items-center justify-center flex-shrink-0">
+        {isDirectVideo ? (
           <video
-            ref={videoRef}
             key={videoSrc}
             src={videoSrc}
             controls
@@ -423,9 +310,6 @@ function PlayerView({
             className="w-full h-full object-contain"
             controlsList="nodownload"
             playsInline
-            onError={handleVideoError}
-            onLoadedData={handleVideoLoaded}
-            onCanPlay={handleVideoLoaded}
           >
             Seu navegador não suporta vídeo.
           </video>
@@ -536,79 +420,18 @@ export default function PlayPage() {
   const [sessoes, setSessoes] = useState<Sessao[]>([]);
   const [plataformas, setPlataformas] = useState<Plataforma[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [loadedCount, setLoadedCount] = useState(0);
-
-  const [playSource, setPlaySource] = useState<string>("baserow");
-
-  const PAGE_SIZE = 500;
-
-  const fetchPage = async (source: string, offset: number, isFirst: boolean) => {
-    let data: any;
-
-    if (source === "xtream" && isNativeApp()) {
-      data = await fetchXtreamCatalogDirect(PAGE_SIZE, offset);
-    } else {
-      const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
-      const body = source === "xtream" ? { limit: PAGE_SIZE, offset } : undefined;
-      const { data: fnData, error: fnError } = await supabase.functions.invoke(functionName, { body });
-      if (fnError) throw fnError;
-      data = fnData;
-    }
-
-    if (data?.error) {
-      setError(data.error);
-    }
-
-    const newItems: ContentItem[] = data?.items || [];
-    const total = data?.total || newItems.length;
-
-    if (isFirst) {
-      setContent(newItems);
-      setCategorias(data?.categorias || []);
-      setSessoes(data?.sessoes || []);
-      setPlataformas(data?.plataformas || []);
-    } else {
-      setContent(prev => [...prev, ...newItems]);
-    }
-
-    setTotalItems(total);
-    setLoadedCount(prev => (isFirst ? newItems.length : prev + newItems.length));
-
-    return { total, loaded: newItems.length };
-  };
 
   useEffect(() => {
     async function fetchContent() {
       try {
         setLoading(true);
-        const { data: configData } = await supabase.from("admin_config").select("play_source").eq("id", 1).single();
-        const source = (configData as any)?.play_source || "baserow";
-        setPlaySource(source);
-
-        // For non-xtream sources, load everything at once (they're smaller)
-        if (source !== "xtream") {
-          await fetchPage(source, 0, true);
-          return;
-        }
-
-        // For xtream, load first page then progressively load the rest
-        const { total, loaded } = await fetchPage(source, 0, true);
-
-        // Auto-load remaining pages in background
-        if (loaded < total) {
-          setLoadingMore(true);
-          let currentOffset = loaded;
-          while (currentOffset < total) {
-            await fetchPage(source, currentOffset, false);
-            currentOffset += PAGE_SIZE;
-            // Yield to UI thread
-            await new Promise(r => setTimeout(r, 50));
-          }
-          setLoadingMore(false);
-        }
+        const { data, error: fnError } = await supabase.functions.invoke('baserow-content');
+        if (fnError) throw fnError;
+        setContent(data.items || []);
+        setCategorias(data.categorias || []);
+        setSessoes(data.sessoes || []);
+        setPlataformas(data.plataformas || []);
       } catch (err: any) {
         console.error('Error fetching content:', err);
         setError('Erro ao carregar conteúdo');
@@ -770,21 +593,6 @@ export default function PlayPage() {
           <div className="flex flex-col items-center justify-center py-16 space-y-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground font-mono">Carregando catálogo...</p>
-            {totalItems > 0 && (
-              <p className="text-[10px] text-muted-foreground/60 font-mono">
-                {loadedCount} de {totalItems} títulos
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Loading more in background */}
-        {loadingMore && !loading && (
-          <div className="flex items-center justify-center gap-2 py-2">
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <p className="text-xs text-muted-foreground font-mono">
-              Carregando mais... {loadedCount}/{totalItems}
-            </p>
           </div>
         )}
 
@@ -849,7 +657,7 @@ export default function PlayPage() {
 
       <AnimatePresence>
         {selected && (
-          <PlayerView item={selected} onClose={() => setSelected(null)} playSource={playSource} />
+          <PlayerView item={selected} onClose={() => setSelected(null)} />
         )}
       </AnimatePresence>
     </Layout>

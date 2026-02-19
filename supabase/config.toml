@@ -27,6 +27,3 @@ verify_jwt = false
 [functions.pdf-proxy]
 verify_jwt = false
 
-[functions.xtream-content]
-verify_jwt = false
-

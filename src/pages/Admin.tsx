@@ -1675,10 +1675,6 @@ function AdminConfigTab() {
   const [subtitulo, setSubtitulo] = useState("Plataforma de estudos");
   const [codigoAuth, setCodigoAuth] = useState("");
   const [weatherApiKey, setWeatherApiKey] = useState("");
-  const [playSource, setPlaySource] = useState("baserow");
-  const [xtreamUrl, setXtreamUrl] = useState("");
-  const [xtreamUsername, setXtreamUsername] = useState("");
-  const [xtreamPassword, setXtreamPassword] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1693,10 +1689,6 @@ function AdminConfigTab() {
       setSubtitulo((data as any).subtitulo || "Plataforma de estudos");
       setCodigoAuth((data as any).codigo_autorizacao || "");
       setWeatherApiKey((data as any).weather_api_key || "");
-      setPlaySource((data as any).play_source || "baserow");
-      setXtreamUrl((data as any).xtream_url || "");
-      setXtreamUsername((data as any).xtream_username || "");
-      setXtreamPassword((data as any).xtream_password || "");
     }
     setLoading(false);
   };
@@ -1880,63 +1872,6 @@ function AdminConfigTab() {
               toast.success("API key de clima atualizada!");
             }} size="sm">Salvar</Button>
           </div>
-        </div>
-
-        {/* ── Play Source (Xtream / Baserow) ── */}
-        <div className="space-y-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-2">
-            <PlayCircle className="h-5 w-5 text-primary" />
-            <p className="text-sm font-semibold">Fonte do Catálogo Play</p>
-          </div>
-          <p className="text-xs text-muted-foreground">Escolha de onde o app carrega filmes e séries</p>
-
-          <div className="flex gap-2">
-            <Button
-              variant={playSource === "baserow" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPlaySource("baserow")}
-              className="gap-1.5"
-            >
-              📊 Baserow
-            </Button>
-            <Button
-              variant={playSource === "xtream" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPlaySource("xtream")}
-              className="gap-1.5"
-            >
-              📡 Xtream Codes
-            </Button>
-          </div>
-
-          {playSource === "xtream" && (
-            <div className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border">
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium">URL do servidor</p>
-                <Input value={xtreamUrl} onChange={(e) => setXtreamUrl(e.target.value)} placeholder="http://servidor:porta" className="max-w-md" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium">Usuário</p>
-                <Input value={xtreamUsername} onChange={(e) => setXtreamUsername(e.target.value)} placeholder="Usuário do Xtream" className="max-w-md" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium">Senha</p>
-                <Input value={xtreamPassword} onChange={(e) => setXtreamPassword(e.target.value)} placeholder="Senha do Xtream" className="max-w-md" type="password" />
-              </div>
-            </div>
-          )}
-
-          <Button onClick={async () => {
-            await supabase.from("admin_config").update({
-              play_source: playSource,
-              xtream_url: xtreamUrl.trim() || null,
-              xtream_username: xtreamUsername.trim() || null,
-              xtream_password: xtreamPassword.trim() || null,
-            } as any).eq("id", 1);
-            toast.success("Configuração do Play atualizada!");
-          }} size="sm" className="gap-1.5">
-            <Save className="h-3.5 w-3.5" /> Salvar configuração Play
-          </Button>
         </div>
       </CardContent>
     </Card>

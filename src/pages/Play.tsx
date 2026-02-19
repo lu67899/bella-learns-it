@@ -243,9 +243,11 @@ function EpisodesList({
 function PlayerView({
   item,
   onClose,
+  playSource,
 }: {
   item: ContentItem;
   onClose: () => void;
+  playSource: string;
 }) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loadingEps, setLoadingEps] = useState(false);
@@ -257,18 +259,35 @@ function PlayerView({
   useEffect(() => {
     if (item.tipo !== 'serie') return;
     setLoadingEps(true);
-    supabase.functions.invoke('baserow-content', {
-      body: { action: 'episodes', serie_name: item.titulo },
-    }).then(({ data }) => {
-      const eps = data?.episodes || [];
-      setEpisodes(eps);
-      if (eps.length > 0) {
-        setActiveVideoUrl(eps[0].link);
-        setSelectedEpId(eps[0].id);
-        setShowEpisodes(true);
-      }
-    }).finally(() => setLoadingEps(false));
-  }, [item]);
+
+    if (playSource === 'xtream') {
+      // For Xtream, use series_id from the item id (series_XXX)
+      const seriesId = item.id.replace('series_', '');
+      supabase.functions.invoke('xtream-content', {
+        body: { action: 'episodes', series_id: seriesId },
+      }).then(({ data }) => {
+        const eps = data?.episodes || [];
+        setEpisodes(eps);
+        if (eps.length > 0) {
+          setActiveVideoUrl(eps[0].link);
+          setSelectedEpId(eps[0].id);
+          setShowEpisodes(true);
+        }
+      }).finally(() => setLoadingEps(false));
+    } else {
+      supabase.functions.invoke('baserow-content', {
+        body: { action: 'episodes', serie_name: item.titulo },
+      }).then(({ data }) => {
+        const eps = data?.episodes || [];
+        setEpisodes(eps);
+        if (eps.length > 0) {
+          setActiveVideoUrl(eps[0].link);
+          setSelectedEpId(eps[0].id);
+          setShowEpisodes(true);
+        }
+      }).finally(() => setLoadingEps(false));
+    }
+  }, [item, playSource]);
 
   const url = activeVideoUrl;
   const isDirectVideo = /\.(mp4|mkv|webm|avi|mov)(\?.*)?$/i.test(url);
@@ -422,11 +441,19 @@ export default function PlayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [playSource, setPlaySource] = useState<string>("baserow");
+
   useEffect(() => {
     async function fetchContent() {
       try {
         setLoading(true);
-        const { data, error: fnError } = await supabase.functions.invoke('baserow-content');
+        // Check which source to use
+        const { data: configData } = await supabase.from("admin_config").select("play_source").eq("id", 1).single();
+        const source = (configData as any)?.play_source || "baserow";
+        setPlaySource(source);
+
+        const functionName = source === "xtream" ? "xtream-content" : "baserow-content";
+        const { data, error: fnError } = await supabase.functions.invoke(functionName);
         if (fnError) throw fnError;
         setContent(data.items || []);
         setCategorias(data.categorias || []);
@@ -657,7 +684,7 @@ export default function PlayPage() {
 
       <AnimatePresence>
         {selected && (
-          <PlayerView item={selected} onClose={() => setSelected(null)} />
+          <PlayerView item={selected} onClose={() => setSelected(null)} playSource={playSource} />
         )}
       </AnimatePresence>
     </Layout>

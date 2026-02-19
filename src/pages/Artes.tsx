@@ -64,12 +64,19 @@ export default function Artes() {
       url = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artist)}&fields=${fields}&limit=12&page=${pageNum}&query[term][is_public_domain]=true`;
     }
 
-    const res = await fetch(url);
-    const json = await res.json();
-    return {
-      data: (json.data || []).filter((a: Artwork) => a.image_id),
-      hasMore: json.pagination?.total_pages > pageNum,
-    };
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      console.log("Art API response:", json?.data?.length, "items");
+      const filtered = (json.data || []).filter((a: Artwork) => a.image_id);
+      return {
+        data: filtered,
+        hasMore: json.pagination?.total_pages > pageNum,
+      };
+    } catch (err) {
+      console.error("Art API error:", err);
+      return { data: [], hasMore: false };
+    }
   };
 
   useEffect(() => {
@@ -150,12 +157,23 @@ export default function Artes() {
                   className="overflow-hidden cursor-pointer group hover:ring-1 hover:ring-primary/30 transition-all"
                   onClick={() => setSelected(art)}
                 >
-                  <div className="aspect-[3/4] overflow-hidden bg-muted">
+                  <div className="aspect-[3/4] overflow-hidden bg-muted flex items-center justify-center">
                     <img
                       src={getImageUrl(art.image_id, 600) || ""}
                       alt={art.thumbnail?.alt_text || art.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = "none";
+                        const parent = target.parentElement;
+                        if (parent && !parent.querySelector(".fallback-icon")) {
+                          const div = document.createElement("div");
+                          div.className = "fallback-icon flex flex-col items-center justify-center text-muted-foreground/40 gap-1";
+                          div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><span style="font-size:10px">Imagem indisponível</span>';
+                          parent.appendChild(div);
+                        }
+                      }}
                     />
                   </div>
                   <div className="p-3 space-y-1">
